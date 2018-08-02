@@ -5,7 +5,7 @@ https://demo.tutorialzine.com/2015/08/how-to-control-youtubes-video-player-with-
 
 */
 
-var player, socket, playback_rates;
+var player, socket, playback_rates, history_video_id;
 
 window.onYouTubeIframeAPIReady = function () {
     player = new YT.Player('video-placeholder', {
@@ -17,8 +17,8 @@ window.onYouTubeIframeAPIReady = function () {
             controls: 0,
             rel: 0,
             showinfo: 0,
-            host: 'https://www.youtube.com',
-            origin: 'https://jiejie.stream',
+            host: 'localhost',
+            origin: 'localhost',
             'frameborder': 0
         },
         events: {
@@ -30,16 +30,11 @@ window.onYouTubeIframeAPIReady = function () {
 
 function formatTime(time) {
     time = Math.round(time);
-
-    var minutes = Math.floor(time / 60),
-        seconds = time - minutes * 60;
-
+    var minutes = Math.floor(time / 60), seconds = time - minutes * 60;
     seconds = seconds < 10 ? '0' + seconds : seconds;
-
     return minutes + ":" + seconds;
 }
 
-// This function is called by initialize()
 function updateProgressBar() {
     // Update the value of our progress bar accordingly.
     $('#progress-bar').val((player.getCurrentTime() / player.getDuration()) * 100);
@@ -67,14 +62,10 @@ window.initialize = function (event) {
     updateProgressBar();
     updateTimerDisplay();
 
-    // Start interval to update elapsed time display and
-    // the elapsed part of the progress bar every second.
     var time_update_interval = setInterval(function () {
         updateProgressBar();
         updateTimerDisplay();
     }, 1000);
-
-    //player.setSize({width: $("#resize-video-frame").width, height: $("#resize-video-frame").height});
 };
 
 window.stateChange = function (event) {

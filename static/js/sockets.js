@@ -94,7 +94,7 @@ controlFullscreen = function () {
 // Process playing new video ------------>
 socket.on('server-play-new', function (data) {
     appendHistory(data["history"]);
-
+    
     player.loadVideoById(data["id"]);
     player.seekTo(0);
     player.playVideo();

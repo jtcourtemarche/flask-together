@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-    Yt de Locke
+    YT de Locke
 
     Libraries required:
     eventlet, flask, flask_socketio, gdata
