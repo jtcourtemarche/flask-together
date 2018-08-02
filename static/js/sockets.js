@@ -19,7 +19,7 @@ var appendHistory = function(history) {
 }
 
 // Initialize socket events ------------->
-socket = io.connect('http://' + document.domain + ':' + location.port);
+socket = io.connect('https://' + document.domain + ':' + location.port);
 
 // Handle Connect ----------------------->
 socket.on('connect', function () {
@@ -94,7 +94,7 @@ controlFullscreen = function () {
 // Process playing new video ------------>
 socket.on('server-play-new', function (data) {
     appendHistory(data["history"]);
-    
+
     player.loadVideoById(data["id"]);
     player.seekTo(0);
     player.playVideo();
