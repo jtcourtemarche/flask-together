@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>洁洁 Stats</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="../static/css/normalize.css">
+    <link rel="stylesheet" href="../static/css/skeleton.css">
+    
+    <!-- JS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="one-column" style="margin-top: 5%">
+            <h3>Most played videos:</h3>
+            <select onChange="updateGraph(this.value)" name="chart-type">
+                <option value="line">Line Chart</option>
+                <option value="bar">Bar Chart</option>
+                <option value="radar">Radar Chart</option>
+                <option value="pie">Pie Chart</option>
+                <option value="polarArea">Polar Chart</option>
+                <option value="bubble">Bubble Chart</option>
+            </select>
+            <canvas id="stats-chart" width="400" height="400"></canvas>
+        </div>
+    </div>
+</div>
+<script>
+    // Default graph type
+    var ctx = document.getElementById("stats-chart").getContext('2d');
+
+    data = {
+        datasets: [{
+            data: [
+                {% for key, value in history.items() %}
+                        {{ value }}, 
+                {% endfor %}
+            ]
+        }],
+        labels: [
+            {% for key, value in history.items() %}
+                    "{{ key }}", 
+            {% endfor %}
+        ],
+    };
+
+    var myDoughnutChart = new Chart(ctx, {
+        type: 'polarArea',
+        data: data,
+        options: ''
+    });
+</script>
+
+</body>
+</html>

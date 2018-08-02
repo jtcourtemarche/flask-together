@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <!-- Basic Page Needs
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <meta charset="utf-8">
+      <title>洁洁</title>
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <!-- Mobile Specific Metas
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- CSS
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+      <link rel="stylesheet" href="../static/css/skeleton.css">
+      <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+      <!-- JS
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+      <script type="text/javascript" src="../static/js/pace.min.js"></script>
+      <script type="text/javascript" src="../static/js/sockets.js"></script>
+      <script type="text/javascript" src="../static/js/player.js"></script>
+      <!-- Favicon
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <link rel="icon" type="image/png" href="../static/images/favicon.png">
+   </head>
+   <body>
+      <div class="container-fluid" style="margin-top: 1%">
+         <!-- Primary Page Layout
+            –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+         <div class="row">
+            <!-- Video embed side -->
+            <div class="col-7 col-md-offset-1">
+               <div class="card" style="overflow: hidden">
+                  <div class="card-header" style="text-indent: 1em">
+                    <p class="card-title" id="page-title"></p>
+                    <p class="card-subtitle" id="page-author"></p>
+                  </div>
+                  <div class="card-body" style="padding:0">
+                      <div class="embed-responsive embed-responsive-16by9">
+                        <div id="video-placeholder"></div>
+                        <script src="https://www.youtube.com/iframe_api"></script>
+                      </div>
+                     <div class="row">
+                        <input type="range" id="progress-bar" value="0"></input>
+                        <script>
+                           $('#progress-bar').on('mouseup touchend', function (e) {
+                               // Calculate the new time for the video.
+                               var newTime = player.getDuration() * (e.target.value / 100);
+                               socket.emit('client-skip', {time: newTime});
+                           });
+                        </script>
+                     </div>
+                     <div class="row">
+                        <div id="duration-container">
+                           <h6 id="current-time"></h6>
+                           <h6>&nbsp;/&nbsp;</h6>
+                           <h6 id="duration"></h6>
+                        </div>
+                     </div>
+                     <div class="row" id="controls" style="margin-top: 2.5%">
+                        <div class="input-group mb-3">
+                          <div class="col col-10">
+                            <div class="btn-toolbar" role="toolbar">
+                              <div class="btn-group mr-2" role="group">
+                                  <button class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
+                                  <button class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
+                                  <button class="btn btn-outline-secondary"><input type="range" id="volume-slider" alt="Change volume" value="100"></input></button>
+                                  <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
+                              </div>
+                              <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseRate">Rate</button>
+                              <div class="collapse" id="collapseRate">
+                                <div class="btn-group mr-2" id="playback-rates" role="group"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col col-2">
+                            <input type="text" id="skip_to" placeholder="Skip to"></input>
+                            <script>
+                                $('#skip_to').on("keydown", function(event) {
+                                  if (event.which == 13) {
+                                    controlSkip($("#skip_to").val());
+                                  }
+                                });
+                            </script>
+                          </div>
+                        </div>
+                        <script>
+                           $("#volume-slider").on('input', function() {
+                             player.setVolume($("#volume-slider").val());
+                           });  
+                        </script>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <!-- Search side -->
+            <div class="col-5 col-md-offset-1" style="overflow: hidden">
+               <div class="h-50 d-inline-block">
+                  <div class="card">
+                     <div class="card-header">
+                        <div class="row">
+                          <div class="col align-self-center">
+                              <input style="text-indent: 1em" type="text" id="yt-url" placeholder="Search or Enter URL"></input>
+                              <script>
+                                  $('#yt-url').on("keydown", function(event) {
+                                    if (event.which == 13) {
+                                      controlPlayNew($("#yt-url").val());
+                                    }
+                                  });
+                              </script>
+                            </div>
+                        </div>
+                     </div>
+                     <div class="card-body">
+                        <div class="row">
+                           <div class="col-6">
+                              <div class="row">
+                                 <ul style="overflow-y: scroll;max-height: 742px" id="search-list" class="list-group">
+                                 </ul>
+                              </div>
+                           </div>
+                           <div class="col-6">
+                              <div class="row">
+                                 <ul style="overflow-y: scroll;max-height: 742px" id="history-list" class="list-group"></ul>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <!-- End Document
+         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+   </body>
+</html>
