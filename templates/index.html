@@ -22,8 +22,6 @@
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
       <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
       <script type="text/javascript" src="../static/js/pace.min.js"></script>
-      <script type="text/javascript" src="../static/js/sockets.js"></script>
-      <script type="text/javascript" src="../static/js/player.js"></script>
       <!-- Favicon
          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
       <link rel="icon" type="image/png" href="../static/images/favicon.png">
@@ -43,17 +41,9 @@
                   <div class="card-body" style="padding:0">
                       <div class="embed-responsive embed-responsive-16by9">
                         <div id="video-placeholder"></div>
-                        <script src="https://www.youtube.com/iframe_api"></script>
                       </div>
                      <div class="row">
                         <input type="range" id="progress-bar" value="0"></input>
-                        <script>
-                           $('#progress-bar').on('mouseup touchend', function (e) {
-                               // Calculate the new time for the video.
-                               var newTime = player.getDuration() * (e.target.value / 100);
-                               socket.emit('client-skip', {time: newTime});
-                           });
-                        </script>
                      </div>
                      <div class="row">
                         <div id="duration-container">
@@ -80,20 +70,8 @@
                           </div>
                           <div class="col col-2">
                             <input type="text" id="skip_to" placeholder="Skip to"></input>
-                            <script>
-                                $('#skip_to').on("keydown", function(event) {
-                                  if (event.which == 13) {
-                                    controlSkip($("#skip_to").val());
-                                  }
-                                });
-                            </script>
                           </div>
                         </div>
-                        <script>
-                           $("#volume-slider").on('input', function() {
-                             player.setVolume($("#volume-slider").val());
-                           });  
-                        </script>
                      </div>
                   </div>
                </div>
@@ -106,13 +84,6 @@
                         <div class="row">
                           <div class="col align-self-center">
                               <input style="text-indent: 1em" type="text" id="yt-url" placeholder="Search or Enter URL"></input>
-                              <script>
-                                  $('#yt-url').on("keydown", function(event) {
-                                    if (event.which == 13) {
-                                      controlPlayNew($("#yt-url").val());
-                                    }
-                                  });
-                              </script>
                             </div>
                         </div>
                      </div>
@@ -136,7 +107,9 @@
             </div>
          </div>
       </div>
-      <!-- End Document
-         –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+      <script src="https://www.youtube.com/iframe_api"></script>
+      <script type="text/javascript" src="../static/js/sockets.js"></script>
+      <script type="text/javascript" src="../static/js/player.js"></script>
+      <script type="text/javascript" src="../static/js/events.js"></script>
    </body>
 </html>

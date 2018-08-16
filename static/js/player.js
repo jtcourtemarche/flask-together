@@ -1,13 +1,6 @@
-/*
+var player, playback_rates, player_ready;
 
-For most of the code in this file, credit goes to:
-https://demo.tutorialzine.com/2015/08/how-to-control-youtubes-video-player-with-javascript/
-
-*/
-
-var player, socket, playback_rates, history_video_id;
-
-window.onYouTubeIframeAPIReady = function () {
+function onYouTubeIframeAPIReady() {
     player = new YT.Player('video-placeholder', {
         width: $("#progress-bar").width(),
         height: 447,
@@ -22,10 +15,34 @@ window.onYouTubeIframeAPIReady = function () {
             'frameborder': 0
         },
         events: {
-            onReady: initialize,
+            onReady: onReady,
             onStateChange: stateChange
         }
     });
+};
+
+window.onReady = function (event) {
+    updateProgressBar();
+    updateTimerDisplay();
+
+    var time_update_interval = setInterval(function () {
+        updateProgressBar();
+        updateTimerDisplay();
+    }, 1000);
+
+    connect_socket();
+};
+
+window.stateChange = function (event) {
+    if (event.data == 5) {
+        socket.emit('player-ready', 
+            event.target)
+    }
+
+    $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData()["video_id"] + "'>" + event.target.getVideoData()["title"] + "</a>");
+    $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData()["author"]+'</button>');
+    playback_rates = event.target.getAvailablePlaybackRates();
+    showPlaybackRates(playback_rates);
 };
 
 function formatTime(time) {
@@ -52,25 +69,3 @@ function showPlaybackRates(playback_rates) {
         $("#playback-rates").append("<button onclick='controlRate("+playback_rates[i]+")' class='btn btn-outline-secondary'>"+playback_rates[i]+"</button>");
     }
 }
-
-window.initialize = function (event) {
-    if (history_video_id != "") {
-        event.target.loadVideoById(history_video_id);
-        event.target.playVideo();
-    }
-
-    updateProgressBar();
-    updateTimerDisplay();
-
-    var time_update_interval = setInterval(function () {
-        updateProgressBar();
-        updateTimerDisplay();
-    }, 1000);
-};
-
-window.stateChange = function (event) {
-    $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData()["video_id"] + "'>" + event.target.getVideoData()["title"] + "</a>");
-    $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData()["author"]+'</button>');
-    playback_rates = event.target.getAvailablePlaybackRates();
-    showPlaybackRates(playback_rates);
-};

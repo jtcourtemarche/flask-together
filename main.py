@@ -14,10 +14,10 @@ from api import API_KEY
 
 app = Flask(__name__)
 
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['Testing'] = True
-app.config['Debug'] = False
-app.config["SERVER_HOST"] = '0.0.0.0:5000'
+app.config.update(
+    TEMPLATES_AUTO_RELOAD=True,
+    SERVER_HOST='0.0.0.0:5000'
+)
 
 def search_yt(query):
     query = str(urllib.quote(query))

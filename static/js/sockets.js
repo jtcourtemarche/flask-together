@@ -1,3 +1,5 @@
+var socket;
+
 var appendHistory = function(history) {
     $("#history-list").empty();
     var json, video_title, video_thumbnail, prev_video_title, video_id;
@@ -18,105 +20,130 @@ var appendHistory = function(history) {
     }
 }
 
-// Initialize socket events ------------->
-socket = io.connect('ws://' + document.domain + ':' + location.port);
-
-// Handle Connect ----------------------->
-socket.on('connect', function () {
-    socket.emit('joined');
-});
-
-// Load last video from DB -------------->
-history_video_id = "";
-socket.on('new-user-sync', function (id) {
-    history_video_id = id["id"];
-    appendHistory(id["history"]);
-    // Often a browser will auto-refresh the page over time 
-    // making it so "No search results" will repeat over 
-    // and over again. To prevent this empty the div.
-    $("#search-list").empty();
-    $("#search-list").append("No search results.");
-});
-
-// Skip --------------------------------->
-socket.on('server-skip', function (time) {
-    player.seekTo(time);
-    player.playVideo();
-});
-
-// Play / Pause ------------------------->
-socket.on('server-play', function (time) {
-    player.seekTo(time);
-    player.playVideo();
-});
-socket.on('server-pause', function (time) {
-    player.seekTo(time);
-    player.pauseVideo();
-});
-controlPlay = function () {
-    socket.emit('client-play', {
-        time: player.getCurrentTime()
-    });
+var controlPlayNew = function (url) {
+    if (typeof socket != 'undefined') {
+        socket.emit('client-play-new', {
+            url: url
+        });
+    }
 };
-controlPause = function () {
-    socket.emit('client-pause', {
-        time: player.getCurrentTime()
-    });
+
+// Fullscreen --------------------------->
+var controlFullscreen = function () {
+    if (typeof socket != 'undefined') {
+        // Chrome only
+        var iframe = document.getElementById("video-placeholder");
+        iframe.webkitRequestFullScreen();
+    }
+}
+
+var controlPlay = function () {
+    if (typeof socket != 'undefined') {
+        socket.emit('client-play', {
+            time: player.getCurrentTime()
+        });
+    }
+};
+var controlPause = function () {
+    if (typeof socket != 'undefined') {
+        socket.emit('client-pause', {
+            time: player.getCurrentTime()
+        });
+    }
 };
 
 // Skip to ------------------------------>
-controlSkip = function (time) {
-    var time = time.split(':');
-    if (time.length == 2) {
-        seconds = (+time[0]) * 60 + (+time[1]); 
-    } else {
-        seconds = (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]); 
-    }
+var controlSkip = function (time) {
+    if (typeof socket != 'undefined') {
+        var time = time.split(':');
+        if (time.length == 2) {
+            seconds = (+time[0]) * 60 + (+time[1]); 
+        } else {
+            seconds = (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]); 
+        }
 
-    socket.emit('client-skip', {
-        time: seconds
-    });
+        socket.emit('client-skip', {
+            time: seconds
+        });
+    }
 };
 
 // Change Playback Rate ----------------->
-controlRate = function (rate) {
-    socket.emit('client-rate', {
-        rate: rate
-    });
+var controlRate = function (rate) {
+    if (typeof socket != 'undefined') {
+        socket.emit('client-rate', {
+            rate: rate
+        });
+    }
 };
-socket.on('server-rate', function(rate) {
-    player.setPlaybackRate(rate);
-});
 
-// Fullscreen --------------------------->
-controlFullscreen = function () {
-    // Chrome only
-    var iframe = document.getElementById("video-placeholder");
-    iframe.webkitRequestFullScreen();
+// Initialize socket events ------------->
+var connect_socket = function() {
+    if (socket == undefined) {
+        socket = io.connect('ws://' + document.domain + ':' + location.port);
+    }
+    
+    // Handle Connect ----------------------->
+    socket.on('connect', function () {
+        socket.emit('joined');
+    });
+
+    // Load last video from DB -------------->
+    socket.on('new-user-sync', function (id) {
+        history_video_id = id["id"];
+        console.log('Playing '+history_video_id);
+
+        // Play last video from DB
+        if (history_video_id != []) {
+            player.loadVideoById(history_video_id);
+            player.playVideo();
+        }
+
+        appendHistory(id["history"]);
+        // Often a browser will auto-refresh the page over time 
+        // making it so "No search results" will repeat over 
+        // and over again. To prevent this empty the div.
+        $("#search-list").empty();
+        $("#search-list").append("No search results.");
+    });
+
+    // Skip --------------------------------->
+    socket.on('server-skip', function (time) {
+        player.seekTo(time);
+        player.playVideo();
+    });
+
+    // Play / Pause ------------------------->
+    socket.on('server-play', function (time) {
+        player.seekTo(time);
+        player.playVideo();
+    });
+    socket.on('server-pause', function (time) {
+        player.seekTo(time);
+        player.pauseVideo();
+    });
+    socket.on('server-rate', function(rate) {
+        player.setPlaybackRate(rate);
+    });
+
+    // Process playing new video ------------>
+    socket.on('server-play-new', function (data) {
+        appendHistory(data["history"]);
+
+        player.loadVideoById(data["id"]);
+        player.seekTo(0);
+        player.playVideo();
+    });
+
+    // Search function ---------------------->
+    socket.on('server-serve-list', function (data) {
+        $("#search-list").empty();
+        for (result in data["results"]) {
+            $("#search-list").append("<li class='list-group-item'><div class='search-result' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + data["results"][result]["id"]["videoId"] + "\")' style='cursor:pointer'><p>" + data["results"][result]["snippet"]["title"] + "</p><img class='thumbnail' src='" + data["results"][result]["snippet"]["thumbnails"]["default"]["url"] + "'/></div></li>");
+        }
+        if (data["results"].length == 0) {
+            $("#search-list").append("<li class='list-group-item disabled'>No results found.</li>");
+        }
+        document.querySelector("#search-list").scrollTop = 0;
+    });
 }
-
-// Process playing new video ------------>
-socket.on('server-play-new', function (data) {
-    appendHistory(data["history"]);
-
-    player.loadVideoById(data["id"]);
-    player.seekTo(0);
-    player.playVideo();
-});
-controlPlayNew = function (url) {
-    socket.emit('client-play-new', {
-        url: url
-    });
-};
-
-// Search function ---------------------->
-socket.on('server-serve-list', function (data) {
-    $("#search-list").empty();
-    for (result in data["results"]) {
-        $("#search-list").append("<li class='list-group-item'><div class='search-result' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + data["results"][result]["id"]["videoId"] + "\")' style='cursor:pointer'><p>" + data["results"][result]["snippet"]["title"] + "</p><img class='thumbnail' src='" + data["results"][result]["snippet"]["thumbnails"]["default"]["url"] + "'/></div></li>");
-    }
-    if (data["results"].length == 0) {
-        $("#search-list").append("<li class='list-group-item disabled'>No results found.</li>");
-    }
-    document.querySelector("#search-list").scrollTop = 0;
-});
