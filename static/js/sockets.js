@@ -19,7 +19,7 @@ var appendHistory = function(history) {
 }
 
 // Initialize socket events ------------->
-socket = io.connect('https://' + document.domain + ':' + location.port);
+socket = io.connect('ws://' + document.domain + ':' + location.port);
 
 // Handle Connect ----------------------->
 socket.on('connect', function () {
