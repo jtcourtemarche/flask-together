@@ -31,6 +31,10 @@ history_video_id = "";
 socket.on('new-user-sync', function (id) {
     history_video_id = id["id"];
     appendHistory(id["history"]);
+    // Often a browser will auto-refresh the page over time 
+    // making it so "No search results" will repeat over 
+    // and over again. To prevent this empty the div.
+    $("#search-list").empty();
     $("#search-list").append("No search results.");
 });
 
