@@ -74,6 +74,9 @@ var controlRate = function (rate) {
         socket.emit('client-rate', {
             rate: rate
         });
+        $('.playback-rate').show();
+        $('.playback-rate').html(rate+'x');
+        $('.playback-rate').fadeOut(2500);
     }
 };
 
