@@ -124,36 +124,29 @@ table {
   border-radius: 5px;
 }
 
-.search-result img {
-  float: right;
-  width: 25%;
-}
-.search-result p {
-  float: left;
-  width: 75%;
-}
-.history-result img {
-  float: right;
-  width: 25%;
-}
-.history-result p { 
-  float: left;
-  width: 75%;
-}
-
 #yt-url {
-  width: 100%;
+  width: 90%;
   border-radius: 5px;
   border: 0;
   background: transparent;
   outline: 0;
 }
 
-.search-result:hover {
+
+#list-result button {
+  font-size: 10px; 
   cursor: pointer;
-  background: #ccc !important;
 }
-.history-result:hover {
+#list-result img {
+  float: right;
+  width: 25%;
+  border: 1px solid yellow;
+}
+#list-result p { 
+  float: left;
+  width: 50%;
+}
+#list-result:hover {
   cursor: pointer;
   background: #ccc !important;
 }
@@ -162,4 +155,22 @@ table {
   color: #1EAEDB !important;
   font-size: 18px;
   font-weight: 500;
+}
+.playback-rate {
+  position: absolute;
+  font-size: 48px; 
+  color: white;
+  font-weight: bold;
+  z-index: 9999;
+  right: 0;
+  margin-right: 15px;
+  opacity: 0.8;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+}
+
+.no-search {
+  color: #CCC;
+  vertical-align: middle;
+  text-align: center;
 }

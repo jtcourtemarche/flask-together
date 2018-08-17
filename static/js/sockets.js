@@ -15,7 +15,8 @@ var appendHistory = function(history) {
         // Avoid repeats
         if (prev_video_title != video_title) {
             prev_video_title = video_title;
-            $("#history-list").append("<li class='list-group-item'><div class='history-result' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + video_id + "\")'><p>" + video_title + "</p><img class='thumbnail' src='" + video_thumbnail + "'/></div></li>");
+            $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + 
+                video_id + "\")'><p>" + video_title + "</p><img class='thumbnail' src='" + video_thumbnail + "'/></li>");
         }
     }
 }
@@ -83,7 +84,7 @@ var controlRate = function (rate) {
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
-        socket = io.connect('https://' + document.domain + ':' + location.port);
+        socket = io.connect('ws://' + document.domain + ':' + location.port);
     }
 
     // Handle Connect ----------------------->
@@ -107,7 +108,7 @@ var connect_socket = function() {
         // making it so "No search results" will repeat over 
         // and over again. To prevent this empty the div.
         $("#search-list").empty();
-        $("#search-list").append("No search results.");
+        $("#search-list").append("<span class='no-search'>No search results.</span>");
     });
 
     // Skip --------------------------------->
@@ -142,10 +143,16 @@ var connect_socket = function() {
     socket.on('server-serve-list', function (data) {
         $("#search-list").empty();
         for (result in data["results"]) {
-            $("#search-list").append("<li class='list-group-item'><div class='search-result' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + data["results"][result]["id"]["videoId"] + "\")' style='cursor:pointer'><p>" + data["results"][result]["snippet"]["title"] + "</p><img class='thumbnail' src='" + data["results"][result]["snippet"]["thumbnails"]["default"]["url"] + "'/></div></li>");
+            $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+             data["results"][result]["id"]["videoId"] + "\")'><p>" + 
+             data["results"][result]["snippet"]["title"] + "<br/><button class='btn btn-info' disabled>"+ 
+             data["results"][result]["snippet"]["publishedAt"].split('T')[0] +
+             "</button></p><img class='thumbnail' src='" + 
+             data["results"][result]["snippet"]["thumbnails"]["default"]["url"] + 
+             "'/></li>");
         }
         if (data["results"].length == 0) {
-            $("#search-list").append("<li class='list-group-item disabled'>No results found.</li>");
+            $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
         document.querySelector("#search-list").scrollTop = 0;
     });

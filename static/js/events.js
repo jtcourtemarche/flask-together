@@ -21,3 +21,11 @@ $('#skip_to').on("keydown", function(event) {
 		controlSkip($("#skip_to").val());
 	}
 });
+
+$('#yt-url-close').click(function() {
+	$('#yt-url').val('');
+});
+
+$('#search-result').click(function() {
+	//
+});

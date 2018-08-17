@@ -13,7 +13,7 @@
       <!-- CSS
          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
-      <link rel="stylesheet" href="../static/css/skeleton.css">
+      <link rel="stylesheet" href="../static/css/main.css">
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
       <!-- JS
          –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -34,23 +34,12 @@
                <div class="card" style="overflow: hidden">
                   <div class="card-header" style="text-indent: 1em">
                     <p class="card-title" id="page-title"></p>
-                    <p class="card-subtitle" id="page-author"></p>
+                    <div class="card-subtitle">
+                      <div id="page-author"></div>
+                      <div id="page-date"></div>
+                    </div>
                   </div>
                   <div class="card-body" style="padding:0">
-                      <style>
-                        .playback-rate {
-                          position: absolute;
-                          font-size: 48px; 
-                          color: white;
-                          font-weight: bold;
-                          z-index: 9999;
-                          right: 0;
-                          margin-right: 15px;
-                          opacity: 0.8;
-                          -webkit-text-stroke-width: 1px;
-                          -webkit-text-stroke-color: black;
-                        }
-                      </style>
                       <div class="playback-rate"></div>
                       <div class="embed-responsive embed-responsive-16by9">
                         <div id="video-placeholder"></div>
@@ -96,7 +85,12 @@
                      <div class="card-header">
                         <div class="row">
                           <div class="col align-self-center">
-                              <input style="text-indent: 1em" type="text" id="yt-url" placeholder="Search or Enter URL"></input>
+                              <div class="input-group mb-3">
+                                <input style="text-indent: 1em" type="text" id="yt-url" placeholder="Search or Enter URL" >
+                                <button style="float: right" type="button" id="yt-url-close" class="close" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
                             </div>
                         </div>
                      </div>
@@ -104,13 +98,13 @@
                         <div class="row">
                            <div class="col-6">
                               <div class="row">
-                                 <ul style="overflow-y: scroll;max-height: 742px" id="search-list" class="list-group">
+                                 <ul style="overflow-y: scroll;height: 742px; width:400px;" id="search-list" class="list-group">
                                  </ul>
                               </div>
                            </div>
                            <div class="col-6">
                               <div class="row">
-                                 <ul style="overflow-y: scroll;max-height: 742px" id="history-list" class="list-group"></ul>
+                                 <ul style="overflow-y: scroll;height: 742px; width: 400px" id="history-list" class="list-group"></ul>
                               </div>
                            </div>
                         </div>
