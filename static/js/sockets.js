@@ -83,7 +83,7 @@ var controlRate = function (rate) {
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
-        socket = io.connect('https://' + document.domain + ':' + location.port);
+        socket = io.connect('https://' + document.domain + ':' + location.port, {secure: true});
     }
 
     // Handle Connect ----------------------->
