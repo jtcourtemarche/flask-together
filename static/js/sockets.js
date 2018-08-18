@@ -113,6 +113,8 @@ var connect_socket = function() {
 
     // Skip --------------------------------->
     socket.on('server-skip', function (time) {
+        $('#play, #pause').toggle();
+
         player.seekTo(time);
         player.playVideo();
     });
