@@ -3,12 +3,12 @@ var socket;
 var appendHistory = function(history) {
     $("#history-list").empty();
     var json, video_title, video_thumbnail, prev_video_title, video_id;
-    for (i in history) {
-        if (i > 20) {
+    for (var h in history) {
+        if (h > 20) {
             break;
         }
 
-        json = JSON.parse(history[i][2]);
+        json = JSON.parse(history[h][2]);
         video_title = json.items[0].snippet.title;
         video_id = json.items[0].id;
         video_date = json.items[0].snippet.publishedAt;
@@ -21,7 +21,7 @@ var appendHistory = function(history) {
                 video_date.split('T')[0]+"</span></p><img class='thumbnail' src='" + video_thumbnail + "'/></li>");
         }
     }
-}
+};
 
 var controlPlayNew = function (url) {
     if (typeof socket != 'undefined') {
@@ -38,7 +38,7 @@ var controlFullscreen = function () {
         var iframe = document.getElementById("video-placeholder");
         iframe.webkitRequestFullScreen();
     }
-}
+};
 
 var controlPlay = function () {
     if (typeof socket != 'undefined') {
@@ -58,7 +58,7 @@ var controlPause = function () {
 // Skip to ------------------------------>
 var controlSkip = function (time) {
     if (typeof socket != 'undefined') {
-        var time = time.split(':');
+        time = time.split(':');
         if (time.length == 2) {
             seconds = (+time[0]) * 60 + (+time[1]); 
         } else {
@@ -100,7 +100,7 @@ var connect_socket = function() {
 
     // Load last video from DB -------------->
     socket.on('new-user-sync', function (id) {
-        history_video_id = id["id"];
+        history_video_id = id.id;
         console.log('Playing '+history_video_id);
 
         // Play last video from DB
@@ -109,7 +109,7 @@ var connect_socket = function() {
             player.playVideo();
         }
 
-        appendHistory(id["history"]);
+        appendHistory(id.history);
         // Often a browser will auto-refresh the page over time 
         // making it so "No search results" will repeat over 
         // and over again. To prevent this empty the div.
@@ -138,9 +138,9 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server-play-new', function (data) {
-        appendHistory(data["history"]);
+        appendHistory(data.history);
 
-        player.loadVideoById(data["id"]);
+        player.loadVideoById(data.id);
         player.seekTo(0);
         player.playVideo();
     });
@@ -148,18 +148,18 @@ var connect_socket = function() {
     // Search function ---------------------->
     socket.on('server-serve-list', function (data) {
         $("#search-list").empty();
-        for (result in data["results"]) {
+        for (var result in data.results) {
             $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-             data["results"][result]["id"]["videoId"] + "\")'><p>" + 
-             data["results"][result]["snippet"]["title"] + "<br/><span class='upload-date'>"+ 
-             data["results"][result]["snippet"]["publishedAt"].split('T')[0] +
+             data.results[result].id.videoId + "\")'><p>" + 
+             data.results[result].snippet.title + "<br/><span class='upload-date'>"+ 
+             data.results[result].snippet.publishedAt.split('T')[0] +
              "</span></p><img class='thumbnail' src='" + 
-             data["results"][result]["snippet"]["thumbnails"]["high"]["url"] + 
+             data.results[result].snippet.thumbnails.high.url + 
              "'/></li>");
         }
-        if (data["results"].length == 0) {
+        if (data.results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
         document.querySelector("#search-list").scrollTop = 0;
     });
-}
+};

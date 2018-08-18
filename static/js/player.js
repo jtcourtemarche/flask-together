@@ -19,7 +19,7 @@ function onYouTubeIframeAPIReady() {
             onStateChange: stateChange
         }
     });
-};
+}
 
 window.onReady = function (event) {
     updateProgressBar();
@@ -35,12 +35,11 @@ window.onReady = function (event) {
 
 window.stateChange = function (event) {
     if (event.data == 5) {
-        socket.emit('player-ready', 
-            event.target)
+        socket.emit('player-ready', event.target);
     }
 
-    $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData()["video_id"] + "'>" + event.target.getVideoData()["title"] + "</a>");
-    $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData()["author"]+'</button>');
+    $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData().video_id + "'>" + event.target.getVideoData().title + "</a>");
+    $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData().author+'</button>');
     playback_rates = event.target.getAvailablePlaybackRates();
     showPlaybackRates(playback_rates);
 };
@@ -65,7 +64,7 @@ function updateTimerDisplay() {
 
 function showPlaybackRates(playback_rates) {
     $("#playback-rates").empty();
-    for (i in playback_rates) {
-        $("#playback-rates").append("<button onclick='controlRate("+playback_rates[i]+")' class='btn btn-outline-secondary'>"+playback_rates[i]+"</button>");
+    for (var p in playback_rates) {
+        $("#playback-rates").append("<button onclick='controlRate("+playback_rates[p]+")' class='btn btn-outline-secondary'>"+playback_rates[p]+"</button>");
     }
 }
