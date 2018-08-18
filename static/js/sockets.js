@@ -126,10 +126,16 @@ var connect_socket = function() {
     socket.on('server-play', function (time) {
         player.seekTo(time);
         player.playVideo();
+
+        $('#pause').show();
+        $('#play').hide();
     });
     socket.on('server-pause', function (time) {
         player.seekTo(time);
         player.pauseVideo();
+
+        $('#play').show();
+        $('#pause').hide();
     });
     socket.on('server-rate', function(rate) {
         player.setPlaybackRate(rate);
