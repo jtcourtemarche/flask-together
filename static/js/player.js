@@ -37,7 +37,7 @@ window.stateChange = function (event) {
     if (event.data == 5) {
         socket.emit('player-ready', event.target);
     }
-
+    
     $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData().video_id + "'>" + event.target.getVideoData().title + "</a>");
     $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData().author+'</button>');
     playback_rates = event.target.getAvailablePlaybackRates();

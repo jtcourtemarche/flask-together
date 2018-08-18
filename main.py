@@ -26,11 +26,22 @@ app.config.update(
     SERVER_HOST='0.0.0.0:5000'
 )
 
+def check_channel_yt(url):
+    api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
+            url.split('/channel/')[1],
+            API_KEY
+    )
+    feed = urllib2.urlopen(api_url).read()
+    return json.loads(feed)['items']
+
 def search_yt(query):
     query = str(urllib.quote(query))
-    url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=relevance&q="+query+"&key="+API_KEY+"&part=id%2Csnippet"
+    url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=relevance&q={0}&key={1}&part=id%2Csnippet".format(
+        query,
+        API_KEY
+    )
     feed = urllib2.urlopen(url).read()
-    return json.loads(feed)["items"]
+    return json.loads(feed)['items']
 
 # Tool that checks if valid youtube video
 def check_yt(id):
@@ -102,10 +113,12 @@ def play_new(data):
     yt_id = re.findall(yt_re, data["url"])
 
     # Check if valid youtube url, if not serve search results
-    if yt_id == []:
-        results = search_yt(data['url'])
-
+    if '/channel/' in data['url']:
+        results = check_channel_yt(data['url'])
         emit('server-serve-list', {'results': results}, room=request.sid)
+    elif yt_id == []:
+        results = search_yt(data['url'])
+        emit('server-serve-list', {'results': results}, room=request.sid)        
     else:
         with sqlite3.connect('watch.db') as conn:
             conn.text_factory = str
