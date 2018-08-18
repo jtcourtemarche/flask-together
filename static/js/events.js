@@ -29,3 +29,4 @@ $('#yt-url-close').click(function() {
 $('#search-result').click(function() {
 	//
 });
+

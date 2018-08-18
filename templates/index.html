@@ -27,11 +27,11 @@
       <link rel="icon" type="image/png" href="../static/images/favicon.png">
    </head>
    <body>
-      <div class="container-fluid" style="margin-top: 1%">
+      <div class="container" style="margin-top: 1%; max-width: 85%">
          <div class="row">
             <!-- Video embed side -->
             <div class="col-7 col-md-offset-1">
-               <div class="card" style="overflow: hidden">
+               <div id="video-card" class="card" style="overflow: hidden">
                   <div class="card-header" style="text-indent: 1em">
                     <p class="card-title" id="page-title"></p>
                     <div class="card-subtitle">
@@ -45,7 +45,7 @@
                         <div id="video-placeholder"></div>
                       </div>
                      <div class="row">
-                        <input type="range" id="progress-bar" value="0"></input>
+                        <input type="range" id="progress-bar" value="0"/>
                      </div>
                      <div class="row">
                         <div id="duration-container">
@@ -54,24 +54,21 @@
                            <h6 id="duration"></h6>
                         </div>
                      </div>
-                     <div class="row" id="controls" style="margin-top: 2.5%">
-                        <div class="input-group mb-3">
-                          <div class="col col-10">
-                            <div class="btn-toolbar" role="toolbar">
-                              <div class="btn-group mr-2" role="group">
-                                  <button class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
-                                  <button class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
-                                  <button class="btn btn-outline-secondary"><input type="range" id="volume-slider" alt="Change volume" value="100"></input></button>
-                                  <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
+                     <div class="row" id="controls">
+                        <div class="input-group">
+                          <div class="col col-11">
+                            <div class="input-group mr-2" role="group">
+                              <div class="btn-group" role="group"> 
+                                <button class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
+                                <button class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
+                                <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
                               </div>
-                              <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseRate">Rate</button>
-                              <div class="collapse" id="collapseRate">
-                                <div class="btn-group mr-2" id="playback-rates" role="group"></div>
-                              </div>
+                              <input type="text" id="skip_to" style="margin-left: 5px;" placeholder="Skip to"/>
+                              <input type="range" id="volume-slider" alt="Change volume" value="100"/>
                             </div>
                           </div>
-                          <div class="col col-2">
-                            <input type="text" id="skip_to" placeholder="Skip to"></input>
+                          <div class="col col-1">
+                            <div class="btn-group mr-1" id="playback-rates" role="group"></div>
                           </div>
                         </div>
                      </div>
@@ -79,37 +76,33 @@
                </div>
             </div>
             <!-- Search side -->
-            <div class="col-5 col-md-offset-1" style="overflow: hidden">
-               <div class="h-50 d-inline-block">
-                  <div class="card">
+            <div class="col-5 col-md-offset-1">
+                <div id="search-card" style="overflow: hidden" class="card">
                      <div class="card-header">
                         <div class="row">
                           <div class="col align-self-center">
-                              <div class="input-group mb-3">
                                 <input style="text-indent: 1em" type="text" id="yt-url" placeholder="Search or Enter URL" >
-                                <button style="float: right" type="button" id="yt-url-close" class="close" aria-label="Close">
+                                <button type="button" id="yt-url-close" class="close" aria-label="Close">
                                   <span aria-hidden="true">&times;</span>
                                 </button>
-                              </div>
-                            </div>
+                          </div>
                         </div>
                      </div>
                      <div class="card-body">
                         <div class="row">
                            <div class="col-6">
                               <div class="row">
-                                 <ul style="overflow-y: scroll;height: 742px; width:400px;" id="search-list" class="list-group">
+                                 <ul id="search-list" class="list-group">
                                  </ul>
                               </div>
                            </div>
                            <div class="col-6">
                               <div class="row">
-                                 <ul style="overflow-y: scroll;height: 742px; width: 400px" id="history-list" class="list-group"></ul>
+                                 <ul id="history-list" class="list-group"></ul>
                               </div>
                            </div>
                         </div>
                      </div>
-                  </div>
                </div>
             </div>
          </div>

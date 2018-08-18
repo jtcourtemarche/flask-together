@@ -11,12 +11,14 @@ var appendHistory = function(history) {
         json = JSON.parse(history[i][2]);
         video_title = json.items[0].snippet.title;
         video_id = json.items[0].id;
+        video_date = json.items[0].snippet.publishedAt;
         video_thumbnail = json.items[0].snippet.thumbnails.default.url;
         // Avoid repeats
         if (prev_video_title != video_title) {
             prev_video_title = video_title;
             $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" + 
-                video_id + "\")'><p>" + video_title + "</p><img class='thumbnail' src='" + video_thumbnail + "'/></li>");
+                video_id + "\")'><p>" + video_title + "<br/><span class='upload-date'>" +
+                video_date.split('T')[0]+"</span></p><img class='thumbnail' src='" + video_thumbnail + "'/></li>");
         }
     }
 }
@@ -75,6 +77,9 @@ var controlRate = function (rate) {
         socket.emit('client-rate', {
             rate: rate
         });
+        // Cancel previous animation
+        $('.playback-rate').stop(true, true).fadeOut(2500);
+
         $('.playback-rate').show();
         $('.playback-rate').html(rate+'x');
         $('.playback-rate').fadeOut(2500);
@@ -85,6 +90,7 @@ var controlRate = function (rate) {
 var connect_socket = function() {
     if (socket == undefined) {
         socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        //socket = io.connect('ws://' + document.domain + ':' + location.port);
     }
 
     // Handle Connect ----------------------->
@@ -145,10 +151,10 @@ var connect_socket = function() {
         for (result in data["results"]) {
             $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
              data["results"][result]["id"]["videoId"] + "\")'><p>" + 
-             data["results"][result]["snippet"]["title"] + "<br/><button class='btn btn-info' disabled>"+ 
+             data["results"][result]["snippet"]["title"] + "<br/><span class='upload-date'>"+ 
              data["results"][result]["snippet"]["publishedAt"].split('T')[0] +
-             "</button></p><img class='thumbnail' src='" + 
-             data["results"][result]["snippet"]["thumbnails"]["default"]["url"] + 
+             "</span></p><img class='thumbnail' src='" + 
+             data["results"][result]["snippet"]["thumbnails"]["high"]["url"] + 
              "'/></li>");
         }
         if (data["results"].length == 0) {

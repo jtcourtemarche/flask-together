@@ -1,15 +1,22 @@
 #!/usr/bin/python
 
 """
-    YT de Locke
+    youtube de locke
 
     Libraries required:
     eventlet, flask, flask_socketio, gdata
 """
+import datetime
+import json
+import operator
+import re
+import sqlite3
+import urllib
+import urllib2
 
-from flask import Flask, render_template, Blueprint, request, session
-from flask_socketio import SocketIO, send, emit, join_room
-import sqlite3, datetime, re, urllib, urllib2, json, operator
+from flask import Blueprint, Flask, render_template, request, session
+from flask_socketio import SocketIO, emit, join_room, send
+
 from api import API_KEY
 
 app = Flask(__name__)
@@ -49,37 +56,6 @@ def init_db():
 def index():
     return render_template('index.html')
 
-# deprecated
-"""
-@app.route('/stats')
-def stats():
-    with sqlite3.connect('watch.db') as conn:
-        history = conn.cursor().execute("SELECT * FROM history ORDER BY id ASC").fetchall()
-        hdict = dict()
-
-        cur = history[0][1]
-        x = 0 
-        y = 0
-        title = ''
-        for h in history:
-            if x <= 10:
-                if h[1] == cur:
-                    y += 1
-                    if title == '':
-                        title = check_yt(h[1])
-                    hdict.update({title: y+1})
-                else:
-                    # Reset
-                    title = ''
-                    y = 0
-                    x += 1
-                cur = h[1]
-            else:
-                break
-
-        return render_template('stats.html', history=hdict)
-"""
-
 @socketio.on('joined')
 def handle_connect():
     # New connection handler
@@ -100,25 +76,24 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_dc():
     i = 0
-    print '-------------------------------'
-    print request.sid + ' has disconnected'
-    print '-------------------------------'
+    #print '-------------------------------'
+    #print request.sid + ' has disconnected'
+    #print '-------------------------------'
     for client in clients:
         i += 1
         if client == request.sid:
-            print client
             del clients[i] 
 
 # Play / Pause
 @socketio.on('client-play')
 def play(data):
     emit('server-play', data["time"], broadcast=True)
-    print('Play @ ' + str(data["time"]))
+    #print('Play @ ' + str(data["time"]))
 
 @socketio.on('client-pause')
 def pause(data):
     emit('server-pause', data["time"], broadcast=True)
-    print('Pause @ ' + str(data["time"]))
+    #print('Pause @ ' + str(data["time"]))
 
 @socketio.on('client-play-new')
 def play_new(data):
@@ -128,7 +103,9 @@ def play_new(data):
 
     # Check if valid youtube url, if not serve search results
     if yt_id == []:
-        emit('server-serve-list', {'results': search_yt(data["url"])}, room=request.sid)
+        results = search_yt(data['url'])
+
+        emit('server-serve-list', {'results': results}, room=request.sid)
     else:
         with sqlite3.connect('watch.db') as conn:
             conn.text_factory = str
