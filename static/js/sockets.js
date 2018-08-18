@@ -77,12 +77,6 @@ var controlRate = function (rate) {
         socket.emit('client-rate', {
             rate: rate
         });
-        // Cancel previous animation
-        $('.playback-rate').stop(true, true).fadeOut(2500);
-
-        $('.playback-rate').show();
-        $('.playback-rate').html(rate+'x');
-        $('.playback-rate').fadeOut(2500);
     }
 };
 
@@ -134,6 +128,12 @@ var connect_socket = function() {
     });
     socket.on('server-rate', function(rate) {
         player.setPlaybackRate(rate);
+        // Cancel previous animation
+        $('.playback-rate').stop(true, true).fadeOut(2500);
+
+        $('.playback-rate').show();
+        $('.playback-rate').html(rate+'x');
+        $('.playback-rate').fadeOut(2500);
     });
 
     // Process playing new video ------------>

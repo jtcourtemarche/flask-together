@@ -192,6 +192,7 @@ table {
   position: absolute;
   font-size: 48px; 
   color: white;
+  font-family: 'Arial', sans-serif;
   font-weight: bold;
   z-index: 9999;
   right: 0;
@@ -209,10 +210,15 @@ table {
 
 .upload-date {
   font-size: 12px;
-  font-family: monospace;
-  background: #1EAEDB;
+  background: #f06745;
   color: white;
   padding: 5px;
   border-radius: 2px;
 }
 
+#skip_to {
+  margin-left: 5px;
+  border-radius: 5px;
+  border: 1px solid #CCC;
+  text-indent: 1em;
+}
