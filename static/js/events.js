@@ -30,3 +30,7 @@ $('#search-result').click(function() {
 	//
 });
 
+// Make play/pause toggleable
+$('#play, #pause').click(function() {
+	$('#play, #pause').toggle();
+});

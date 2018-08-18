@@ -222,3 +222,11 @@ table {
   border: 1px solid #CCC;
   text-indent: 1em;
 }
+
+#play {
+  display: none;
+  margin-right: 5px;
+}
+#pause {
+  margin-right: 5px;
+}

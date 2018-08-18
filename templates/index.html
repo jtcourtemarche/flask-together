@@ -58,11 +58,9 @@
                         <div class="input-group">
                           <div class="col col-11">
                             <div class="input-group mr-2" role="group">
-                              <div class="btn-group" role="group"> 
-                                <button class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
-                                <button class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
-                                <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
-                              </div>
+                              <button id="play" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
+                              <button id="pause" class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
+                              <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
                               <input type="text" id="skip_to" placeholder="Skip to"/>
                               <input type="range" id="volume-slider" alt="Change volume" value="100"/>
                             </div>
