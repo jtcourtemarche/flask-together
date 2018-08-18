@@ -148,6 +148,11 @@ var connect_socket = function() {
         player.loadVideoById(data.id);
         player.seekTo(0);
         player.playVideo();
+
+        if ($('#play').is(':visible')) {
+            $('#pause').show();
+            $('#play').hide();
+        }         
     });
 
     // Search function ---------------------->
