@@ -113,13 +113,13 @@ var connect_socket = function() {
 
     // Skip --------------------------------->
     socket.on('server-skip', function (time) {
-        if ($('#play').is(':visible')) {
-            $('#pause').show();
-            $('#play').hide();
-        } 
-
         player.seekTo(time);
-        player.playVideo();
+        if ($('#play').is(':visible')) {
+            player.pauseVideo();
+        } 
+        else {
+            player.playVideo();
+        }
     });
 
     // Play / Pause ------------------------->
