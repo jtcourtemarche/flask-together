@@ -8,7 +8,8 @@ $('#progress-bar').on('mouseup touchend', function (e) {
 
 $('#yt-url').on("keydown", function(event) {
 	if (event.which == 13) {
-	  controlPlayNew($("#yt-url").val());
+		$('#yt-url-close-icon').html('<img class="spinner" src="../static/images/spinner.gif"/>');
+		controlPlayNew($("#yt-url").val());
 	}
 });
 
@@ -33,4 +34,8 @@ $('#search-result').click(function() {
 // Make play/pause toggleable
 $('#play, #pause').click(function() {
 	$('#play, #pause').toggle();
+});
+$('#replay').click(function() {
+	$('#replay').hide();
+	$('#pause').show();
 });

@@ -6,13 +6,13 @@ function onYouTubeIframeAPIReady() {
         height: 447,
         videoId: 'gMslUkDaDZA',
         playerVars: {
-            color: 'white',
             controls: 0,
             rel: 0,
             showinfo: 0,
             host: 'localhost',
             origin: 'localhost',
-            'frameborder': 0
+            frameborder: 0,
+            iv_load_policy: '3',
         },
         events: {
             onReady: onReady,
@@ -37,7 +37,11 @@ window.stateChange = function (event) {
     if (event.data == 5) {
         socket.emit('player-ready', event.target);
     }
-    
+    if (event.data == 0) {
+        $('#pause').hide();
+        $('#replay').show();
+    }
+
     $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData().video_id + "'>" + event.target.getVideoData().title + "</a>");
     $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData().author+'</button>');
     playback_rates = event.target.getAvailablePlaybackRates();

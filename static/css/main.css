@@ -58,6 +58,10 @@ body {
 
 /* Custom CSS */
 
+.spinner {
+  width: 22px;
+}
+
 #video-placeholder {
   margin-bottom: -7px;
 }
@@ -152,17 +156,23 @@ table {
   float: right;
 }
 
+.card {
+  font-size: 13px;
+}
+
 #search-card {
   overflow: hidden;
   max-height: 100%;
 }
 
 #search-list {
+  margin-top: -10px;
   width: 100%;
   max-height: 610px;
   overflow-y: scroll;
 }
 #history-list {
+  margin-top: -10px;
   width: 100%;
   max-height: 610px;
   overflow-y: scroll;
@@ -185,7 +195,7 @@ table {
 
 #page-title a {
   color: #1EAEDB !important;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
 }
 .playback-rate {
@@ -219,7 +229,7 @@ table {
 #skip_to {
   margin-left: 5px;
   border-radius: 5px;
-  border: 1px solid #CCC;
+  border: 1px solid #6C757D;
   text-indent: 1em;
 }
 
@@ -228,5 +238,9 @@ table {
   margin-right: 5px;
 }
 #pause {
+  margin-right: 5px;
+}
+#replay {
+  display: none;
   margin-right: 5px;
 }
