@@ -1,3 +1,7 @@
 eventlet
 flask
+flask_login
+flask_marshmallow
 flask_socketio
+flask_sqlalchemy
+marshmallow_sqlalchemy

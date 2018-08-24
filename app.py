@@ -16,7 +16,6 @@ import sqlite3
 import re
 import tools
 import os
-import jsonify
 
 from api import SECRET_KEY
 
