@@ -98,10 +98,6 @@ def handle_dc():
             active_users.append((user.username, 0))
 
     emit('user-disconnected', {'username':current_user.username, 'active_users':active_users}, broadcast=True)
-
-    print '-------------------------------'
-    print request.sid + ' has disconnected'
-    print '-------------------------------'
     
     cin = clients.index(request.sid)
     del clients[cin]
