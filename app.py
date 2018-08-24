@@ -2,6 +2,7 @@
 
 """
     youtube de locke
+    by jtcourtemarche
 """
 
 from flask_sqlalchemy import SQLAlchemy
@@ -69,7 +70,7 @@ def handle_connect():
         }, broadcast=True)
 
     # Serialize JSON
-    most_recent = models.History.query.order_by(db.text('date desc')).first()
+    most_recent = models.History.query.order_by(db.text('id desc')).first()
     history_schema = models.HistorySchema()
 
     most_recent = history_schema.dump(most_recent).data
