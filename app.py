@@ -2,9 +2,6 @@
 
 """
     youtube de locke
-
-    Libraries required:
-    eventlet, flask, flask_socketio, gdata
 """
 
 from flask_sqlalchemy import SQLAlchemy
@@ -37,6 +34,7 @@ log.setLevel(logging.ERROR)
 
 login_manager = LoginManager()
 login_manager.session_protection = "basic"
+login_manager.init_app(app)
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -170,5 +168,4 @@ def load_user(user_id):
     return models.User.query.get(int(user_id))
 
 if __name__ == '__main__':
-    login_manager.init_app(app)
     socketio.run(app)
