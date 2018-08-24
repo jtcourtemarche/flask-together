@@ -13,7 +13,29 @@ def init_db():
     u.setpass('test')
     db.session.add(u)
     db.session.commit()
+    print 'Complete'
 
 def destroy_db():
     os.remove('watch.db')
     print 'Complete'
+
+def add_user(username, password):
+    u = User(username=username)
+    u.setpass(password)
+
+    db.session.add(u)
+    db.session.commit()
+
+    print 'Added user: {}'.format(u)
+
+def del_user(username='', user_id=None):
+    if username:
+        u = User.query.get(username=username)
+        db.session.delete(u)
+        db.session.commit()
+    elif user_id:
+        u = User.query.get(id=user_id)
+        db.session.delete(u)
+        db.session.commit()
+    else:
+        print 'Invalid parameters'
