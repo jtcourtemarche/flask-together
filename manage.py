@@ -30,11 +30,11 @@ def add_user(username, password):
 
 def del_user(username='', user_id=None):
     if username:
-        u = User.query.get(username=username)
+        u = User.query.filter_by(username=username).first()
         db.session.delete(u)
         db.session.commit()
     elif user_id:
-        u = User.query.get(id=user_id)
+        u = User.query.get(user_id)
         db.session.delete(u)
         db.session.commit()
     else:
