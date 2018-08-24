@@ -58,16 +58,16 @@ def handle_connect():
     if current_user.is_authenticated:
         logged_in.append(current_user.username)
 
-        active_users = [()]
-        for user in models.User.query.all():
-            if user.username in logged_in:
-                active_users.append((user.username, 1))
-            else:
-                active_users.append((user.username, 0))
+    active_users = [()]
+    for user in models.User.query.all():
+        if user.username in logged_in:
+            active_users.append((user.username, 1))
+        else:
+            active_users.append((user.username, 0))
 
-        emit('new-user', {
-            'active_users': active_users
-        }, broadcast=True)
+    emit('new-user', {
+        'active_users': active_users
+    }, broadcast=True)
 
     # Serialize JSON
     most_recent = models.History.query.order_by(db.text('id desc')).first()
