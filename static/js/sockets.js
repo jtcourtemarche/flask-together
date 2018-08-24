@@ -100,12 +100,11 @@ var connect_socket = function() {
     socket.on('connect', function() {
         socket.emit('joined');
     });
-
+    
     socket.on('user-disconnected', function(data) {
         console.log(data.username + ' has disconnected');
 
         $('.active-users').empty();
-
         var user;
         for (user in data.active_users) {
             if (data.active_users[user][1] == 1) {

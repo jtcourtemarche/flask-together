@@ -57,7 +57,7 @@ def handle_connect():
 
     if current_user.is_authenticated:
         logged_in.append(current_user.username)
-
+    
     active_users = [()]
     for user in models.User.query.all():
         if user.username in logged_in:
@@ -87,8 +87,9 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_dc():
-    uin = logged_in.index(current_user.username)
-    del logged_in[uin]
+    for i in enumerate(logged_in):
+        if current_user.username == i[1]:
+            del logged_in[i[0]]
 
     active_users = [()]
     for user in models.User.query.all():
