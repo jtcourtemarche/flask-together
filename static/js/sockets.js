@@ -92,8 +92,8 @@ var controlRate = function (rate) {
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
-        //socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
-        socket = io.connect('ws://' + document.domain + ':' + location.port);
+        socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        //socket = io.connect('ws://' + document.domain + ':' + location.port);
     }
 
     // Handle Connect ----------------------->
@@ -103,6 +103,8 @@ var connect_socket = function() {
 
     socket.on('user-disconnected', function(data) {
         console.log(data.username + ' has disconnected');
+
+        $('.active-users').empty();
 
         var user;
         for (user in data.active_users) {
