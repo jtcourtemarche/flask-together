@@ -64,6 +64,7 @@ body {
 
 #video-placeholder {
   margin-bottom: -7px;
+  pointer-events: none;
 }
 
 #volume-slider {
@@ -194,11 +195,23 @@ table {
   background: #ccc !important;
 }
 
+#page-author .d-inline {
+  margin-right: -13px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+#page-user .d-inline {
+  background-color: #1EAEDB !important;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
 #page-title a {
   color: #1EAEDB !important;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
 }
+
 .playback-rate {
   position: absolute;
   font-size: 48px; 

@@ -128,7 +128,7 @@ var connect_socket = function() {
             player.loadVideoById(data.most_recent.video_id);
             player.playVideo();
         }
-        
+        $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.user +'</i></div>');
         appendHistory(data.history);
         // Often a browser will auto-refresh the page over time 
         // making it so "No search results" will repeat over 
@@ -173,6 +173,7 @@ var connect_socket = function() {
 
         $('#pause').show();
         $('#play').hide();
+        $('#replay').hide();
     });
     socket.on('server-pause', function (time) {
         player.seekTo(time);
@@ -180,6 +181,7 @@ var connect_socket = function() {
 
         $('#play').show();
         $('#pause').hide();
+        $('#replay').hide();
     });
     socket.on('server-rate', function(rate) {
         player.setPlaybackRate(rate);
@@ -195,7 +197,7 @@ var connect_socket = function() {
     socket.on('server-play-new', function (data) {
         appendHistory(data.history);
 
-        $('#page-user').html('<button type="button" class="btn btn-secondary btn-sm" disabled> Played by <i>' + data.user +'</i></button>');
+        $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.user +'</i></div>');
         console.log(data.user);
 
         player.loadVideoById(data.id);

@@ -38,12 +38,14 @@ window.stateChange = function (event) {
         socket.emit('player-ready', event.target);
     }
     if (event.data == 0) {
+        // Video ended
         $('#pause').hide();
+        $('#play').hide();
         $('#replay').show();
     }
 
     $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData().video_id + "'>" + event.target.getVideoData().title + "</a>");
-    $("#page-author").html('<button type="button" class="btn btn-secondary btn-sm" disabled>' + event.target.getVideoData().author+'</button>');
+    $("#page-author").html('<div class="d-inline p-2 bg-dark text-white">' + event.target.getVideoData().author+'</div>');
     playback_rates = event.target.getAvailablePlaybackRates();
     showPlaybackRates(playback_rates);
 };

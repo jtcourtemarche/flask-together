@@ -29,7 +29,7 @@
                <div id="video-card" class="card" style="overflow: hidden">
                   <div class="card-header" style="text-indent: 1em">
                     <p class="card-title" id="page-title"></p>
-                    <div class="card-subtitle">
+                    <div class="card-subtitle" id="page-description">
                       <div class="input-group mb-3">
                         <div id="page-author"></div>
                         <div id="page-date"></div>
@@ -40,7 +40,7 @@
                   <div class="card-body" style="padding:0">
                       <div class="playback-rate"></div>
                       <div class="embed-responsive embed-responsive-16by9">
-                        <div id="video-placeholder"></div>
+                        <div id="video-placeholder" disabled></div>
                       </div>
                      <div class="row">
                         <input type="range" id="progress-bar" value="0"/>
@@ -75,7 +75,6 @@
             <!-- Search side -->
             <div class="col-5 col-md-offset-1">
                 <div class="card">
-                  <div class="card-header">Active Users</div>
                   <div class="card-body">
                     <p class="active-users"></p>
                   </div>

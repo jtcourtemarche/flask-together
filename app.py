@@ -70,7 +70,10 @@ def handle_connect():
     }, broadcast=True)
 
     # Serialize JSON
-    most_recent = models.History.query.order_by(db.text('id desc')).first()
+    most_recent = models.History.query.order_by(models.History.date).all()[-1]
+    
+    user = models.User.query.get(most_recent.user_id)
+
     history_schema = models.HistorySchema()
 
     most_recent = history_schema.dump(most_recent).data
@@ -82,7 +85,8 @@ def handle_connect():
 
     emit('new-user-sync', {
         'most_recent': most_recent,
-        'history': history
+        'history': history,
+        'user': user.username
     }, room=clients[-1])
 
 @socketio.on('disconnect')
@@ -124,8 +128,8 @@ def play_new(data):
     if yt_id != []:
         history = models.History(video_id=yt_id[0][3], data=tools.check_yt(yt_id[0][3]), user_id=data['user']['id'])
 
-        username = models.User.query.get(data['user']['id'])
-        username = username.username
+        user = models.User.query.get(data['user']['id'])
+        username = user.username
 
         db.session.add(history)
         db.session.commit()
