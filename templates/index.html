@@ -30,9 +30,11 @@
                   <div class="card-header" style="text-indent: 1em">
                     <p class="card-title" id="page-title"></p>
                     <div class="card-subtitle">
-                      <div id="page-author"></div>
-                      <div id="page-date"></div>
-                      <div id="page-user"></div>
+                      <div class="input-group mb-3">
+                        <div id="page-author"></div>
+                        <div id="page-date"></div>
+                        <div id="page-user"></div>
+                      </div>
                     </div>
                   </div>
                   <div class="card-body" style="padding:0">
@@ -59,7 +61,7 @@
                               <button id="replay" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-redo"></i></button>
                               <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
                               <input type="text" id="skip_to" placeholder="Skip to"/>
-                              <input type="range" id="volume-slider" alt="Change volume" value="100"/>
+                              <input type="range" id="volume-slider" alt="Change volume" value="50"/>
                             </div>
                           </div>
                           <div class="col col-1">

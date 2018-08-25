@@ -124,6 +124,9 @@ def play_new(data):
     if yt_id != []:
         history = models.History(video_id=yt_id[0][3], data=tools.check_yt(yt_id[0][3]), user_id=data['user']['id'])
 
+        username = models.User.query.get(data['user']['id'])
+        username = username.username
+
         db.session.add(history)
         db.session.commit()
 
@@ -132,7 +135,7 @@ def play_new(data):
         history_schema = models.HistorySchema(many=True)
         output = history_schema.dump(history).data
 
-        emit('server-play-new', {'id': yt_id[0][3], 'history': output}, broadcast=True)
+        emit('server-play-new', {'id': yt_id[0][3], 'history': output, 'user':username},  broadcast=True)
     elif '/channel/' in data['url']:
         results = tools.check_channel_yt(data['url'])
         emit('server-serve-list', {'results': results}, room=request.sid)
