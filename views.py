@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import models
+from app import db
 from flask import Blueprint, render_template, request, g, redirect
 from flask_login import login_required, current_user, login_user, logout_user
 
@@ -42,6 +43,15 @@ def root():
 @login_required
 def index():
     return render_template('index.html')
+
+@urls.route('/user/<string:username>')
+def user_profile(username):
+    user = models.User.query.filter_by(username=username).first()
+    if user:
+        history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
+        return render_template('profile.html', user=user, history=enumerate(history), count=len(history))
+    else:
+        return redirect('/')
 
 @urls.errorhandler(404)
 def page_not_found(error):

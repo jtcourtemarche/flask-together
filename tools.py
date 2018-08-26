@@ -25,9 +25,9 @@ def search_yt(query):
 
 # Tool that checks if valid youtube video
 def check_yt(id):
-    url = "https://www.googleapis.com/youtube/v3/videos?id="+id+"&key="+API_KEY+"&part=snippet"
+    url = "https://www.googleapis.com/youtube/v3/videos?id={0}&key={1}&part=snippet".format(id, API_KEY)
     feed = urllib2.urlopen(url).read()
     if feed:
-        return json.dumps(feed)
+        return json.loads(feed)
     else:
         return False

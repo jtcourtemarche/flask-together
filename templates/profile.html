@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>洁洁</title>
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <!-- Mobile Specific Metas -->
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <!-- CSS -->
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+      <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+      <!-- JS -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+      <script type="text/javascript" src="../static/js/pace.min.js"></script>
+      <!-- Icon -->
+      <link rel="icon" type="image/png" href="../static/images/favicon.png">
+   </head>
+   <body>
+        <div class="jumbotron">
+            <h1 class="display-4">{{ user.username }}</h1>
+            <p class="lead odometer">{{ count }} total plays</p>
+        </div>
+        <ul class="list-group">
+        {% for h in history %}
+            <li class="list-group-item">
+                <b>#{{ h[0]+1 }}</b>
+                <a target="_blank" href="https://www.youtube.com/watch?v={{ h[1].video_id  }}">{{ h[1].video_title }}</a> <br/>
+                Played on {{ h[1].date }} <br/>
+                Uploaded {{ h[1].video_date }}
+            </li>
+        {% endfor %}
+        </ul>
+    </body>

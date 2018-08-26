@@ -8,13 +8,18 @@ $('#progress-bar').on('mouseup touchend', function (e) {
 
 $('#yt-url').on("keydown", function(event) {
 	if (event.which == 13) {
-		$('#yt-url-close-icon').html('<img class="spinner" src="../static/images/spinner.gif"/>');
+		$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
 		controlPlayNew($("#yt-url").val());
 	}
+});
+$('#yt-search').on('click', function() {
+	$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
+	controlPlayNew($("#yt-url").val());
 });
 
 $("#volume-slider").on('input', function() {
 	player.setVolume($("#volume-slider").val());
+	$('#volume-slider').attr('data-content')
 });  
 
 $('#skip_to').on("keydown", function(event) {

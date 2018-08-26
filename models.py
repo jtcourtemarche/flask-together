@@ -23,10 +23,15 @@ class User(db.Model, UserMixin):
 
 class History(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    video_id = db.Column(db.String(11), unique=False, nullable=False)
-    data = db.Column(db.Text, unique=False, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.now())
 
+    # Video data
+    video_id = db.Column(db.String(11), unique=False, nullable=False)
+    video_date = db.Column(db.String(24), unique=False, nullable=False)
+    video_title = db.Column(db.String(100), unique=False, nullable=False)
+    video_thumbnail = db.Column(db.String, unique=False, nullable=False)
+
+    # User data    
+    date = db.Column(db.DateTime, default=datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey(User.id),  nullable=False)
     user = db.relationship('User', foreign_keys='History.user_id')
 

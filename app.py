@@ -23,6 +23,7 @@ app.config.update(
     TEMPLATES_AUTO_RELOAD=True,
     SERVER_HOST='0.0.0.0:5000',
     DEBUG=True,
+    TESTING=True,
     SECRET_KEY=SECRET_KEY,
 )
 
@@ -51,7 +52,6 @@ logged_in = []
 def handle_connect():
     # New connection handler
     clients.append(request.sid)
-
     room = session.get('room')
     join_room(room)
 
@@ -69,24 +69,21 @@ def handle_connect():
         'active_users': active_users
     }, broadcast=True)
 
-    # Serialize JSON
-    most_recent = models.History.query.order_by(models.History.date).all()[-1]
-    
-    user = models.User.query.get(most_recent.user_id)
-
     history_schema = models.HistorySchema()
 
-    most_recent = history_schema.dump(most_recent).data
+    try:
+        most_recent = models.History.query.order_by(models.History.date).all()[-1]
+        most_recent = history_schema.dump(most_recent).data
+    except:
+        most_recent = None
 
-    history = models.History.query.order_by('date').all()
     history_schema = models.HistorySchema(many=True)
-
+    history = models.History.query.order_by('date').all()
     history = history_schema.dump(history).data
 
     emit('new-user-sync', {
         'most_recent': most_recent,
         'history': history,
-        'user': user.username
     }, room=clients[-1])
 
 @socketio.on('disconnect')
@@ -126,26 +123,30 @@ def play_new(data):
 
     # Check if valid youtube url, if not serve search results
     if yt_id != []:
-        history = models.History(video_id=yt_id[0][3], data=tools.check_yt(yt_id[0][3]), user_id=data['user']['id'])
+        yt = tools.check_yt(yt_id[0][3])['items'][0]
+        h = models.History(
+            video_id = yt['id'],
+            video_date = yt['snippet']['publishedAt'],
+            video_title = yt['snippet']['title'],
+            video_thumbnail = yt['snippet']['thumbnails']['default']['url'],
+            user_id=data['user']['id'],
+        )
 
-        user = models.User.query.get(data['user']['id'])
-        username = user.username
-
-        db.session.add(history)
+        db.session.add(h)
         db.session.commit()
 
-        # Serialize JSON
-        history = models.History.query.all()
         history_schema = models.HistorySchema(many=True)
-        output = history_schema.dump(history).data
 
-        emit('server-play-new', {'id': yt_id[0][3], 'history': output, 'user':username},  broadcast=True)
+        history = models.History.query.all()
+        history = history_schema.dump(history).data
+
+        emit('server-play-new', {'id': h.video_id, 'history': history, 'user': data['user']['id']},  broadcast=True)
     elif '/channel/' in data['url']:
         results = tools.check_channel_yt(data['url'])
-        emit('server-serve-list', {'results': results}, room=request.sid)
+        emit('server-serve-list', results, room=request.sid)
     else:
         results = tools.search_yt(data['url'])
-        emit('server-serve-list', {'results': results}, room=request.sid)
+        emit('server-serve-list', results, room=request.sid)
 
 @socketio.on('client-rate')
 def handle_rate(data):

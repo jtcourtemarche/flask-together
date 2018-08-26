@@ -2,8 +2,6 @@ var socket;
 
 var appendHistory = function(history) {
     $("#history-list").empty();
-    var data;
-    var video_title, video_thumbnail, prev_video_title, video_id;
     for (var h in history.reverse()) {
         if (h > 25) {
             break;
@@ -11,29 +9,24 @@ var appendHistory = function(history) {
             break;
         }
 
-        data = JSON.parse(history[h].data);
-        data = JSON.parse(data);
-        if (data.items.length != 0) {
-            video_title = data.items[0].snippet.title;
-            video_date = data.items[0].snippet.publishedAt;
-            video_id = history[h].video_id;
-            watched_date = history[h].date;
-            video_thumbnail = data.items[0].snippet.thumbnails.default.url;
+        var prev_video_title;
 
+        if (history[h].video_id.length != 0) {
             // Avoid repeats
-            if (prev_video_title != video_title) {
-                prev_video_title = video_title;
+            if (prev_video_title != history[h].video_title) {
+                prev_video_title = history[h].video_title;
                 $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                video_id + "\")'><p>" + 
-                video_title + "</p><img class='thumbnail' src='" + 
-                video_thumbnail + 
+                history[h].video_id + "\")'><p>" + 
+                history[h].video_title + "</p><img class='thumbnail' src='" + 
+                history[h].video_thumbnail + 
                 "' /><span class='upload-date'>"+ 
-                video_date.split('T')[0] +
+                history[h].video_date.split('T')[0] +
                 "</span></li>");
             }
         }
     }
 };
+
 
 var controlPlayNew = function (url) {
     if (typeof socket != 'undefined') {
@@ -121,15 +114,16 @@ var connect_socket = function() {
 
     // Load last video from DB -------------->
     socket.on('new-user-sync', function(data) {
-        console.log('Playing '+data.most_recent.video_id);
-
         // Play last video from DB
-        if (data.most_recent != []) {
+        if (data.most_recent != null) {
             player.loadVideoById(data.most_recent.video_id);
             player.playVideo();
+            $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.most_recent.user.username +'</i></div>');
+            appendHistory(data.history);
+        } else {
+            $('#history-list').empty();
+            $("#history-list").append("<span class='no-search'>No history.</span>");
         }
-        $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.user +'</i></div>');
-        appendHistory(data.history);
         // Often a browser will auto-refresh the page over time 
         // making it so "No search results" will repeat over 
         // and over again. To prevent this empty the div.
@@ -198,7 +192,6 @@ var connect_socket = function() {
         appendHistory(data.history);
 
         $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.user +'</i></div>');
-        console.log(data.user);
 
         player.loadVideoById(data.id);
         player.seekTo(0);
@@ -210,20 +203,20 @@ var connect_socket = function() {
     });
 
     // Search function ---------------------->
-    socket.on('server-serve-list', function (data) {
-        $('#yt-url-close-icon').html('&times');
+    socket.on('server-serve-list', function (results) {
+        $('#yt-search').html('Search');
         $("#search-list").empty();
         var r = 0;
-        for (r in data.results) {
+        for (r in results) {
             $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-             data.results[r].id.videoId + "\")'><p>" + 
-             data.results[r].snippet.title + "</p><img class='thumbnail' src='" + 
-             data.results[r].snippet.thumbnails.high.url + 
+             results[r].id.videoId + "\")'><p>" + 
+             results[r].snippet.title + "</p><img class='thumbnail' src='" + 
+             results[r].snippet.thumbnails.high.url + 
              "' /><span class='upload-date'>"+ 
-             data.results[r].snippet.publishedAt.split('T')[0] +
+             results[r].snippet.publishedAt.split('T')[0] +
              "</span></li>");
         }
-        if (data.results.length == 0) {
+        if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
         document.querySelector("#search-list").scrollTop = 0;
