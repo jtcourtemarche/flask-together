@@ -3,57 +3,10 @@
 body {
   font-family: 'Karla', sans-serif !important;
 
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-
   height: 100%;
   width: 100%;
   position: absolute;
   overflow-y: hidden;
-}
-
-/* Pace Progress Bar */
-.pace {
-  -webkit-pointer-events: none;
-  pointer-events: none;
-
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-
-  -webkit-transform: translate3d(0, -50px, 0);
-  -ms-transform: translate3d(0, -50px, 0);
-  transform: translate3d(0, -50px, 0);
-
-  -webkit-transition: -webkit-transform .5s ease-out;
-  -ms-transition: -webkit-transform .5s ease-out;
-  transition: transform .5s ease-out;
-}
-
-.pace.pace-active {
-  -webkit-transform: translate3d(0, 0, 0);
-  -ms-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
-}
-
-.pace .pace-progress {
-  display: block;
-  position: fixed;
-  z-index: 2000;
-  top: 0;
-  right: 100%;
-  width: 100%;
-  height: 4px;
-  background: #1EAEDB;
-
-  pointer-events: none;
 }
 
 /* Custom CSS */
@@ -79,7 +32,32 @@ body {
   margin-bottom: -7px;
   pointer-events: none;
 }
+#video-overlay {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 20%;
+  z-index: 9999;
+  padding: 20px;
+  font-size: 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0));
+  pointer-events: none;
+}
+#video-overlay #page-title {
+  pointer-events: auto;
+}
 
+#volume-display {
+  display: none;
+  margin-left: 8px;
+  margin-top: 10px;
+  background: #343A40;
+  padding: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: white;
+  border-radius: 4px;
+}
 #volume-slider {
   -webkit-appearance: none;
   background: #ccc;
@@ -93,8 +71,9 @@ body {
 #volume-slider:focus {
   outline: none;
 }
-#volume-slider::-webkit-slider-thumb {
+#volume-slider::-webkit-slider-thumb, #volume-slider::-moz-range-thumb {
   -webkit-appearance: none;
+  -moz-appearance: none;
   cursor: pointer;
   border-radius: 25px;
   background: #1EAEDB;
@@ -139,6 +118,7 @@ table {
   height: 22px;
   width: 100%;
   -webkit-appearance: none;
+  -moz-appearance: none;
 }
 #progress-bar::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -147,14 +127,16 @@ table {
   background: #ccc;
   cursor: pointer;
 }
+#progress-bar::-moz-range-thumb {
+  -moz-appearance: none;
+  height: 22px;
+  width: 16px;
+  background: #ccc;
+  cursor: pointer;
+}
 
 #video-container {
-  background-color: white;
-  padding: 15px;
-  padding-left: 20px;
-  padding-right: 20px;
-  margin-left: -120px;
-  border-radius: 5px;
+  border-right: 1px solid #ccc;
 }
 
 .card {
@@ -197,26 +179,20 @@ table {
   background: #ccc !important;
 }
 
-#page-author .d-inline {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  margin-right: -16px;
+#page-author {
+  color: white;
+  text-indent: 1em;
 }
-#page-user .d-inline {
-  background-color: #1EAEDB !important;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-
 #page-title a {
-  color: #1EAEDB !important;
+  color: white !important;
   font-size: 18px;
   font-weight: 500;
 }
-#page-title {
-  text-indent: 1em;
+#page-title a:hover {
+  background: rgb(30, 174, 219, 0.9) !important;
+  text-decoration: none;
 }
-#page-description {
+#page-title {
   text-indent: 1em;
 }
 
@@ -242,6 +218,7 @@ table {
 }
 
 .upload-date {
+  display: none;
   position: absolute;
   font-size: 12px;
   color: white;
@@ -269,4 +246,8 @@ table {
 #replay {
   display: none;
   margin-right: 5px;
+}
+
+#yt-url-close {
+  cursor: pointer;
 }

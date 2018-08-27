@@ -55,9 +55,10 @@ def handle_connect():
     room = session.get('room')
     join_room(room)
 
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.username not in logged_in:
         logged_in.append(current_user.username)
-    
+        print '> ' + current_user.username + ' has connected'    
+
     active_users = [()]
     for user in models.User.query.all():
         if user.username in logged_in:
@@ -84,9 +85,22 @@ def handle_connect():
     emit('new-user-sync', {
         'most_recent': most_recent,
         'history': history,
+        'sid': request.sid,
     }, room=clients[-1])
 
-@socketio.on('disconnect')
+@socketio.on('init-preload')
+def init_preload():
+    if filter(lambda x: x != request.sid, clients) != []:
+        print 'Requesting data...'
+        emit('request-data', {
+            'sid': request.sid,
+        }, broadcast=True, include_self=False)        
+
+@socketio.on('preload-info')
+def preload(data):
+    emit('preload', data, room=data['sid'])
+
+@socketio.on('disconnect', namespace='/')
 def handle_dc():
     for i in enumerate(logged_in):
         if current_user.username == i[1]:
@@ -98,11 +112,12 @@ def handle_dc():
             active_users.append((user.username, 1))
         else:
             active_users.append((user.username, 0))
-
     emit('user-disconnected', {'username':current_user.username, 'active_users':active_users}, broadcast=True)
     
     cin = clients.index(request.sid)
     del clients[cin]
+
+    print '> ' + current_user.username + ' has disconnected'
 
 # Play / Pause
 @socketio.on('client-play')
@@ -132,6 +147,8 @@ def play_new(data):
             user_id=data['user']['id'],
         )
 
+        user = models.User.query.get(data['user']['id'])
+
         db.session.add(h)
         db.session.commit()
 
@@ -140,7 +157,7 @@ def play_new(data):
         history = models.History.query.all()
         history = history_schema.dump(history).data
 
-        emit('server-play-new', {'id': h.video_id, 'history': history, 'user': data['user']['id']},  broadcast=True)
+        emit('server-play-new', {'id': h.video_id, 'history': history, 'user': user.username},  broadcast=True)
     elif '/channel/' in data['url']:
         results = tools.check_channel_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
@@ -153,11 +170,8 @@ def handle_rate(data):
     emit('server-rate', data["rate"], broadcast=True)
 
 @socketio.on('client-skip')
-def handle_skip_to(data):
-    emit('server-skip', data["time"], broadcast=True)
-
-@socketio.on('client-skip')
 def handle_skip(data):
+    print 'Skipping: '+str(data)
     emit('server-skip', data["time"], broadcast=True)
 
 # Error handling

@@ -11,13 +11,13 @@
       <!-- CSS -->
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
       <link rel="stylesheet" href="../static/css/main.css">
+      <link rel="stylesheet" href="../static/css/dark.css">
       <link rel="stylesheet" href="../static/css/bootstrap.min.css">
       <!-- JS -->
       <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
       <script src="../static/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-      <script type="text/javascript" src="../static/js/pace.min.js"></script>
       <!-- Icon -->
       <link rel="icon" type="image/png" href="../static/images/favicon.png">
    </head>
@@ -27,47 +27,35 @@
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
+        <ul class="navbar-nav ml-auto"></ul>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Dropdown
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="#">Action</a>
-                <a class="dropdown-item" href="#">Another action</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Something else here</a>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="#">Disabled</a>
-            </li>
-          </ul>
-          <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
-          <div class="input-group-prepend">
-            <button type="button" id="yt-url-close" class="form-control mr-sm-2" aria-label="Close">
-              <span id="yt-url-close-icon" aria-hidden="true"><i class="fas fa-times"></i></span>
-            </button>
+        <ul class="navbar-nav ml-auto">
+        <div class="form-inline my-2 my-lg-0">
+        <div class="input-group">
+          <div id="yt-url-close" class="input-group-prepend">
+            <span id="yt-url-close-icon" aria-hidden="true" class="input-group-text"><i class="fas fa-times"></i></span>
           </div>
-          <button id="yt-search" class="btn btn-success my-2 my-sm-0">Search</button>
+          <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
         </div>
+        <button id="yt-search" class="btn btn-success my-2 my-sm-0">Search</button>
+        </ul>
+      </div>
       </nav>
       <div class="container" style="max-width: 100%">
          <div class="row">
             <!-- Video embed side -->
-            <div class="col-8" style="border-right: 1px solid #ccc">
+            <div class="col-8" id="video-container">
                <div id="video-card" class="row" style="overflow: hidden;">
                   <div class="playback-rate"></div>
                   <div class="embed-responsive embed-responsive-16by9">
-                    <div id="video-placeholder" disabled></div>
+                    <div id="video-placeholder"></div>
+                  </div>
+                  <div id="video-overlay">
+                    <div id="page-title"></div>
+                    <div id="page-author"></div>
+                    <span style="text-indent: 1em; color: white">
+                      Played by: <div id="page-user"></div>
+                    </span>
                   </div>
                   <input type="range" id="progress-bar" value="0"/>
                   <div id="duration-container">
@@ -84,7 +72,8 @@
                           <button id="replay" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-redo"></i></button>
                           <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
                           <input type="text" id="skip_to" placeholder="Skip to"/>
-                          <input type="range" data-toggle="popover" title="Volume" id="volume-slider" alt="Change volume" value="50"/>
+                          <input type="range" id="volume-slider" alt="Change volume" value="50"/>
+                          <span id="volume-display">50%</span>
                         </div>
                       </div>
                       <div class="col col-1">
@@ -103,8 +92,8 @@
               </div>
          </div>
       </div>
-      <script src="https://www.youtube.com/iframe_api"></script>
       <script type="text/javascript" src="../static/js/sockets.js"></script>
+      <script src="https://www.youtube.com/iframe_api"></script>
       <script type="text/javascript" src="../static/js/player.js"></script>
       <script type="text/javascript" src="../static/js/events.js"></script>
    </body>

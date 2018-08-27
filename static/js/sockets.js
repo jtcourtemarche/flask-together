@@ -1,90 +1,6 @@
-var socket;
+"use strict"
 
-var appendHistory = function(history) {
-    $("#history-list").empty();
-    for (var h in history.reverse()) {
-        if (h > 25) {
-            break;
-        } else if (h >= history.length) {
-            break;
-        }
-
-        var prev_video_title;
-
-        if (history[h].video_id.length != 0) {
-            // Avoid repeats
-            if (prev_video_title != history[h].video_title) {
-                prev_video_title = history[h].video_title;
-                $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                history[h].video_id + "\")'><p>" + 
-                history[h].video_title + "</p><img class='thumbnail' src='" + 
-                history[h].video_thumbnail + 
-                "' /><span class='upload-date'>"+ 
-                history[h].video_date.split('T')[0] +
-                "</span></li>");
-            }
-        }
-    }
-};
-
-
-var controlPlayNew = function (url) {
-    if (typeof socket != 'undefined') {
-        socket.emit('client-play-new', {
-            url: url,
-            user: $('#current-user').data(),
-        });
-    }
-};
-
-// Fullscreen --------------------------->
-var controlFullscreen = function () {
-    if (typeof socket != 'undefined') {
-        // Chrome only
-        var iframe = document.getElementById("video-placeholder");
-        iframe.webkitRequestFullScreen();
-    }
-};
-
-var controlPlay = function () {
-    if (typeof socket != 'undefined') {
-        socket.emit('client-play', {
-            time: player.getCurrentTime()
-        });
-    }
-};
-var controlPause = function () {
-    if (typeof socket != 'undefined') {
-        socket.emit('client-pause', {
-            time: player.getCurrentTime()
-        });
-    }
-};
-
-// Skip to ------------------------------>
-var controlSkip = function (time) {
-    if (typeof socket != 'undefined') {
-        time = time.split(':');
-        if (time.length == 2) {
-            seconds = (+time[0]) * 60 + (+time[1]); 
-        } else {
-            seconds = (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]); 
-        }
-
-        socket.emit('client-skip', {
-            time: seconds
-        });
-    }
-};
-
-// Change Playback Rate ----------------->
-var controlRate = function (rate) {
-    if (typeof socket != 'undefined') {
-        socket.emit('client-rate', {
-            rate: rate
-        });
-    }
-};
+var socket, start_time, start_video;
 
 // Initialize socket events ------------->
 var connect_socket = function() {
@@ -99,8 +15,6 @@ var connect_socket = function() {
     });
     
     socket.on('user-disconnected', function(data) {
-        console.log(data.username + ' has disconnected');
-
         $('.active-users').empty();
         var user;
         for (user in data.active_users) {
@@ -116,10 +30,14 @@ var connect_socket = function() {
     socket.on('new-user-sync', function(data) {
         // Play last video from DB
         if (data.most_recent != null) {
+            console.log('Syncing most recent video @ '+data.most_recent.video_id);
             player.loadVideoById(data.most_recent.video_id);
-            player.playVideo();
-            $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.most_recent.user.username +'</i></div>');
+            $('#page-user').html(data.most_recent.user.username);
             appendHistory(data.history);
+
+            setTimeout(function() {
+                socket.emit('init-preload');
+            }, 1000);
         } else {
             $('#history-list').empty();
             $("#history-list").append("<span class='no-search'>No history.</span>");
@@ -144,10 +62,41 @@ var connect_socket = function() {
         }
     });
 
+    // Handle Request for Data -------------->
+    socket.on('request-data', function(data) {
+        socket.emit('preload-info', {
+            time: player.getCurrentTime(),
+            state: player.getPlayerState(),
+            user: $('#page-user').html(),
+            sid: data.sid,
+        });
+    });
+
+    // Load preload data
+    socket.on('preload', function(data) {
+        controlSkip(data.time);
+        if (data.state == 1) {
+            // Playing
+            $('#play').hide();
+            $('#pause').show();
+        } else if (data.state == 2) {
+            // Paused
+            $('#play').show();
+            $('#pause').hide();
+        } else if (data.state == 3) {
+            // Buffering : assume playing
+            $('#play').hide();
+            $('#pause').show();
+        } else {
+            console.log('Could not get player state!');   
+        }
+    });
+
     // Skip --------------------------------->
     socket.on('server-skip', function (time) {
+        console.log('test2 '+time);
         player.seekTo(time);
-        if ($('#play').is(':visible') || $('#replay').is(':visible')) {
+        if ($('#play').is(':visible')) {
             $('#play').show();
             $('#pause').hide();
             player.pauseVideo();
@@ -172,7 +121,6 @@ var connect_socket = function() {
     socket.on('server-pause', function (time) {
         player.seekTo(time);
         player.pauseVideo();
-
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
@@ -191,7 +139,7 @@ var connect_socket = function() {
     socket.on('server-play-new', function (data) {
         appendHistory(data.history);
 
-        $('#page-user').html('<div class="d-inline p-2 bg-primary text-white"> Played by <i>' + data.user +'</i></div>');
+        $('#page-user').html(data.user);
 
         player.loadVideoById(data.id);
         player.seekTo(0);
@@ -219,6 +167,8 @@ var connect_socket = function() {
         if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
-        document.querySelector("#search-list").scrollTop = 0;
+        $("#search-list").attr('scrollTop', 0);
     });
+
+    return socket;
 };
