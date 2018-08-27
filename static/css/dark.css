@@ -1,0 +1,37 @@
+body {
+    background-color: rgb(8, 9, 10) !important;    
+}
+
+.row {
+    background-color: rgb(29, 32, 36);
+}
+
+#video-container {
+    border-right: 1px solid black;
+}
+
+#list-result {
+    background-color: rgb(19, 21, 24); 
+    color: white;
+    border-color: black;
+}
+#list-result:hover {
+    background-color: rgb(37, 41, 48) !important; 
+}
+
+input[text] {
+    background: #555 !important;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+  }
+::-webkit-scrollbar-track {
+background: rgb(29, 32, 36); 
+}
+::-webkit-scrollbar-thumb {
+background: rgb(49, 49, 49); 
+}
+::-webkit-scrollbar-thumb:hover {
+background: #555; 
+}
