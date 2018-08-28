@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
-from app import db, ma
 import json
-from flask_login import UserMixin
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
+
+from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from __main__ import db, ma
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

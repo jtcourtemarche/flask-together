@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
-import models
-from app import db
-from flask import Blueprint, render_template, request, g, redirect
-from flask_login import login_required, current_user, login_user, logout_user
 from statistics import mode
+
+from flask import Blueprint, g, redirect, render_template, request
+from flask_login import current_user, login_required, login_user, logout_user
+
+from __main__ import db
+from models import History, User
 
 urls = Blueprint('urls', __name__)
 
@@ -17,7 +19,7 @@ def login():
     if g.user.is_authenticated:
         return redirect('/watch')
     else:
-        username = models.User.query.filter_by(username=request.form['username']).first()            
+        username = User.query.filter_by(username=request.form['username']).first()            
         if username:
             if username.checkpass(request.form['password']):
                 login_user(username)
@@ -47,13 +49,13 @@ def index():
 
 @urls.route('/user/<string:username>')
 def user_profile(username):
-    user = models.User.query.filter_by(username=username).first()
+    user = User.query.filter_by(username=username).first()
     if user:
-        history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
+        history = History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
 
         hmap = map(lambda x: x.video_id, history)
         most_played_id = max(set(hmap), key=hmap.count)
-        most_played = models.History.query.filter_by(video_id=most_played_id).first()
+        most_played = History.query.filter_by(video_id=most_played_id).first()
 
         return render_template('profile.html', 
             user=user, 

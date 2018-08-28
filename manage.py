@@ -1,7 +1,9 @@
-from app import db
-from models import User
-import sqlite3
+#!/usr/bin/python
+
 import os
+import sqlite3
+
+from models import User
 
 # Initializes Sqlite3 Database
 def init_db():

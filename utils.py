@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-import urllib2
 import json
+import urllib2
 
 from api import API_KEY
 
