@@ -2,6 +2,10 @@
 Website built on Flask that synchronizes Youtube videos using websockets.
 
 ```
+# You must create an api.py file with variables 
+# 	API_KEY -> Youtube API key
+#	SECRET_KEY -> Secret key for Flask
+
 # Setup
 pip install -r requirements.txt 
 
