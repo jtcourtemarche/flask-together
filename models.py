@@ -6,7 +6,7 @@ from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from __main__ import db, ma
+from app import db, ma
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

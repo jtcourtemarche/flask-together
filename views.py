@@ -5,8 +5,8 @@ from statistics import mode
 from flask import Blueprint, g, redirect, render_template, request
 from flask_login import current_user, login_required, login_user, logout_user
 
-from __main__ import db
-from models import History, User
+from app import db
+import models
 
 urls = Blueprint('urls', __name__)
 
@@ -19,7 +19,7 @@ def login():
     if g.user.is_authenticated:
         return redirect('/watch')
     else:
-        username = User.query.filter_by(username=request.form['username']).first()            
+        username = models.User.query.filter_by(username=request.form['username']).first()            
         if username:
             if username.checkpass(request.form['password']):
                 login_user(username)
@@ -49,13 +49,13 @@ def index():
 
 @urls.route('/user/<string:username>')
 def user_profile(username):
-    user = User.query.filter_by(username=username).first()
+    user = models.User.query.filter_by(username=username).first()
     if user:
-        history = History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
+        history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
 
         hmap = map(lambda x: x.video_id, history)
         most_played_id = max(set(hmap), key=hmap.count)
-        most_played = History.query.filter_by(video_id=most_played_id).first()
+        most_played = models.History.query.filter_by(video_id=most_played_id).first()
 
         return render_template('profile.html', 
             user=user, 
@@ -65,6 +65,3 @@ def user_profile(username):
     else:
         return redirect('/')
 
-@urls.errorhandler(404)
-def page_not_found(error):
-    return redirect('/')

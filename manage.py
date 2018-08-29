@@ -3,7 +3,7 @@
 import os
 import sqlite3
 
-from models import User
+import models
 
 # Initializes Sqlite3 Database
 def init_db():
@@ -11,7 +11,7 @@ def init_db():
         conn.commit()
 
     db.create_all()
-    u = User(username='test')
+    u = models.User(username='test')
     u.setpass('test')
     db.session.add(u)
     db.session.commit()
@@ -22,7 +22,7 @@ def destroy_db():
     print 'Complete'
 
 def add_user(username, password):
-    u = User(username=username)
+    u = models.User(username=username)
     u.setpass(password)
 
     db.session.add(u)
@@ -32,11 +32,11 @@ def add_user(username, password):
 
 def del_user(username='', user_id=None):
     if username:
-        u = User.query.filter_by(username=username).first()
+        u = models.User.query.filter_by(username=username).first()
         db.session.delete(u)
         db.session.commit()
     elif user_id:
-        u = User.query.get(user_id)
+        u = models.User.query.get(user_id)
         db.session.delete(u)
         db.session.commit()
     else:

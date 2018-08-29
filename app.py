@@ -10,7 +10,7 @@ import os
 import re
 import sqlite3
 
-from flask import Flask
+from flask import Flask, redirect
 from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
@@ -27,10 +27,9 @@ app.config.update(
     DEBUG=True,
     TESTING=True,
     SECRET_KEY=SECRET_KEY,
+    SQLALCHEMY_DATABASE_URI='sqlite:///watch.db',
+    SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///watch.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -53,6 +52,11 @@ app.register_blueprint(urls)
 @login_manager.user_loader
 def load_user(user_id):
     return models.User.query.get(int(user_id))
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return redirect('/')
 
 if __name__ == '__main__':
     socketio.run(app)

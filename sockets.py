@@ -7,8 +7,8 @@ from flask_login import current_user
 from flask_socketio import emit, join_room
 
 import utils
-from __main__ import db, socketio
-from models import History, HistorySchema, User
+from app import db, socketio
+import models
 
 clients = []
 logged_in = []
@@ -22,10 +22,9 @@ def handle_connect():
 
     if current_user.is_authenticated and current_user.username not in logged_in:
         logged_in.append(current_user.username)
-        print '> ' + current_user.username + ' has connected'
 
     active_users = [()]
-    for user in User.query.all():
+    for user in models.User.query.all():
         if user.username in logged_in:
             active_users.append((user.username, 1))
         else:
@@ -35,16 +34,16 @@ def handle_connect():
         'active_users': active_users
     }, broadcast=True)
 
-    history_schema = HistorySchema()
+    history_schema = models.HistorySchema()
 
     try:
-        most_recent = History.query.order_by(History.date).all()[-1]
+        most_recent = models.History.query.order_by(models.History.date).all()[-1]
         most_recent = history_schema.dump(most_recent).data
     except:
         most_recent = None
 
-    history_schema = HistorySchema(many=True)
-    history = History.query.order_by('date').all()
+    history_schema = models.HistorySchema(many=True)
+    history = models.History.query.order_by('date').all()
     history = history_schema.dump(history).data
 
     emit('new-user-sync', {
@@ -56,7 +55,6 @@ def handle_connect():
 @socketio.on('init-preload')
 def init_preload():
     if filter(lambda x: x != request.sid, clients) != []:
-        print 'Requesting data...'
         emit('request-data', {
             'sid': request.sid,
         }, broadcast=True, include_self=False)
@@ -72,7 +70,7 @@ def handle_dc():
             del logged_in[i[0]]
 
     active_users = [()]
-    for user in User.query.all():
+    for user in models.User.query.all():
         if user.username in logged_in:
             active_users.append((user.username, 1))
         else:
@@ -82,18 +80,14 @@ def handle_dc():
     cin = clients.index(request.sid)
     del clients[cin]
 
-    print '> ' + current_user.username + ' has disconnected'
-
 # Play / Pause
 @socketio.on('client-play')
 def play(data):
     emit('server-play', data["time"], broadcast=True)
-    #print('Play @ ' + str(data["time"]))
 
 @socketio.on('client-pause')
 def pause(data):
     emit('server-pause', data["time"], broadcast=True)
-    #print('Pause @ ' + str(data["time"]))
 
 @socketio.on('client-play-new')
 def play_new(data):
@@ -104,7 +98,7 @@ def play_new(data):
     # Check if valid youtube url, if not serve search results
     if yt_id != []:
         yt = utils.check_yt(yt_id[0][3])['items'][0]
-        h = History(
+        h = models.History(
             video_id = yt['id'],
             video_date = yt['snippet']['publishedAt'],
             video_title = yt['snippet']['title'],
@@ -112,14 +106,14 @@ def play_new(data):
             user_id=data['user']['id'],
         )
 
-        user = User.query.get(data['user']['id'])
+        user = models.User.query.get(data['user']['id'])
 
         db.session.add(h)
         db.session.commit()
 
-        history_schema = HistorySchema(many=True)
+        history_schema = models.HistorySchema(many=True)
 
-        history = History.query.all()
+        history = models.History.query.all()
         history = history_schema.dump(history).data
 
         emit('server-play-new', {'id': h.video_id, 'history': history, 'user': user.username},  broadcast=True)
@@ -136,7 +130,6 @@ def handle_rate(data):
 
 @socketio.on('client-skip')
 def handle_skip(data):
-    print 'Skipping: '+str(data)
     emit('server-skip', data["time"], broadcast=True)
 
 # Error handling
