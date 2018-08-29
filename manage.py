@@ -11,9 +11,6 @@ def init_db():
         conn.commit()
 
     db.create_all()
-    u = models.User(username='test')
-    u.setpass('test')
-    db.session.add(u)
     db.session.commit()
     print 'Complete'
 
