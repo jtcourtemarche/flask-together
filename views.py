@@ -49,19 +49,20 @@ def index():
 
 @urls.route('/user/<string:username>')
 def user_profile(username):
-    user = models.User.query.filter_by(username=username).first()
-    if user:
-        history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
+    if g.user.is_authenticated:
+        user = models.User.query.filter_by(username=username).first()
+        if user:
+            history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
 
-        hmap = map(lambda x: x.video_id, history)
-        most_played_id = max(set(hmap), key=hmap.count)
-        most_played = models.History.query.filter_by(video_id=most_played_id).first()
+            hmap = map(lambda x: x.video_id, history)
+            most_played_id = max(set(hmap), key=hmap.count)
+            most_played = models.History.query.filter_by(video_id=most_played_id).first()
 
-        return render_template('profile.html', 
-            user=user, 
-            history=enumerate(history), 
-            count=len(history), 
-            most_played=(most_played, hmap.count(most_played_id)))
-    else:
-        return redirect('/')
+            return render_template('profile.html', 
+                user=user, 
+                history=enumerate(history), 
+                count=len(history), 
+                most_played=(most_played, hmap.count(most_played_id)))
+    
+    return redirect('/')
 
