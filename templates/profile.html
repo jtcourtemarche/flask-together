@@ -8,7 +8,6 @@
       <!-- Mobile Specific Metas -->
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <!-- CSS -->
-      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
       <link rel="stylesheet" href="../static/css/bootstrap.min.css">
       <!-- JS -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
@@ -16,11 +15,26 @@
       <link rel="icon" type="image/png" href="../static/images/favicon.png">
    </head>
    <body>
+        <style>
+          .jumbotron {
+            background-color: rgba({{ avg_color }});
+            border-radius: 0px;
+            color: {{ fg_color }};
+          }
+          #yt-player {
+            width: 250px;
+            height: auto;
+            border: 1px solid {{ fg_color }};
+          }
+        </style>
         <div class="jumbotron">
-            <h1 class="display-4">{{ user.username }}</h1>
-            <p class="lead">{{ count }} total plays</p>
-            <p class="lead">Most played video: {{ most_played[0].video_title }} </p>
-            <p class="lead">Played {{ most_played[1] }} times</p>
+          <h1 class="display-4">{{ user.username }}</h1>
+          <p class="lead">{{ count }} total plays</p>
+          <p class="lead">Most played video: {{ most_played[0].video_title }} | Played {{ most_played[1] }} times</p>
+          
+          <iframe id="yt-player" type="text/html" width="640" height="390"
+          src="http://www.youtube.com/embed/{{ most_played[0].video_id }}?enablejsapi=1"
+          frameborder="0"></iframe>
         </div>
         <h3 style="text-indent: 1em">
             Play History:

@@ -47,6 +47,9 @@ def root():
 def index():
     return render_template('index.html')
 
+import numpy
+from skimage import io
+
 @urls.route('/user/<string:username>')
 def user_profile(username):
     if g.user.is_authenticated:
@@ -55,14 +58,37 @@ def user_profile(username):
             history = models.History.query.filter_by(user_id=user.id).order_by(db.text('-id')).all()
 
             hmap = map(lambda x: x.video_id, history)
-            most_played_id = max(set(hmap), key=hmap.count)
-            most_played = models.History.query.filter_by(video_id=most_played_id).first()
+            
+            if hmap != []:
+                most_played_id = max(set(hmap), key=hmap.count)
+                most_played = models.History.query.filter_by(video_id=most_played_id).first()
+
+                # Get avg color of thumbnail
+                thumb = io.imread(most_played.video_thumbnail)
+                avg_rows = numpy.average(thumb, axis=0)
+                avg = numpy.average(avg_rows, axis=0)
+                avg = avg.tolist()
+                avg = map(lambda x: int(round(x)), avg)
+
+                if ((avg[2] * 0.299) + (avg[1] * 0.587) + (avg[0] * 0.114)) > 186:
+                    fg_color = '#000000'
+                else:
+                    fg_color = '#FFFFFF'  
+
+                avg = map(lambda x: str(x), avg)
+                avg = ', '.join(reversed(avg))
+            else:
+                most_played = None
+                most_played_id = None
 
             return render_template('profile.html', 
                 user=user, 
                 history=enumerate(history), 
                 count=len(history), 
-                most_played=(most_played, hmap.count(most_played_id)))
+                most_played=(most_played, hmap.count(most_played_id)),
+                avg_color=avg,
+                fg_color=fg_color,
+            )
     
     return redirect('/')
 

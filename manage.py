@@ -4,6 +4,7 @@ import os
 import sqlite3
 
 import models
+from app import db
 
 # Initializes Sqlite3 Database
 def init_db():
