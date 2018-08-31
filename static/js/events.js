@@ -64,10 +64,8 @@ $('#yt-url').on("keydown", function(event) {
 			$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
 			controlPlayNew($("#yt-url").val());
 		}
-	} else {
-		controlPlayNew($("#yt-url").val());
 	}
-});
+})
 $('#yt-search').on('click', function() {
 	if ($('#yt-url').val().indexOf('://www.youtube.com/watch?v=') == -1) {
 		$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
