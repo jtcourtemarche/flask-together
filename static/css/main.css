@@ -13,6 +13,7 @@ body {
 
 ::-webkit-scrollbar {
   width: 10px;
+  display: none;
 }
 ::-webkit-scrollbar-track {
   background: #f1f1f1; 
@@ -144,14 +145,12 @@ table {
 }
 
 #search-list {
-  margin-top: 1%;
   width: 50%;
   height: 93vh;
   max-height: 93vh;
   overflow-y: scroll;
 }
 #history-list {
-  margin-top: 1%;
   width: 50%;
   height: 93vh;
   max-height: 93vh;
@@ -171,8 +170,7 @@ table {
   font-size: 13px;
 }
 #list-result {
-  border-left: none !important;
-  border-right: none !important;
+  border-radius: 0;
 }
 #list-result:hover {
   cursor: pointer;
@@ -181,19 +179,21 @@ table {
 
 #page-author {
   color: white;
-  text-indent: 1em;
+  padding-left: 5px;
 }
 #page-title a {
   color: white !important;
   font-size: 18px;
   font-weight: 500;
+  padding: 5px;
 }
 #page-title a:hover {
   background: rgb(30, 174, 219, 0.9) !important;
   text-decoration: none;
 }
-#page-title {
-  text-indent: 1em;
+#page-user {
+  color: white;
+  padding-left: 5px;
 }
 
 .playback-rate {
@@ -222,11 +222,8 @@ table {
   position: absolute;
   font-size: 12px;
   color: white;
-  background: #2a2a2a;
-  font-family: monospace;
   padding: 5px;
-  bottom: 0;
-  left: 0;
+  right: 20px;
 }
 
 #skip_to {
@@ -251,8 +248,16 @@ table {
 #yt-url-close {
   cursor: pointer;
 }
+#yt-url-close-icon:active {
+  color: gray;
+}
 
 #yt-search {
   background-color: #1EAEDB;
   border-color: #1EAEDB !important;
+}
+
+.active-users button {
+  border-radius: 0;
+  margin-right: -4px;
 }

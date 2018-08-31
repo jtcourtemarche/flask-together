@@ -32,7 +32,7 @@ var connect_socket = function() {
         if (data.most_recent != null) {
             console.log('Syncing most recent video @ '+data.most_recent.video_id);
             player.loadVideoById(data.most_recent.video_id);
-            $('#page-user').html(data.most_recent.user.username);
+            $('#page-user').html(data.most_recent_username);
             appendHistory(data.history);
 
             setTimeout(function() {
@@ -67,7 +67,6 @@ var connect_socket = function() {
         socket.emit('preload-info', {
             time: player.getCurrentTime(),
             state: player.getPlayerState(),
-            user: $('#page-user').html(),
             sid: data.sid,
         });
     });

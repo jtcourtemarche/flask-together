@@ -39,6 +39,7 @@ def handle_connect():
     try:
         most_recent = models.History.query.order_by(models.History.date).all()[-1]
         most_recent = history_schema.dump(most_recent).data
+        most_recent_username = str(models.User.query.get(most_recent['user']).username)
     except:
         most_recent = None
 
@@ -48,6 +49,7 @@ def handle_connect():
 
     emit('new-user-sync', {
         'most_recent': most_recent,
+        'most_recent_username': most_recent_username,
         'history': history,
         'sid': request.sid,
     }, room=clients[-1])

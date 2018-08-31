@@ -86,8 +86,7 @@ def user_profile(username):
                 history=enumerate(history), 
                 count=len(history), 
                 most_played=(most_played, hmap.count(most_played_id)),
-                avg_color=avg,
-                fg_color=fg_color,
+                colors=(avg, fg_color),
             )
     
     return redirect('/')

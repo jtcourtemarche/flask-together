@@ -5,7 +5,6 @@
     by jtcourtemarche
 """
 
-import logging
 import os
 import re
 import sqlite3
@@ -31,6 +30,7 @@ app.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
 
+import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
