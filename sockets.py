@@ -5,9 +5,9 @@ from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
 
-import utils
-from app import db, socketio
-import models
+from . import utils
+from .app import db, socketio
+from . import models
 
 clients = []
 logged_in = []

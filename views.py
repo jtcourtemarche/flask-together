@@ -3,8 +3,8 @@
 from flask import Blueprint, g, redirect, render_template, request
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app import db
-import models
+from .app import db
+from . import models
 
 urls = Blueprint('urls', __name__)
 

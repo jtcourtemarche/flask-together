@@ -4,7 +4,7 @@ import json
 import urllib.request
 import urllib.error
 import urllib.parse
-from api import API_KEY
+from .api import API_KEY
 
 # Youtube API Tools
 
