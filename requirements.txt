@@ -6,6 +6,6 @@ marshmallow_sqlalchemy>=0.14.1
 flask_marshmallow>=0.9.0
 flask_socketio>=3.0.1
 flask_sqlalchemy>=2.3.2
-statistics
 scikit-image
 numpy
+scipy

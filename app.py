@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 """
+
     youtube de locke
     by jtcourtemarche
+
 """
 
 import os
@@ -15,9 +17,10 @@ from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
-from api import SECRET_KEY
+from .api import SECRET_KEY
 
 # Initializers
+
 app = Flask(__name__)
 
 app.config.update(
@@ -31,6 +34,7 @@ app.config.update(
 )
 
 import logging
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -40,14 +44,17 @@ login_manager.init_app(app)
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
 socketio = SocketIO(app)
 
 # Main imports
-import models
-import sockets
-from views import urls
+
+from . import models
+from . import sockets
+from .views import urls
 
 app.register_blueprint(urls)
+
 
 @login_manager.user_loader
 def load_user(user_id):

@@ -3,6 +3,7 @@
 
 api.py
 .vscode/
+*.bak
 
 ### Database ###
 *.accdb

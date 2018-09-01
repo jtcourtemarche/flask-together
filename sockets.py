@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
 import re
-
 from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
 
-import utils
-from app import db, socketio
-import models
+from . import utils
+from .app import db, socketio
+from . import models
 
 clients = []
 logged_in = []
+
 
 @socketio.on('joined')
 def handle_connect():
@@ -37,9 +37,11 @@ def handle_connect():
     history_schema = models.HistorySchema()
 
     try:
-        most_recent = models.History.query.order_by(models.History.date).all()[-1]
+        most_recent = models.History.query.order_by(
+            models.History.date).all()[-1]
         most_recent = history_schema.dump(most_recent).data
-        most_recent_username = str(models.User.query.get(most_recent['user']).username)
+        most_recent_username = models.User.query.get(
+            most_recent['user']).username
     except:
         most_recent = None
 
@@ -54,16 +56,19 @@ def handle_connect():
         'sid': request.sid,
     }, room=clients[-1])
 
+
 @socketio.on('init-preload')
 def init_preload():
-    if filter(lambda x: x != request.sid, clients) != []:
+    if [x for x in clients if x != request.sid] != []:
         emit('request-data', {
             'sid': request.sid,
         }, broadcast=True, include_self=False)
 
+
 @socketio.on('preload-info')
 def preload(data):
     emit('preload', data, room=data['sid'])
+
 
 @socketio.on('disconnect', namespace='/')
 def handle_dc():
@@ -72,24 +77,30 @@ def handle_dc():
             del logged_in[i[0]]
 
     active_users = [()]
+
     for user in models.User.query.all():
         if user.username in logged_in:
             active_users.append((user.username, 1))
         else:
             active_users.append((user.username, 0))
-    emit('user-disconnected', {'username':current_user.username, 'active_users':active_users}, broadcast=True)
+
+    emit('user-disconnected', {'username': current_user.username,
+                               'active_users': active_users}, broadcast=True)
 
     cin = clients.index(request.sid)
     del clients[cin]
 
 # Play / Pause
+
 @socketio.on('client-play')
 def play(data):
     emit('server-play', data["time"], broadcast=True)
 
+
 @socketio.on('client-pause')
 def pause(data):
     emit('server-pause', data["time"], broadcast=True)
+
 
 @socketio.on('client-play-new')
 def play_new(data):
@@ -100,41 +111,45 @@ def play_new(data):
     # Check if valid youtube url, if not serve search results
     if yt_id != []:
         yt = utils.check_yt(yt_id[0][3])['items'][0]
+
         h = models.History(
-            video_id = yt['id'],
-            video_date = yt['snippet']['publishedAt'],
-            video_title = yt['snippet']['title'],
-            video_thumbnail = yt['snippet']['thumbnails']['default']['url'],
+            video_id=yt['id'],
+            video_date=yt['snippet']['publishedAt'],
+            video_title=yt['snippet']['title'],
+            video_thumbnail=yt['snippet']['thumbnails']['default']['url'],
             user_id=data['user']['id'],
         )
 
         user = models.User.query.get(data['user']['id'])
-
         db.session.add(h)
         db.session.commit()
-
         history_schema = models.HistorySchema(many=True)
-
         history = models.History.query.all()
         history = history_schema.dump(history).data
 
-        emit('server-play-new', {'id': h.video_id, 'history': history, 'user': user.username},  broadcast=True)
+        emit('server-play-new', {'id': h.video_id,
+                                 'history': history, 'user': user.username},  broadcast=True)
     elif '/channel/' in data['url']:
         results = utils.check_channel_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
+
     else:
         results = utils.search_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
+
 
 @socketio.on('client-rate')
 def handle_rate(data):
     emit('server-rate', data["rate"], broadcast=True)
 
+
 @socketio.on('client-skip')
 def handle_skip(data):
     emit('server-skip', data["time"], broadcast=True)
 
+
 # Error handling
+
 @socketio.on_error()
 def error_handler(e):
     print(e)

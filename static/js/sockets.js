@@ -5,7 +5,9 @@ var socket, start_time, start_video;
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
+        // HTTPS
         socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        // HTTP
         //socket = io.connect('ws://' + document.domain + ':' + location.port);
     }
 
