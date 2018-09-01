@@ -64,6 +64,9 @@ $('#yt-url').on("keydown", function(event) {
 			$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
 			controlPlayNew($("#yt-url").val());
 		}
+	} else if (event.which == 13) {
+		$('#yt-search').html('<img class="spinner" src="../static/images/spinner.gif"/>');
+		controlPlayNew($("#yt-url").val());
 	}
 })
 $('#yt-search').on('click', function() {
