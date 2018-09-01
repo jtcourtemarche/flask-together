@@ -21,9 +21,9 @@ var connect_socket = function() {
         var user;
         for (user in data.active_users) {
             if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<button class="btn btn-success" disabled>'+data.active_users[user][0]+'</button>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<button class="btn btn-secondary" disabled>'+data.active_users[user][0]+'</button>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             }
         }
     });
@@ -57,9 +57,9 @@ var connect_socket = function() {
         var user;
         for (user in data.active_users) {
             if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<button class="btn btn-success" disabled>'+data.active_users[user][0]+'</button>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<button class="btn btn-secondary" disabled>'+data.active_users[user][0]+'</button>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             }
         }
     });
@@ -170,7 +170,6 @@ var connect_socket = function() {
         if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
-        $("#search-list").attr('scrollTop', 0);
     });
 
     return socket;

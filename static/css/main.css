@@ -258,6 +258,21 @@ table {
 }
 
 .active-users button {
-  border-radius: 0;
-  margin-right: -4px;
+  border-radius: 25px;
+  max-width: 1px !important;
+}
+.active-users .online {
+  color: green;
+}
+.active-users .offline {
+  color: gray;
+}
+.active-users a {
+  margin-right: 20px !important;
+  font-size: 20px;
+  color: white;
+}
+.active-users a:hover {
+  color: gray;
+  text-decoration: none;
 }
