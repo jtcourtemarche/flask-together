@@ -136,6 +136,8 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server-play-new', function (data) {
+        $('#yt-search').html('Search');
+
         appendHistory(data.history);
 
         $('#page-user').html(data.user);
