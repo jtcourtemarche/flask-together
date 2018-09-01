@@ -257,10 +257,6 @@ table {
   border-color: #1EAEDB !important;
 }
 
-.active-users button {
-  border-radius: 25px;
-  max-width: 1px !important;
-}
 .active-users .online {
   color: green;
 }

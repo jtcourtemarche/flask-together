@@ -170,6 +170,7 @@ var connect_socket = function() {
         if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         }
+        $('#search-list').scrollTo(0);
     });
 
     return socket;
