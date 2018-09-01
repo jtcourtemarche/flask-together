@@ -89,6 +89,8 @@ def user_profile(username):
             else:
                 most_played = None
                 most_played_id = None
+                avg = 'white'
+                fg_color = 'black'
 
             return render_template('profile.html',
                                    user=user,
