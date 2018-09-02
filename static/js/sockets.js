@@ -32,7 +32,6 @@ var connect_socket = function() {
     socket.on('new-user-sync', function(data) {
         // Play last video from DB
         if (data.most_recent != null) {
-            console.log('Syncing most recent video @ '+data.most_recent.video_id);
             player.loadVideoById(data.most_recent.video_id);
             $('#page-user').html(data.most_recent_username);
             appendHistory(data.history);
@@ -95,7 +94,6 @@ var connect_socket = function() {
 
     // Skip --------------------------------->
     socket.on('server-skip', function (time) {
-        console.log('test2 '+time);
         player.seekTo(time);
         if ($('#play').is(':visible')) {
             $('#play').show();

@@ -55,7 +55,6 @@ from views import urls
 
 app.register_blueprint(urls)
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return models.User.query.get(int(user_id))

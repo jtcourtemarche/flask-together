@@ -46,17 +46,10 @@ def root():
 
     return render_template('login.html')
 
-
 @urls.route('/watch')
 @login_required
 def index():
     return render_template('index.html')
-
-@urls.route('/stats')
-@login_required
-def stats():
-    #history = 
-    pass
 
 import numpy
 from scipy.stats import mode
@@ -105,7 +98,4 @@ def user_profile(username):
                                    most_played, hmap.count(most_played_id)),
                                colors=(avg, fg_color),
                                )
-    else:
-        return 'Not a valid user'
-
-    return redirect('/')
+    return 'Not a valid user.'
