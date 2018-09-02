@@ -3,8 +3,8 @@
 import os
 import sqlite3
 
-from . import models
-from .app import db
+import models
+from app import db
 
 # Initializes Sqlite3 Database
 def init_db():

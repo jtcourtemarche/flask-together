@@ -5,13 +5,23 @@ from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
 
-from . import utils
-from .app import db, socketio
-from . import models
+import utils
+from app import db, socketio
+import models
 
 clients = []
 logged_in = []
 
+def get_active_users():
+    active_users = [(current_user.username, 1)]
+    
+    for user in models.User.query.all():
+        if user.username in logged_in and user.username != current_user.username:
+            active_users.append((user.username, 1))
+        elif user.username != current_user.username:
+            active_users.append((user.username, 0))
+
+    return active_users
 
 @socketio.on('joined')
 def handle_connect():
@@ -23,12 +33,7 @@ def handle_connect():
     if current_user.is_authenticated and current_user.username not in logged_in:
         logged_in.append(current_user.username)
 
-    active_users = [()]
-    for user in models.User.query.all():
-        if user.username in logged_in:
-            active_users.append((user.username, 1))
-        else:
-            active_users.append((user.username, 0))
+    active_users = get_active_users()
 
     emit('new-user', {
         'active_users': active_users
@@ -76,13 +81,7 @@ def handle_dc():
         if current_user.username == i[1]:
             del logged_in[i[0]]
 
-    active_users = [()]
-
-    for user in models.User.query.all():
-        if user.username in logged_in:
-            active_users.append((user.username, 1))
-        else:
-            active_users.append((user.username, 0))
+    active_users = get_active_users()
 
     emit('user-disconnected', {'username': current_user.username,
                                'active_users': active_users}, broadcast=True)

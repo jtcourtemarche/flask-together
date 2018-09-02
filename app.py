@@ -17,7 +17,7 @@ from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
-from .api import SECRET_KEY
+from api import SECRET_KEY
 
 # Initializers
 
@@ -49,9 +49,9 @@ socketio = SocketIO(app)
 
 # Main imports
 
-from . import models
-from . import sockets
-from .views import urls
+import models
+import sockets
+from views import urls
 
 app.register_blueprint(urls)
 

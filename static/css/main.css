@@ -265,10 +265,13 @@ table {
 }
 .active-users a {
   margin-right: 20px !important;
-  font-size: 20px;
+  font-size: 16px;
   color: white;
 }
 .active-users a:hover {
   color: gray;
   text-decoration: none;
+}
+.active-users i {
+  font-size: 12px;
 }
