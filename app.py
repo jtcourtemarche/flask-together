@@ -30,7 +30,7 @@ app.config.update(
     TESTING=True,
     SECRET_KEY=SECRET_KEY,
     SQLALCHEMY_DATABASE_URI='sqlite:///watch.db',
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
 
 import logging
@@ -49,6 +49,9 @@ socketio = SocketIO(app)
 
 # Main imports
 
+from lastfm import FM
+fm = FM()
+
 import models
 import sockets
 from views import urls
@@ -58,7 +61,6 @@ app.register_blueprint(urls)
 @login_manager.user_loader
 def load_user(user_id):
     return models.User.query.get(int(user_id))
-
 
 @app.errorhandler(404)
 def page_not_found(error):

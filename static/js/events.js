@@ -100,6 +100,12 @@ $('.embed-responsive').mouseenter(function() {
 $('.embed-responsive').mouseleave(function() {
 	$('#video-overlay').fadeOut(0);
 });
+
+// Cancel overlay fade out on these click events
 $('#video-overlay #page-title').mouseenter(function() {
 	$('#video-overlay').fadeIn(0);
 });
+$('#video-overlay #page-artist').mouseenter(function() {
+	$('#video-overlay').fadeIn(0);
+});
+

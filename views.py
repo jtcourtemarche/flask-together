@@ -3,16 +3,14 @@
 from flask import Blueprint, g, redirect, render_template, request
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app import db
+from app import db, fm
 import models
 
 urls = Blueprint('urls', __name__)
 
-
 @urls.before_request
 def before_request():
     g.user = current_user
-
 
 @urls.route('/login', methods=['GET', 'POST'])
 def login():
@@ -30,14 +28,11 @@ def login():
         else:
             return render_template('login.html', error='Invalid username')
 
-
 @urls.route('/logout')
 @login_required
 def logout():
     logout_user()
-
     return redirect('/')
-
 
 @urls.route('/')
 def root():

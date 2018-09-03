@@ -6,7 +6,7 @@ from flask_login import current_user
 from flask_socketio import emit, join_room
 
 import utils
-from app import db, socketio
+from app import db, fm, socketio
 import models
 
 clients = []
@@ -126,26 +126,37 @@ def play_new(data):
         history = models.History.query.all()
         history = history_schema.dump(history).data
 
-        emit('server-play-new', {'id': h.video_id,
-                                 'history': history, 'user': user.username},  broadcast=True)
+        emit('server-play-new', {
+            'id': h.video_id,
+            'history': history, 
+            'user': user.username,
+        }, broadcast=True)
+
+        if " - " in yt['snippet']['title']:
+            # Check if song
+            title = yt['snippet']['title'].split(' - ')
+            artist = title[0]
+            name = title[1]
+
+            emit('server-play-new-artist', {
+                'artist': fm.get_artist(artist),
+            }, broadcast=True)
+
     elif '/channel/' in data['url']:
         results = utils.check_channel_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
-
+   
     else:
         results = utils.search_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
-
 
 @socketio.on('client-rate')
 def handle_rate(data):
     emit('server-rate', data["rate"], broadcast=True)
 
-
 @socketio.on('client-skip')
 def handle_skip(data):
     emit('server-skip', data["time"], broadcast=True)
-
 
 # Error handling
 

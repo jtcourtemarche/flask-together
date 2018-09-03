@@ -6,9 +6,9 @@ var socket, start_time, start_video;
 var connect_socket = function() {
     if (socket == undefined) {
         // HTTPS
-        socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        //socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
         // HTTP
-        //socket = io.connect('ws://' + document.domain + ':' + location.port);
+        socket = io.connect('ws://' + document.domain + ':' + location.port);
     }
 
     // Handle Connect ----------------------->
@@ -149,6 +149,20 @@ var connect_socket = function() {
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
+
+        $('#video-overlay #page-artist').empty();
+    });
+
+    socket.on('server-play-new-artist', function(data) {
+        if (data.artist != false) {
+            var artist = JSON.parse(data.artist);
+            console.log(artist.name);
+            $('#video-overlay #page-artist').html(
+                "<a target='_blank' href='https://www.last.fm/music/"+artist.name.replace(' ', '+')+"'><img src='"+artist.image[2]['#text']+"'><span>"+artist.name+"<br/>"+artist.listeners+" Listeners</span></img></a>"
+            );
+        } else {
+            $('#video-overlay #page-artist').empty();
+        }        
     });
 
     // Search function ---------------------->
