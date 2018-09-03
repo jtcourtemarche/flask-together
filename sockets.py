@@ -128,6 +128,7 @@ def play_new(data):
 
         emit('server-play-new', {
             'id': h.video_id,
+            'title': h.video_title,
             'history': history, 
             'user': user.username,
         }, broadcast=True)

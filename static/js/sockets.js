@@ -34,6 +34,7 @@ var connect_socket = function() {
         if (data.most_recent != null) {
             player.loadVideoById(data.most_recent.video_id);
             $('#page-user').html(data.most_recent_username);
+            $('title').html(data.most_recent.video_title);
             appendHistory(data.history);
 
             setTimeout(function() {
@@ -141,6 +142,7 @@ var connect_socket = function() {
         appendHistory(data.history);
 
         $('#page-user').html(data.user);
+        $('title').html(data.title);
 
         player.loadVideoById(data.id);
         player.seekTo(0);
