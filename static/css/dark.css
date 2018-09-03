@@ -10,6 +10,11 @@ body {
     border-right: 1px solid black;
 }
 
+#search-list #list-result {
+    border-left: 0;
+    border-right: 0;
+}
+
 #list-result {
     background-color: rgb(19, 21, 24); 
     color: white;
@@ -25,13 +30,13 @@ input[text] {
 
 ::-webkit-scrollbar {
     width: 10px;
-  }
+}
 ::-webkit-scrollbar-track {
-background: rgb(29, 32, 36); 
+    background: rgb(29, 32, 36); 
 }
 ::-webkit-scrollbar-thumb {
-background: rgb(49, 49, 49); 
+    background: rgb(49, 49, 49); 
 }
 ::-webkit-scrollbar-thumb:hover {
-background: #555; 
+    background: #555; 
 }
