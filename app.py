@@ -16,8 +16,9 @@ from flask_login import LoginManager, current_user
 from flask_marshmallow import Marshmallow
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
-from api import SECRET_KEY
+from api import SECRET_KEY, POSTGRES
 
 # Initializers
 
@@ -29,9 +30,23 @@ app.config.update(
     DEBUG=True,
     TESTING=True,
     SECRET_KEY=SECRET_KEY,
-    SQLALCHEMY_DATABASE_URI='sqlite:///watch.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
+
+"""
+Example postgres import
+
+POSTGRES = {
+    'user': 'postgres',
+    'pw': 'password',
+    'db': 'database name',
+    'host': 'localhost',
+    'port': '5432',
+}
+"""
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
+%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
 import logging
 
@@ -44,6 +59,8 @@ login_manager.init_app(app)
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+migrate = Migrate(app, db)
 
 socketio = SocketIO(app)
 

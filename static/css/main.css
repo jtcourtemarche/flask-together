@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css?family=Karla');
+@import url('https://fonts.googleapis.com/css?family=Mako');
 
 body {
-    font-family: 'Karla', sans-serif !important;
+    font-family: 'Mako', sans-serif !important;
 
     height: 100%;
     width: 100%;
@@ -234,22 +234,28 @@ body {
 }
 #page-artist {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 20px;
+    right: 20px;
     pointer-events: auto;
     stroke: black 1px solid;
 }
 #page-artist img {
-    border-radius: 100px;
+    width: 100px;
+    border-radius: 10px;
 }
+/*
 #page-artist span {
+    font-family: 'Monospace', monospace;
     position: absolute;
     color: white;
     text-decoration: none;
-    bottom: -20px;
-    left: 2px;
     font-size: 14px;
+    left: 0;
+
+   -webkit-text-stroke-width: 1px;
+   -webkit-text-stroke-color: black;
 }
+*/
 #page-artist:hover {
     opacity: 0.7;
     text-decoration: none;
@@ -269,6 +275,7 @@ body {
 #yt-search {
     background-color: #1EAEDB;
     border-color: #1EAEDB !important;
+    color: white;
 }
 .active-users .online {
     color: green;

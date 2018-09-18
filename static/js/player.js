@@ -149,7 +149,6 @@ var controlPause = function () {
 var controlSkip = function (time) {
     var seconds;
     if (typeof socket != 'undefined') {
-        console.log('test1 ' + time);
         if (String(time).indexOf(':') > -1) {
             time = time.split(':');
             if (time.length == 2) {

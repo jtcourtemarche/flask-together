@@ -2,13 +2,14 @@
 <html lang="en">
    <head>
       <meta charset="utf-8">
-      <title>洁洁</title>
+      <title>{{ user.username }}'s profile</title>
       <meta name="description" content="">
       <meta name="author" content="">
       <!-- Mobile Specific Metas -->
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <!-- CSS -->
       <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
       <!-- JS -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
       <!-- Icon -->
@@ -28,13 +29,16 @@
           }
         </style>
         <div class="jumbotron">
+          <p style="position: absolute; top: 15px; left: 15px;"><a href="/"><i class="fas fa-arrow-circle-left"></i> Go back</a></p>
           <h1 class="display-4">{{ user.username }}</h1>
           <p class="lead">{{ count }} total plays</p>
-          <p class="lead">Most played video: {{ most_played[0].video_title }} | Played {{ most_played[1] }} times</p>
+          <p class="lead">Most played video: <br/> <span style="font-size: 14px">Played {{ most_played[1] }} times</span></p>
           
           <iframe id="yt-player" type="text/html" width="640" height="390"
           src="https://www.youtube.com/embed/{{ most_played[0].video_id }}?enablejsapi=1"
           frameborder="0"></iframe>
+
+          <p class="lead"><i class="fab fa-lastfm"></i>&nbsp;<a href="https://www.last.fm/user/{{ lastfm.user.name }}">{{ lastfm.user.name }}</a> ~ {{ lastfm.user.playcount }} plays</p>
         </div>
         <h3 style="text-indent: 1em">
             Play History:

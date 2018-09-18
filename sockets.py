@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import re
+import time
 from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
@@ -109,13 +110,16 @@ def play_new(data):
 
     # Check if valid youtube url, if not serve search results
     if yt_id != []:
-        yt = utils.check_yt(yt_id[0][3])['items'][0]
+        yt = utils.check_yt(yt_id[0][3])
+
+        items = yt.get_items()
+        content = yt.get_content()
 
         h = models.History(
-            video_id=yt['id'],
-            video_date=yt['snippet']['publishedAt'],
-            video_title=yt['snippet']['title'],
-            video_thumbnail=yt['snippet']['thumbnails']['default']['url'],
+            video_id=items['id'],
+            video_date=items['snippet']['publishedAt'],
+            video_title=items['snippet']['title'],
+            video_thumbnail=items['snippet']['thumbnails']['default']['url'],
             user_id=data['user']['id'],
         )
 
@@ -133,11 +137,23 @@ def play_new(data):
             'user': user.username,
         }, broadcast=True)
 
-        if " - " in yt['snippet']['title']:
+        # Scrobbling
+
+        try:
+            fm.cache[current_user.id]
+            fm.scrobble(current_user.id)
+            fm.cache.popitem()
+        except Exception as e:
+            print(e)
+        
+        if len(items['snippet']['title'].split(' - ')) == 2:
             # Check if song
-            title = yt['snippet']['title'].split(' - ')
+            title = items['snippet']['title'].split(' - ')
             artist = title[0]
-            name = title[1]
+            name = re.sub(r'\([^)]*\)', '', title[1])
+            if current_user.lastfm_connected():
+                duration = content['contentDetails']['duration']
+                fm.updateNowPlaying(artist, name, current_user, duration)
 
             emit('server-play-new-artist', {
                 'artist': fm.get_artist(artist),

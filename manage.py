@@ -8,9 +8,6 @@ from app import db
 
 # Initializes Sqlite3 Database
 def init_db():
-    with sqlite3.connect('watch.db') as conn:
-        conn.commit()
-
     db.create_all()
     db.session.commit()
     print('Complete')

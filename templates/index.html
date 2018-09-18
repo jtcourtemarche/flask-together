@@ -5,6 +5,7 @@
       <title></title>
       <meta name="description" content="">
       <meta name="author" content="">
+      <meta name="scheme" content="{{ request.scheme }}"
       <meta id="current-user" data-id="{{ current_user.id }}">
       <!-- Mobile Specific Metas -->
       <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,8 +31,13 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="active-users"></div>
-        <ul class="navbar-nav ml-auto"></ul>
 
+        <ul class="navbar-nav ml-auto">
+        {% if current_user.lastfm_connected() %}
+          Scrobbling to {{ current_user.fm_name }}
+        {% endif %}
+        </ul>
+        
         <ul class="navbar-nav ml-auto">
         <div class="form-inline my-2 my-lg-0">
         <div class="input-group">
@@ -40,7 +46,7 @@
           </div>
           <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
         </div>
-        <button id="yt-search" class="btn btn-success my-2 my-sm-0">Search</button>
+        <button id="yt-search" class="btn my-2 my-sm-0">Search</button>
         </ul>
       </div>
       </nav>

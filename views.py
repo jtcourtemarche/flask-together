@@ -1,7 +1,13 @@
 #!/usr/bin/python
 
+import hashlib
+
+import requests
+import json
 from flask import Blueprint, g, redirect, render_template, request
 from flask_login import current_user, login_required, login_user, logout_user
+
+from api import LASTFM_KEY, LASTFM_SECRET
 
 from app import db, fm
 import models
@@ -34,6 +40,39 @@ def logout():
     logout_user()
     return redirect('/')
 
+# LastFM
+@urls.route('/auth/lastfm')
+@login_required
+def auth_lastfm():
+    if not current_user.lastfm_connected():
+        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}&cb={request.url_root}register')
+
+    return f'Your account {current_user.fm_name} is already connected'
+
+@urls.route('/register', methods=['GET'])
+@login_required
+def register():
+    if 'token' in request.args and len(request.args['token']) == 32:
+        token = request.args['token']
+
+        resp = fm.get_session(token)
+
+        if resp[0]:
+            # Register LastFM in DB
+            current_user.fm_name = resp[1]['name']
+            current_user.fm_token = token
+            current_user.fm_sk = resp[1]['key']
+
+            db.session.commit()
+
+            return '<span>Registered {}</span><br/><a href="/">Take me back</a>'.format(resp[1]['name'])
+        else:
+            return 'Error connecting to your LastFM account: {}'.format(resp[1]['message'])
+    else:
+        return 'Failed to connect to your LastFM'
+
+# ------------------------------------------
+
 @urls.route('/')
 def root():
     if g.user.is_authenticated:
@@ -55,6 +94,9 @@ from skimage import io
 def user_profile(username):
     user = models.User.query.filter_by(username=username).first()
     if user:
+        if user.lastfm_connected():
+            lastfm_data = fm.get_user(user.fm_name)
+
         history = models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()
 
@@ -92,5 +134,7 @@ def user_profile(username):
                                most_played=(
                                    most_played, hmap.count(most_played_id)),
                                colors=(avg, fg_color),
-                               )
+                               lastfm=lastfm_data
+                            )
+
     return 'Not a valid user.'

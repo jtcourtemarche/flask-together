@@ -9,3 +9,7 @@ flask_sqlalchemy>=2.3.2
 scikit-image
 numpy
 scipy
+flask_migrate
+requests
+psycopg2
+cachetools

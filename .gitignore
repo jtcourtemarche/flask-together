@@ -5,6 +5,8 @@ api.py
 .vscode/
 *.bak
 
+migrations/
+
 ### Database ###
 *.accdb
 *.db

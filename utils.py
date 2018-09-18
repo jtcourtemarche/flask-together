@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import requests
 import json
 import urllib.request
 import urllib.error
@@ -31,13 +32,32 @@ def search_yt(query):
 
 # Tool that checks if valid youtube video
 
+class Video():
+    def __init__(self, items, contentDetails):
+        if items and contentDetails:
+            self.items = items
+            self.contentDetails = contentDetails
+
+    def get_items(self):
+        return json.loads(self.items)['items'][0]
+
+    def get_content(self):
+        content = json.loads(self.contentDetails)['items'][0]
+        duration = content['contentDetails']['duration']
+
+        # Separate duration format into array where ->
+        #   [minutes, seconds]
+        if 'M' in duration:
+            duration = duration.replace('PT', '').replace('S', '').split('M')
+        else:
+            duration = [0, duration.replace('PT', '').replace('S', '')]
+
+        content['contentDetails']['duration'] = duration
+
+        return content
 
 def check_yt(id):
-    url = "https://www.googleapis.com/youtube/v3/videos?id={0}&key={1}&part=snippet".format(
-        id, API_KEY)
-    feed = urllib.request.urlopen(url).read()
-    if feed:
-        return json.loads(feed)
+    feed = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={id}&key={API_KEY}&part=snippet').content
+    content = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={id}&part=contentDetails&key={API_KEY}').content
 
-    else:
-        return False
+    return Video(feed, content)

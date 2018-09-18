@@ -8,17 +8,24 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, ma
 
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
+    
+    fm_name = db.Column(db.String(), nullable=True, default='')
+    fm_sk = db.Column(db.String(32), nullable=True, default='')
 
     def setpass(self, password):
         self.password = generate_password_hash(password)
 
     def checkpass(self, password):
         return check_password_hash(self.password, password)
+
+    def lastfm_connected(self):
+        if self.fm_sk != '':
+            return True
+        return False
 
     # When you print the user model it returns this
     def __repr__(self):
@@ -45,6 +52,5 @@ class History(db.Model):
 
 
 class HistorySchema(ma.ModelSchema):
-
     class Meta:
         model = History

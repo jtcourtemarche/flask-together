@@ -5,10 +5,13 @@ var socket, start_time, start_video;
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
-        // HTTPS
-        //socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
-        // HTTP
-        socket = io.connect('ws://' + document.domain + ':' + location.port);
+        // Change socket URL based on request scheme 
+        var scheme = $('meta[name=scheme]').attr('content');
+        if (scheme == 'https') {
+            socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        } else if (scheme == 'http') {
+            socket = io.connect('ws://' + document.domain + ':' + location.port);
+        }
     }
 
     // Handle Connect ----------------------->
@@ -88,6 +91,12 @@ var connect_socket = function() {
             // Buffering : assume playing
             $('#play').hide();
             $('#pause').show();
+        } else if (data.state == 0) {
+            // Ended
+            $('#replay').show();
+            $('#play').hide();
+            $('#pause').hide();
+            player.pauseVideo();
         } else {
             console.log('Could not get player state!');   
         }
@@ -158,9 +167,8 @@ var connect_socket = function() {
     socket.on('server-play-new-artist', function(data) {
         if (data.artist != false) {
             var artist = JSON.parse(data.artist);
-            console.log(artist.name);
             $('#video-overlay #page-artist').html(
-                "<a target='_blank' href='https://www.last.fm/music/"+artist.name.replace(' ', '+')+"'><img src='"+artist.image[2]['#text']+"'><span>"+artist.name+"<br/>"+artist.listeners+" Listeners</span></img></a>"
+                "<a target='_blank' href='https://www.last.fm/music/"+artist.name.replace(' ', '+')+"'><img src='"+artist.image[2]['#text']+"'></img></a>"
             );
         } else {
             $('#video-overlay #page-artist').empty();
