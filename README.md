@@ -1,4 +1,6 @@
-![alt text](https://github.com/jtcourtemarche/youtube-de-locke/blob/master/static/images/logo.png "youtube de locke")
+<p align="center">
+  <img src="https://github.com/jtcourtemarche/youtube-de-locke/blob/master/static/images/logo.png" alt="youtube-de-locke" width="539" />
+</p>
 
 Website built on Flask that synchronizes Youtube videos using websockets.
 
