@@ -1,4 +1,5 @@
-# youtube de locke
+![alt text](https://github.com/jtcourtemarche/youtube-de-locke/blob/master/static/images/logo.png "youtube de locke")
+
 Website built on Flask that synchronizes Youtube videos using websockets.
 
 ```
