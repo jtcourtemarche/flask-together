@@ -96,6 +96,8 @@ def user_profile(username):
     if user:
         if user.lastfm_connected():
             lastfm_data = fm.get_user(user.fm_name)
+        else:
+            lastfm_data = None
 
         history = models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()

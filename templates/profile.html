@@ -38,7 +38,9 @@
           src="https://www.youtube.com/embed/{{ most_played[0].video_id }}?enablejsapi=1"
           frameborder="0"></iframe>
 
-          <p class="lead"><i class="fab fa-lastfm"></i>&nbsp;<a href="https://www.last.fm/user/{{ lastfm.user.name }}">{{ lastfm.user.name }}</a> ~ {{ lastfm.user.playcount }} plays</p>
+          {% if lastfm %}
+            <p class="lead"><i class="fab fa-lastfm"></i>&nbsp;<a href="https://www.last.fm/user/{{ lastfm.user.name }}">{{ lastfm.user.name }}</a> ~ {{ lastfm.user.playcount }} plays</p>
+          {% endif %}
         </div>
         <h3 style="text-indent: 1em">
             Play History:
