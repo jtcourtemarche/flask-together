@@ -7,9 +7,6 @@ import urllib.error
 import urllib.parse
 from api import API_KEY
 
-# Youtube API Tools
-
-
 def check_channel_yt(url):
     api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
         url.split('/channel/')[1],
@@ -46,11 +43,24 @@ class Video():
         duration = content['contentDetails']['duration']
 
         # Separate duration format into array where ->
-        #   [minutes, seconds]
-        if 'M' in duration:
-            duration = duration.replace('PT', '').replace('S', '').split('M')
+        #   [hours, minutes, seconds]
+        # Remove PT
+        duration = duration.replace('PT', '')
+
+        if 'H' in duration:
+            duration = [duration.split('H')[0], duration.split('H')[1]]
         else:
-            duration = [0, duration.replace('PT', '').replace('S', '')]
+            duration = [0, duration.replace('H', '')]
+
+        if 'M' in duration[1]:
+            split_secondhand = duration[1].split('M')
+            duration[1] = split_secondhand[0]
+            duration.append(split_secondhand[1].replace('S', ''))
+        else:
+            duration.append(duration[1].replace('S', ''))
+            duration[1] = 0 
+
+        duration = [int(d) for d in duration]
 
         content['contentDetails']['duration'] = duration
 

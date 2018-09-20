@@ -104,12 +104,14 @@ class FM:
 				'sk': fmdata['sk'],
 				'timestamp': fmdata['timestamp']
 			}).content
-			print(resp)
+
+			return True
+		return False
 
 	def updateNowPlaying(self, artist, track, user, duration):
 		sk = user.fm_sk
 
-		if int(duration[1]) > 30 or int(duration[0]) > 0:
+		if duration[2] >= 30 or duration[1] > 0:
 			# Check if duration over 30s
 			api_sig = self.sign_call({
 				'method': 'track.updateNowPlaying',

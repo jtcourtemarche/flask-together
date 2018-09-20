@@ -78,11 +78,15 @@ def preload(data):
 
 @socketio.on('disconnect', namespace='/')
 def handle_dc():
+    # Update list of active users
     for i in enumerate(logged_in):
         if current_user.username == i[1]:
             del logged_in[i[0]]
 
     active_users = get_active_users()
+
+    # Clear LastFM cache for user
+    fm.cache.pop(current_user.id)
 
     emit('user-disconnected', {'username': current_user.username,
                                'active_users': active_users}, broadcast=True)
@@ -139,12 +143,12 @@ def play_new(data):
 
         # Scrobbling
 
-        try:
-            fm.cache[current_user.id]
+        print(fm.cache)
+
+        if current_user.id in fm.cache:
+            # Send scrobble to API then clear from cache
             fm.scrobble(current_user.id)
-            fm.cache.popitem()
-        except Exception as e:
-            print(e)
+            fm.cache.pop(current_user.id)
         
         if len(items['snippet']['title'].split(' - ')) == 2:
             # Check if song
