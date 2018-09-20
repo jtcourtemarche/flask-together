@@ -32,7 +32,7 @@ LASTFM_SECRET = "<lastfm secret key>"
 ```
 Python setup is as follows:
 
-```python
+```
 $ pip install -r requirements.txt 
 
 $ python 
