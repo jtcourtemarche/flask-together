@@ -159,6 +159,8 @@ def play_new_handler(d):
 
     d = json.loads(d['data'])
 
+    print(get_cache)
+
     if get_cache != [b'']:
         # Send scrobble to API then clear from cache
         fm.scrobble(current_user.username)

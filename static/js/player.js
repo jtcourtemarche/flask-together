@@ -41,7 +41,7 @@ function onReady (event) {
 
 function stateChange (event) {
     if (event.data == 5) {
-        socket.emit('player-ready', event.target);
+        socket.emit('user:player-ready', event.target);
     }
     if (event.data == 0) {
         // Video ended
@@ -88,7 +88,7 @@ function showPlaybackRates(playback_rates) {
 var appendHistory = function(history) {
     $("#history-list").empty();
     for (var h in history.reverse()) {
-        if (h > 25) {
+        if (h > 20) {
             break;
         } else if (h >= history.length) {
             break;
@@ -114,7 +114,7 @@ var appendHistory = function(history) {
 
 var controlPlayNew = function (url) {
     if (typeof socket != 'undefined') {
-        socket.emit('client-play-new', {
+        socket.emit('user:play-new', {
             url: url,
             user: $('#current-user').data(),
         });
@@ -132,14 +132,14 @@ var controlFullscreen = function () {
 
 var controlPlay = function () {
     if (typeof socket != 'undefined') {
-        socket.emit('client-play', {
+        socket.emit('user:play', {
             time: player.getCurrentTime()
         });
     }
 };
 var controlPause = function () {
     if (typeof socket != 'undefined') {
-        socket.emit('client-pause', {
+        socket.emit('user:pause', {
             time: player.getCurrentTime()
         });
     }
@@ -159,7 +159,7 @@ var controlSkip = function (time) {
             time = seconds;
         }
 
-        socket.emit('client-skip', {
+        socket.emit('user:skip', {
             time: time
         });
     }
@@ -168,7 +168,7 @@ var controlSkip = function (time) {
 // Change Playback Rate ----------------->
 var controlRate = function (rate) {
     if (typeof socket != 'undefined') {
-        socket.emit('client-rate', {
+        socket.emit('user:rate', {
             rate: rate
         });
     }

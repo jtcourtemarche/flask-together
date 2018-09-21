@@ -16,10 +16,10 @@ var connect_socket = function() {
 
     // Handle Connect ----------------------->
     socket.on('connect', function() {
-        socket.emit('joined');
+        socket.emit('user:joined');
     });
     
-    socket.on('user-disconnected', function(data) {
+    socket.on('server:disconnected', function(data) {
         $('.active-users').empty();
         var user;
         for (user in data.active_users) {
@@ -32,16 +32,16 @@ var connect_socket = function() {
     });
 
     // Load last video from DB -------------->
-    socket.on('new-user-sync', function(data) {
+    socket.on('server:sync', function(data) {
         // Play last video from DB
-        if (data.most_recent != null) {
+        if (data.most_recent != null && data.most_recent_username != null) {
             player.loadVideoById(data.most_recent.video_id);
             $('#page-user').html(data.most_recent_username);
             $('title').html(data.most_recent.video_title);
             appendHistory(data.history);
 
             setTimeout(function() {
-                socket.emit('init-preload');
+                socket.emit('user:init-preload');
             }, 1000);
         } else {
             $('#history-list').empty();
@@ -55,7 +55,7 @@ var connect_socket = function() {
     });
 
     // Handle New User Connect ----------------------->
-    socket.on('new-user', function(data) {
+    socket.on('server:new-user', function(data) {
         $('.active-users').empty();
         var user;
         for (user in data.active_users) {
@@ -68,8 +68,8 @@ var connect_socket = function() {
     });
 
     // Handle Request for Data -------------->
-    socket.on('request-data', function(data) {
-        socket.emit('preload-info', {
+    socket.on('server:request-data', function(data) {
+        socket.emit('user:preload-info', {
             time: player.getCurrentTime(),
             state: player.getPlayerState(),
             sid: data.sid,
@@ -77,7 +77,7 @@ var connect_socket = function() {
     });
 
     // Load preload data
-    socket.on('preload', function(data) {
+    socket.on('server:preload', function(data) {
         controlSkip(data.time);
         if (data.state == 1) {
             // Playing
@@ -103,7 +103,7 @@ var connect_socket = function() {
     });
 
     // Skip --------------------------------->
-    socket.on('server-skip', function (time) {
+    socket.on('server:skip', function (time) {
         player.seekTo(time);
         if ($('#play').is(':visible')) {
             $('#play').show();
@@ -119,7 +119,7 @@ var connect_socket = function() {
     });
 
     // Play / Pause ------------------------->
-    socket.on('server-play', function (time) {
+    socket.on('server:play', function (time) {
         player.seekTo(time);
         player.playVideo();
 
@@ -127,14 +127,14 @@ var connect_socket = function() {
         $('#play').hide();
         $('#replay').hide();
     });
-    socket.on('server-pause', function (time) {
+    socket.on('server:pause', function (time) {
         player.seekTo(time);
         player.pauseVideo();
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
     });
-    socket.on('server-rate', function(rate) {
+    socket.on('server:rate', function(rate) {
         player.setPlaybackRate(rate);
         // Cancel previous animation
         $('.playback-rate').stop(true, true).fadeOut(2500);
@@ -145,7 +145,11 @@ var connect_socket = function() {
     });
 
     // Process playing new video ------------>
-    socket.on('server-play-new', function (data) {
+    socket.on('server:play-new', function (data) {
+        socket.emit('user:play-callback', {data: JSON.stringify(data)});
+            
+        console.log(data.history);
+
         $('#yt-search').html('Search');
 
         appendHistory(data.history);
@@ -164,7 +168,7 @@ var connect_socket = function() {
         $('#video-overlay #page-artist').empty();
     });
 
-    socket.on('server-play-new-artist', function(data) {
+    socket.on('server:play-new-artist', function(data) {
         if (data.artist != false) {
             var artist = JSON.parse(data.artist);
             $('#video-overlay #page-artist').html(
@@ -176,7 +180,7 @@ var connect_socket = function() {
     });
 
     // Search function ---------------------->
-    socket.on('server-serve-list', function (results) {
+    socket.on('server:serve-list', function (results) {
         $('#yt-search').html('Search');
         $("#search-list").empty();
         var r = 0;

@@ -36,10 +36,12 @@ app.config.update(
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
+"""
 import logging
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+"""
 
 login_manager = LoginManager()
 login_manager.session_protection = "basic"
