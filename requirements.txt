@@ -12,4 +12,5 @@ scipy
 flask_migrate
 requests
 psycopg2
-cachetools
+psycopg2-binary
+redis

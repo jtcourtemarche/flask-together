@@ -7,7 +7,7 @@ from flask_login import current_user
 from flask_socketio import emit, join_room
 
 import utils
-from app import db, fm, socketio
+from app import db, fm, socketio, pipe
 import models
 
 clients = []
@@ -86,7 +86,8 @@ def handle_dc():
     active_users = get_active_users()
 
     # Clear LastFM cache for user
-    fm.cache.pop(current_user.id)
+    pipe.set(current_user.username, '')
+    pipe.execute()
 
     emit('user-disconnected', {'username': current_user.username,
                                'active_users': active_users}, broadcast=True)
@@ -142,31 +143,38 @@ def play_new(data):
         }, broadcast=True)
 
         # Scrobbling
+        pipe.get(current_user.username)
+        get_cache = pipe.execute()
 
-        print(fm.cache)
-
-        if current_user.id in fm.cache:
+        if get_cache != [b'']:
             # Send scrobble to API then clear from cache
-            fm.scrobble(current_user.id)
-            fm.cache.pop(current_user.id)
+            fm.scrobble(current_user.username)
+            pipe.set(current_user.username, '')
+            pipe.execute()
         
         if len(items['snippet']['title'].split(' - ')) == 2:
             # Check if song
             title = items['snippet']['title'].split(' - ')
             artist = title[0]
             name = re.sub(r'\([^)]*\)', '', title[1])
-            if current_user.lastfm_connected():
-                duration = content['contentDetails']['duration']
-                fm.updateNowPlaying(artist, name, current_user, duration)
 
             emit('server-play-new-artist', {
                 'artist': fm.get_artist(artist),
             }, broadcast=True)
 
+            # Handle scrobbling after playing video
+
+            if current_user.lastfm_connected():
+                duration = content['contentDetails']['duration']
+                fm.update_now_playing(artist, name, current_user, duration)
+        else:
+            # Denote that nothing is being scrobbled anymore
+            pipe.set(current_user.username, '')
+            pipe.execute()
+
     elif '/channel/' in data['url']:
         results = utils.check_channel_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)
-   
     else:
         results = utils.search_yt(data['url'])
         emit('server-serve-list', results, room=request.sid)

@@ -9,7 +9,7 @@
 
 import os
 import re
-import sqlite3
+import redis
 
 from flask import Flask, redirect
 from flask_login import LoginManager, current_user
@@ -33,18 +33,6 @@ app.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
 
-"""
-Example postgres import
-
-POSTGRES = {
-    'user': 'postgres',
-    'pw': 'password',
-    'db': 'database name',
-    'host': 'localhost',
-    'port': '5432',
-}
-"""
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
@@ -59,6 +47,10 @@ login_manager.init_app(app)
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+# Redis
+r = redis.StrictRedis(host='localhost', port=6379, db=0)
+pipe = r.pipeline(transaction=False)
 
 migrate = Migrate(app, db)
 
