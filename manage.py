@@ -13,7 +13,8 @@ def init_db():
     print('Complete')
 
 def destroy_db():
-    os.remove('watch.db')
+    db.drop_all()
+    db.session.commit()
     print('Complete')
 
 def add_user(username, password):
