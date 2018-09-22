@@ -84,6 +84,7 @@ $('#skip_to').on("keydown", function(event) {
 
 $('#yt-url-close').click(function() {
 	$('#yt-url').val('');
+	$('#yt-url').focus();
 });
 
 // Make play/pause toggleable
