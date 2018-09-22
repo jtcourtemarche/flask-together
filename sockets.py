@@ -53,13 +53,13 @@ def handle_connect():
         most_recent_username = None
 
     history_schema = models.HistorySchema(many=True)
-    history = models.History.query.order_by('date').limit(20).all()
+    history = models.History.query.order_by(db.text('date')).all()[20:]
     history = history_schema.dump(history).data
 
     emit('server:sync', {
         'most_recent': most_recent,
         'most_recent_username': most_recent_username,
-        'history': history[:20], 
+        'history': history, 
         'sid': request.sid,
     }, room=clients[-1])
 
@@ -134,7 +134,7 @@ def play_new(data):
         db.session.add(h)
         db.session.commit()
         history_schema = models.HistorySchema(many=True)
-        history = models.History.query.limit(20).all()
+        history = models.History.query.order_by('date').all()[20:]
         history = history_schema.dump(history).data
 
         emit('server:play-new', {
