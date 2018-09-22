@@ -82,9 +82,7 @@ class FM:
 
         time_prior = time.time() - float(fmdata['timestamp'])
 
-        duration_to_seconds = (int(fmdata['duration'][0]) * 60) + int(fmdata['duration'][1])
-
-        if time_prior > 240 or (time_prior / duration_to_seconds) > 0.5:
+        if time_prior > 240 or (time_prior / fmdata['duration']) > 0.5:
             api_sig = self.sign_call({
                 'method': 'track.scrobble',
                 'api_key': LASTFM_KEY,
@@ -107,14 +105,13 @@ class FM:
 
             if resp.status_code == 200:
                 return True
-
         return False
 
 
     def update_now_playing(self, artist, track, user, duration):
         sk = user.fm_sk
 
-        if duration[2] >= 30 or duration[1] > 0:
+        if duration > 30:
             # Check if duration over 30s
             api_sig = self.sign_call({
                 'method': 'track.updateNowPlaying',

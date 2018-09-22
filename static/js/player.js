@@ -29,6 +29,10 @@ function onReady (event) {
     updateProgressBar(event.target.getCurrentTime(), event.target.getDuration());
     updateTimerDisplay(event.target.getCurrentTime(), event.target.getDuration());
 
+    if ('captions' in event.target.getOptions()) {
+        console.log('Captions available');
+    }
+
     event.target.setVolume(50);
 
     var time_update_interval = setInterval(function () {

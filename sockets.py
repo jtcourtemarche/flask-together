@@ -105,6 +105,7 @@ def play(data):
 
 @socketio.on('user:pause')
 def pause(data):
+    
     emit('server:pause', data["time"], broadcast=True)
 
 
@@ -158,8 +159,6 @@ def play_new_handler(d):
     get_cache = pipe.execute()
 
     d = json.loads(d['data'])
-
-    print(get_cache)
 
     if get_cache != [b'']:
         # Send scrobble to API then clear from cache

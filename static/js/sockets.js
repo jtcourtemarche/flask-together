@@ -148,8 +148,6 @@ var connect_socket = function() {
     socket.on('server:play-new', function (data) {
         socket.emit('user:play-callback', {data: JSON.stringify(data)});
             
-        console.log(data.history);
-
         $('#yt-search').html('Search');
 
         appendHistory(data.history);
