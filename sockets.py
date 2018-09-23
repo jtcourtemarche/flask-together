@@ -14,6 +14,7 @@ import models
 clients = []
 logged_in = []
 
+
 def get_active_users():
     active_users = [(current_user.username, 1)]
     
@@ -24,6 +25,7 @@ def get_active_users():
             active_users.append((user.username, 0))
 
     return active_users
+
 
 @socketio.on('user:joined')
 def handle_connect():
@@ -96,8 +98,8 @@ def handle_dc():
     cin = clients.index(request.sid)
     del clients[cin]
 
-# Play / Pause
 
+# Play / Pause
 @socketio.on('user:play')
 def play(data):
     emit('server:play', data["time"], broadcast=True)
@@ -105,7 +107,6 @@ def play(data):
 
 @socketio.on('user:pause')
 def pause(data):
-    
     emit('server:pause', data["time"], broadcast=True)
 
 
@@ -140,6 +141,7 @@ def play_new(data):
         emit('server:play-new', {
             'id': items['id'],
             'title': items['snippet']['title'],
+            'author': items['snippet']['channelTitle'],
             'history': history, 
             'user': user.username,
             'content': content,
@@ -151,6 +153,7 @@ def play_new(data):
     else:
         results = utils.search_yt(data['url'])
         emit('server:serve-list', results, room=request.sid)
+
 
 @socketio.on('user:play-callback')
 def play_new_handler(d):
@@ -177,6 +180,17 @@ def play_new_handler(d):
         }, broadcast=True)
 
         # Handle scrobbling after playing video
+        if current_user.lastfm_connected():
+            duration = d['content']['contentDetails']['duration']
+            fm.update_now_playing(artist, name, current_user, duration)
+    elif ' - Topic' in d['author']:
+        # Youtube "Topic" music videos
+        name = d['title']
+        artist = d['author'].strip(' - Topic')
+
+        emit('server:play-new-artist', {
+            'artist': fm.get_artist(artist),
+        }, broadcast=True)
 
         if current_user.lastfm_connected():
             duration = d['content']['contentDetails']['duration']
@@ -186,16 +200,18 @@ def play_new_handler(d):
         pipe.set(current_user.username, '')
         pipe.execute()    
 
+
 @socketio.on('user:rate')
 def handle_rate(data):
     emit('server:rate', data["rate"], broadcast=True)
+
 
 @socketio.on('user:skip')
 def handle_skip(data):
     emit('server:skip', data["time"], broadcast=True)
 
-# Error handling
 
+# Error handling
 @socketio.on_error()
 def error_handler(e):
     print(e.args, type(e).__name__)
