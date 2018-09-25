@@ -9,8 +9,8 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from api import LASTFM_KEY, LASTFM_SECRET
 
-from app import db, fm
-import models
+from extensions import db, fm
+import lib.models
 
 urls = Blueprint('urls', __name__)
 

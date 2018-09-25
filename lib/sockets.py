@@ -3,6 +3,7 @@
 import re
 import time
 import json
+import traceback
 from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
@@ -171,7 +172,7 @@ def play_new_handler(d):
 
     d = json.loads(d['data'])
 
-    if get_cache != [b'']:
+    if get_cache != [b''] and get_cache != [None]:
         # Send scrobble to API then clear from cache
         fm.scrobble(current_user.username)
         pipe.set(current_user.username, '').execute()
@@ -221,3 +222,4 @@ def handle_skip(data):
 @socketio.on_error()
 def error_handler(e):
     print(e.args, type(e).__name__)
+    traceback.print_exc()

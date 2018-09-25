@@ -5,7 +5,7 @@ import hashlib
 import urllib.request
 import urllib.parse
 from api import LASTFM_KEY, LASTFM_SECRET
-from app import pipe
+from extensions import pipe
 
 
 class FM:
@@ -77,8 +77,8 @@ class FM:
         return (True, session['session'])
 
     def scrobble(self, username):
-        pipe.get(username)
-        fmdata = json.loads(pipe.execute()[0])
+        pdata = pipe.get(username).execute()[0]
+        fmdata = json.loads(pdata)
 
         time_prior = time.time() - float(fmdata['timestamp'])
 

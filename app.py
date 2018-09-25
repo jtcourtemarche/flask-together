@@ -5,18 +5,25 @@
     youtube de locke
     by jtcourtemarche
 
+    MMMMMMMMNNMMMMMNNMMMMMMMM
+    MMMMMMMMs:ys+ys:yMMMMMMMM
+    MMMMMMMMhoo: +o+dMMMMMMMM
+    MMMMMMMNoos::ssooNMMMMMMM
+    MMMMMNdyoooohsoooymNMMMMM
+    MMMNyo++++ooyyo+++osdMMMM
+    MMMso++++++++++++++oodMMM
+    MMmoo+++++++++++++++osMMM
+    MMmoo+++++++++++++++osMMM
+    MMMyo++++++++++++++oomMMM
+    MMMNho++++++++++++osmMMMM
+    MMMMMNmhhhhhhhhhhdmMMMMMM
+    
 """
 
 import os
 import re
-import redis
 
 from flask import Flask, redirect
-from flask_login import LoginManager, current_user
-from flask_marshmallow import Marshmallow
-from flask_socketio import SocketIO
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 from api import SECRET_KEY, POSTGRES
 
@@ -36,40 +43,23 @@ app.config.update(
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
-"""
+# Logging
 import logging
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
-"""
 
-login_manager = LoginManager()
-login_manager.session_protection = "basic"
-login_manager.init_app(app)
+# Load modules
+import extensions
 
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+from lib import models
+from lib import sockets
+from lib.views import urls
 
-# Redis
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
-pipe = r.pipeline(transaction=False)
-
-migrate = Migrate(app, db)
-
-socketio = SocketIO(app)
-
-# Main imports
-
-from lastfm import FM
-fm = FM()
-
-import models
-import sockets
-from views import urls
-
+# Register views
 app.register_blueprint(urls)
 
-@login_manager.user_loader
+@extensions.login_manager.user_loader
 def load_user(user_id):
     return models.User.query.get(int(user_id))
 

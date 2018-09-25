@@ -4,6 +4,8 @@
 
 Platform built on Flask that synchronizes Youtube videos using websockets.
 
+**Tested for Python 3.6+**
+
 This application requires that you have a PostgreSQL server already set up.
 Put your credentials in the api.py file.
 
