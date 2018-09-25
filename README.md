@@ -6,8 +6,8 @@ Platform built on Flask that synchronizes Youtube videos using websockets.
 
 **Tested for Python 3.6+**
 
-This application requires that you have a PostgreSQL server already set up.
-Put your credentials in the api.py file.
+This application requires that you have a PostgreSQL & Redis server already set up.
+Put your credentials in the api.py file:
 
 ```python
 # Example postgres import
@@ -20,6 +20,8 @@ POSTGRES = {
     'port': '5432',
 }
 ```
+
+It is assumed that you are running Redis on the default port.
 
 All of your API keys belong in the api.py file as well.
 Your api.py file setup should look similar to this:

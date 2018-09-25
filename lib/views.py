@@ -23,7 +23,7 @@ def login():
     if g.user.is_authenticated:
         return redirect('/watch')
     else:
-        username = models.User.query.filter_by(
+        username = lib.lib.models.User.query.filter_by(
             username=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):
@@ -92,21 +92,21 @@ from skimage import io
 @urls.route('/user/<string:username>')
 @login_required
 def user_profile(username):
-    user = models.User.query.filter_by(username=username).first()
+    user = lib.models.User.query.filter_by(username=username).first()
     if user:
         if user.lastfm_connected():
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None
 
-        history = models.History.query.filter_by(
+        history = lib.models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()
 
         hmap = [x.video_id for x in history]
 
         if hmap != []:
             most_played_id = mode(hmap, axis=None)[0].tolist()[-1]
-            most_played = models.History.query.filter_by(
+            most_played = lib.models.History.query.filter_by(
                 video_id=most_played_id).first()
 
             # Get avg color of thumbnail
