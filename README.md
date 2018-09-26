@@ -14,8 +14,8 @@ Put your credentials in the api.py file:
 
 POSTGRES = {
     'user': 'postgres',
-    'pw': 'password',
-    'db': 'mydatabase',
+    'password': 'password',
+    'dbname': 'mydatabase',
     'host': 'localhost',
     'port': '5432',
 }
