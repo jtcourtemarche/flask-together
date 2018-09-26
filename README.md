@@ -41,8 +41,8 @@ $ pip install -r requirements.txt
 
 $ python 
 >> import app
->> app.init_db()
->> app.add_user('<username>', '<password>')
+>> app.mgr.init_db()
+>> app.mgr.add_user('<username>', '<password>')
 >> exit()
 
 # Initialize migrations
