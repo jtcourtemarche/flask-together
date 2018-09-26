@@ -41,7 +41,7 @@ app.config.update(
 )
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
-%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+%(password)s@%(host)s:%(port)s/%(dbname)s' % POSTGRES
 
 # Logging
 import logging
@@ -55,6 +55,40 @@ import extensions
 from lib import models
 from lib import sockets
 from lib.views import urls
+
+# App import functions
+def init_db():
+    extensions.db.create_all()
+    extensions.db.session.commit()
+    print('Complete')
+
+def destroy_db():
+    extensions.db.drop_all()
+    extensions.db.session.commit()
+    print('Complete')
+
+def add_user(username, password):
+    u = models.User(username=username)
+    u.setpass(password)
+
+    extensions.db.session.add(u)
+    extensions.db.session.commit()
+
+    print('Added user: {}'.format(u))
+
+def del_user(username='', user_id=None):
+    if username:
+        u = models.User.query.filter_by(username=username).first()
+
+        extensions.db.session.delete(u)
+        extensions.db.session.commit()
+    elif user_id:
+        u = models.User.query.get(user_id)
+
+        extensions.db.session.delete(u)
+        extensions.db.session.commit()
+    else:
+        print('Invalid parameters')
 
 # Register views
 app.register_blueprint(urls)

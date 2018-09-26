@@ -40,10 +40,13 @@ Python setup is as follows:
 $ pip install -r requirements.txt 
 
 $ python 
->> import manage
->> manage.init_db()
->> manage.add_user('<username>', '<password>')
+>> import app
+>> app.init_db()
+>> app.add_user('<username>', '<password>')
 >> exit()
+
+# Initialize migrations
+$ flask db init
 
 # Run locally
 $ flask run
