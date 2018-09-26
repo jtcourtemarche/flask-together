@@ -23,7 +23,7 @@ def login():
     if g.user.is_authenticated:
         return redirect('/watch')
     else:
-        username = lib.lib.models.User.query.filter_by(
+        username = lib.models.User.query.filter_by(
             username=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):
