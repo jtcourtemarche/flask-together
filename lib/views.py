@@ -4,7 +4,7 @@ import hashlib
 
 import requests
 import json
-from flask import Blueprint, g, redirect, render_template, request
+from flask import Blueprint, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from api import LASTFM_KEY, LASTFM_SECRET
@@ -18,7 +18,7 @@ urls = Blueprint('urls', __name__)
 def before_request():
     g.user = current_user
 
-@urls.route('/login', methods=['GET', 'POST'])
+@urls.route('/login', methods=['POST'])
 def login():
     if g.user.is_authenticated:
         return redirect('/watch')
