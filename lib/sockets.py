@@ -68,7 +68,7 @@ def handle_connect():
         most_recent_username = None
 
     history_schema = models.HistorySchema(many=True)
-    history = models.History.query.order_by(db.text('date')).all()[20:]
+    history = models.History.query.order_by('date').all()
     history = history_schema.dump(history).data
 
     emit('server:sync', {
@@ -145,7 +145,7 @@ def play_new(data):
         db.session.add(h)
         db.session.commit()
         history_schema = models.HistorySchema(many=True)
-        history = models.History.query.order_by('date').all()[20:]
+        history = models.History.query.order_by('date').all()
         history = history_schema.dump(history).data
 
         emit('server:play-new', {
