@@ -134,7 +134,7 @@ body {
     position: absolute;
     font-size: 48px;
     color: white;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Mako', sans-serif !important;
     font-weight: bold;
     z-index: 9999;
     right: 0;

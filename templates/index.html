@@ -31,14 +31,24 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="active-users"></div>
-
-        <ul class="navbar-nav ml-auto">
-        {% if current_user.lastfm_connected() %}
-          Scrobbling to {{ current_user.fm_name }}
-        {% endif %}
-        </ul>
         
         <ul class="navbar-nav ml-auto">
+        {% if current_user.lastfm_connected() %}
+          <a target="_blank" href="https://www.last.fm/user/{{ current_user.fm_name }}">
+            <button type="button" class="btn btn-success" style="margin-right: 4px">
+              <i class="fab fa-lastfm-square"></i>
+              <span>{{ current_user.fm_name }}</span>
+            </button>
+          </a>
+        {% else %}
+          <a href="auth/lastfm">
+            <button type="button" class="btn btn-danger" style="margin-right: 4px">
+              <i class="fab fa-lastfm-square"></i>
+              <span>Connect your account</span>
+            </button>
+          </a>
+          <br/>
+        {% endif %}
         <div class="form-inline my-2 my-lg-0">
         <div class="input-group">
           <div id="yt-url-close" class="input-group-prepend">
