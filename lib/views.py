@@ -9,7 +9,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from api import LASTFM_KEY, LASTFM_SECRET
 
-from extensions import db, fm
+from extensions import db, fm, pipe
 import lib.models
 
 urls = Blueprint('urls', __name__)
@@ -20,8 +20,15 @@ def before_request():
 
 @urls.route('/login', methods=['POST'])
 def login():
+    # Retrieve server:logged from cache    
+    logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
+    # Decode byte string from redis to Python string
+    logged_in = [user.decode('utf-8') for user in logged_in]
+
     if g.user.is_authenticated:
         return redirect('/watch')
+    elif request.form['username'] in logged_in:
+        return render_template('login.html', error='User is already logged in')
     else:
         username = lib.models.User.query.filter_by(
             username=request.form['username']).first()
