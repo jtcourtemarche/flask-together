@@ -60,6 +60,9 @@ class Video():
             duration.append(duration[1].replace('S', ''))
             duration[1] = 0 
 
+        if duration[2] == '':
+            duration[2] = 0
+
         duration = [int(d) for d in duration]
         # Convert to seconds
         duration = (duration[0] * 3600) + (duration[1] * 60) + duration[2]
