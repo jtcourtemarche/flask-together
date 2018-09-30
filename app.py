@@ -69,9 +69,7 @@ def page_not_found(error):
 
 if __name__ == '__main__':
     socketio.run(app)
-"""
 else:
     # Run by "import app"
     from manager import Manager
     mgr = Manager(extensions.db, models)
-"""

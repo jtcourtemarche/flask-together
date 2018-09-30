@@ -20,7 +20,6 @@ def get_active_users():
     logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
     # Decode byte string from redis to Python string
     logged_in = [user.decode('utf-8') for user in logged_in]
-
     # Generate list of online/offline users
     #   1 => Online
     #   2 => Offline
@@ -38,9 +37,6 @@ def handle_connect():
     # New connection handler
     room = session.get('room')
     join_room(room)
-
-    r.flushall()
-    r.flushdb()
 
     logged_in = pipe.lrange('server:logged', 0, -1).execute()
     
@@ -95,6 +91,9 @@ def preload(data):
 def handle_dc():
     # Update list of active users
     logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
+
+    # Convert to regular string
+    logged_in = [user.decode('utf-8') for user in logged_in]
 
     if current_user.username in logged_in:
         # remove all matching keys from redis 
