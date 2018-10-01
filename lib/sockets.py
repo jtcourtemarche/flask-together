@@ -13,6 +13,7 @@ from extensions import db, fm, socketio, pipe, r
 import lib.utils as utils
 import lib.models as models
 
+
 def get_active_users():
     active_users = []
     
@@ -26,7 +27,7 @@ def get_active_users():
     for user in models.User.query.all():
         if user.username in logged_in:
             active_users.append((user.username, 1))
-        elif user.username != current_user.username:
+        else:
             active_users.append((user.username, 0))
 
     return active_users
@@ -85,6 +86,7 @@ def init_preload():
 @socketio.on('user:preload-info')
 def preload(data):
     emit('server:preload', data, room=data['sid'])
+
 
 
 @socketio.on('disconnect', namespace='/')
