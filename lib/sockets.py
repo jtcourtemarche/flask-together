@@ -39,7 +39,7 @@ def handle_connect():
     join_room(room)
 
     logged_in = pipe.lrange('server:logged', 0, -1).execute()
-    
+
     if logged_in == []:
         # Checks if no users are cached
         pipe.lpush('server:logged', current_user.username).execute()

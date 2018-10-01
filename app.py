@@ -23,7 +23,8 @@
 import os
 import re
 
-from flask import Flask, redirect
+from flask import Flask, redirect, render_template
+import redis
 
 from api import SECRET_KEY, POSTGRES
 
@@ -56,12 +57,26 @@ from lib import models
 from lib import sockets
 from lib.views import urls
 
-# Register views
-app.register_blueprint(urls)
+# Make sure everything works before running
+try:
+    extensions.r.ping()
+    redis_connected = True
+except redis.exceptions.ConnectionError:
+    redis_connected = False
 
 @extensions.login_manager.user_loader
 def load_user(user_id):
     return models.User.query.get(int(user_id))
+
+if redis_connected:
+    # Register program's standard views
+    app.register_blueprint(urls)
+else:
+    @app.route('/', defaults={'path':''})
+    @app.route('/<path:path>')
+    def redis_handler(path):
+        return render_template('redis.html')
+
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -69,7 +84,3 @@ def page_not_found(error):
 
 if __name__ == '__main__':
     socketio.run(app)
-else:
-    # Run by "import app"
-    from manager import Manager
-    mgr = Manager(extensions.db, models)

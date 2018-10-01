@@ -14,9 +14,11 @@ import lib.models
 
 urls = Blueprint('urls', __name__)
 
+
 @urls.before_request
 def before_request():
     g.user = current_user
+
 
 @urls.route('/login', methods=['POST'])
 def login():
@@ -41,11 +43,13 @@ def login():
         else:
             return render_template('login.html', error='Invalid username')
 
+
 @urls.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect('/')
+
 
 # LastFM
 @urls.route('/auth/lastfm')
@@ -55,6 +59,7 @@ def auth_lastfm():
         return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}&cb={request.url_root}register')
 
     return f'Your account {current_user.fm_name} is already connected'
+
 
 @urls.route('/register', methods=['GET'])
 @login_required
@@ -78,7 +83,6 @@ def register():
     else:
         return 'Failed to connect to your LastFM'
 
-# ------------------------------------------
 
 @urls.route('/')
 def root():
@@ -87,14 +91,17 @@ def root():
 
     return render_template('login.html')
 
+
 @urls.route('/watch')
 @login_required
 def index():
     return render_template('index.html')
 
+
 import numpy
 from scipy.stats import mode
 from skimage import io
+
 
 @urls.route('/user/<string:username>')
 @login_required
