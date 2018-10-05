@@ -39,11 +39,11 @@ Python setup is as follows:
 ```
 $ pip install -r requirements.txt 
 
-$ python 
->> import app
->> app.mgr.init_db()
->> app.mgr.add_user('<username>', '<password>')
->> exit()
+$ python manager.py
+>> init_db
+
+$ python manager.py
+>> add_user
 
 # Initialize migrations
 $ flask db init
