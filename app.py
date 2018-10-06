@@ -44,8 +44,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 # Logging
 import logging
 
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+# Write errors to error.log
+logging.basicConfig(
+    filename='error.log',
+    level=logging.ERROR
+)
 
 # Load modules
 import extensions
