@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 import hashlib
-
 import requests
 import json
+import colorgram
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -97,12 +97,6 @@ def root():
 def index():
     return render_template('index.html')
 
-
-import numpy
-from scipy.stats import mode
-from skimage import io
-
-
 @urls.route('/user/<string:username>')
 @login_required
 def user_profile(username):
@@ -115,42 +109,65 @@ def user_profile(username):
 
         history = lib.models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()
-
         hmap = [x.video_id for x in history]
 
+        # If there are > 0 videos played by this user
         if hmap != []:
-            most_played_id = mode(hmap, axis=None)[0].tolist()[-1]
+            # Get mode of hmap to find most played video
+            most_played_id = max(set(hmap), key=hmap.count)
+            # Get most_played video object from DB
             most_played = lib.models.History.query.filter_by(
                 video_id=most_played_id).first()
 
-            # Get avg color of thumbnail
-            thumb = io.imread(most_played.video_thumbnail)
-            avg_rows = numpy.average(thumb, axis=0)
-            avg = numpy.average(avg_rows, axis=0)
-            avg = avg.tolist()
-            avg = [int(round(x)) for x in avg]
+            cached_mp = pipe.get(f'profile-mp:{user.username}').execute()
 
-            if ((avg[2] * 0.299) + (avg[1] * 0.587) + (avg[0] * 0.114)) > 186:
-                fg_color = '#000000'
+            # If this id is already stored in cache
+            if cached_mp[0] != None and cached_mp[0].decode('utf-8') == most_played_id:
+                dom_color = pipe.get(f'profile-bgcolor:{user.username}').execute()[0].decode('utf-8')
+                fg_color = pipe.get(f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
             else:
-                fg_color = '#FFFFFF'
+                print('Regenerating Palettes')
+                # Get avg color of thumbnail
+                r = requests.get(most_played.video_thumbnail)
+                # Download to /tmp/ directory on Linux
+                with open('/tmp/thumb.jpg', 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=128):
+                        f.write(chunk)
+                # Use kmeans cluster algorithm to get most dominant color
+                colors = colorgram.extract('/tmp/thumb.jpg', 1)
 
-            avg = [str(x) for x in avg]
-            avg = ', '.join(reversed(avg))
+                dom = colors[0].rgb
+
+                if ((dom.g * 0.299) + (dom.b * 0.587) + (dom.r * 0.114)) > 186:
+                    fg_color = '#000000'
+                else:
+                    fg_color = '#FFFFFF'
+
+                # Convert to CSS rgb
+                dom = [str(c) for c in dom]
+                dom_color = ', '.join(dom)
+
+                # Cache colors so they don't have to be generated them until most played id changes
+                pipe.set(f'profile-bgcolor:{user.username}', dom_color)
+                pipe.set(f'profile-fgcolor:{user.username}', fg_color)
+                pipe.set(f'profile-mp:{user.username}', most_played_id)
+                pipe.execute()
         else:
+            # Defaults
             most_played = None
             most_played_id = None
-            avg = 'white'
+            dom_color = 'white'
             fg_color = 'black'
 
-        return render_template('profile.html',
-                               user=user,
-                               history=enumerate(history),
-                               count=len(history),
-                               most_played=(
-                                   most_played, hmap.count(most_played_id)),
-                               colors=(avg, fg_color),
-                               lastfm=lastfm_data
-                            )
+        return render_template(
+           'profile.html',
+           user=user,
+           history=enumerate(history),
+           count=len(history),
+           most_played=(
+               most_played, hmap.count(most_played_id)),
+           colors=(dom_color, fg_color),
+           lastfm=lastfm_data
+        )
 
     return 'Not a valid user.'
