@@ -55,12 +55,13 @@ def handle_connect():
 
     history_schema = models.HistorySchema()
 
+
     try:
         most_recent = models.History.query.order_by(db.text('-id')).first()
         most_recent = history_schema.dump(most_recent).data
         most_recent_username = models.User.query.get(
             most_recent['user']).username
-    except:
+    except BaseException:
         most_recent = None
         most_recent_username = None
 

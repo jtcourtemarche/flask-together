@@ -20,9 +20,6 @@
     
 """
 
-import os
-import re
-
 from flask import Flask, redirect, render_template
 import redis
 
@@ -68,6 +65,7 @@ except redis.exceptions.ConnectionError:
 def load_user(user_id):
     return models.User.query.get(int(user_id))
 
+
 if redis_connected:
     # Register program's standard views
     app.register_blueprint(urls)
@@ -82,5 +80,6 @@ else:
 def page_not_found(error):
     return redirect('/')
 
+
 if __name__ == '__main__':
-    socketio.run(app)
+    extensions.socketio.run(app)

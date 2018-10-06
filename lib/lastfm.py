@@ -72,9 +72,9 @@ class FM:
 
         # Failed to get session
         if 'error' in session:
-            return (False, session)
+            return False, session
 
-        return (True, session['session'])
+        return True, session['session']
 
     def scrobble(self, username):
         pdata = pipe.get(username).execute()[0]

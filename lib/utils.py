@@ -29,7 +29,7 @@ def search_yt(query):
 
 # Tool that checks if valid youtube video
 
-class Video():
+class Video:
     def __init__(self, items, contentDetails):
         if items and contentDetails:
             self.items = items
