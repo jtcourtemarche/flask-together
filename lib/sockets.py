@@ -144,8 +144,9 @@ def play_new(data):
         user = models.User.query.get(data['user']['id'])
         db.session.add(h)
         db.session.commit()
+
         history_schema = models.HistorySchema(many=True)
-        history = models.History.query.order_by('date').all()
+        history = models.History.query.order_by(db.text('id')).all()
         history = history_schema.dump(history).data
 
         emit('server:play-new', {
