@@ -55,18 +55,17 @@ def handle_connect():
 
     history_schema = models.HistorySchema()
 
-
-    try:
-        most_recent = models.History.query.order_by(db.text('-id')).first()
-        most_recent = history_schema.dump(most_recent).data
-        most_recent_username = models.User.query.get(
-            most_recent['user']).username
-    except BaseException:
-        most_recent = None
-        most_recent_username = None
+    #try:
+    most_recent = models.History.query.order_by(db.text('-id')).first()
+    most_recent = history_schema.dump(most_recent).data
+    most_recent_username = models.User.query.get(
+        most_recent['user']).username
+    #except:
+    #    most_recent = None
+    #    most_recent_username = None
 
     history_schema = models.HistorySchema(many=True)
-    history = models.History.query.order_by('date').all()
+    history = models.History.query.order_by(db.text('id')).all()
     history = history_schema.dump(history).data
 
     emit('server:sync', {
@@ -87,7 +86,6 @@ def init_preload():
 @socketio.on('user:preload-info')
 def preload(data):
     emit('server:preload', data, room=data['sid'])
-
 
 
 @socketio.on('disconnect', namespace='/')
