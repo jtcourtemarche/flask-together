@@ -56,7 +56,7 @@ def logout():
 @login_required
 def auth_lastfm():
     if not current_user.lastfm_connected():
-        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}&cb={request.url_root}register')
+        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}register')
 
     return f'Your account {current_user.fm_name} is already connected'
 

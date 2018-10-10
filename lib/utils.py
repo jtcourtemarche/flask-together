@@ -7,6 +7,7 @@ import urllib.error
 import urllib.parse
 from api import API_KEY
 
+
 def check_channel_yt(url):
     api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
         url.split('/channel/')[1],
@@ -27,8 +28,8 @@ def search_yt(query):
     feed = urllib.request.urlopen(url).read()
     return json.loads(feed)['items']
 
-# Tool that checks if valid youtube video
 
+# Tool that checks if valid youtube video
 class Video:
     def __init__(self, items, contentDetails):
         if items and contentDetails:
@@ -70,6 +71,7 @@ class Video:
         content['contentDetails']['duration'] = duration
 
         return content
+
 
 def check_yt(id):
     feed = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={id}&key={API_KEY}&part=snippet').content
