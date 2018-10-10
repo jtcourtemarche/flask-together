@@ -103,8 +103,8 @@ var connect_socket = function() {
     });
 
     // Skip --------------------------------->
-    socket.on('server:skip', function (time) {
-        player.seekTo(time);
+    socket.on('server:skip', function (data) {
+        player.seekTo(data['time']);
         if ($('#play').is(':visible')) {
             $('#play').show();
             $('#pause').hide();
