@@ -47,7 +47,7 @@ import logging
 # Write errors to error.log
 logging.basicConfig(
     filename='error.log',
-    level=logging.ERROR
+    level=logging.DEBUG
 )
 
 # Load modules

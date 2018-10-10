@@ -15,15 +15,6 @@ body {
     border-right: 0;
 }
 
-#list-result {
-    background-color: rgb(19, 21, 24); 
-    color: white;
-    border-color: black;
-}
-#list-result:hover {
-    background-color: rgb(37, 41, 48) !important; 
-}
-
 input[text] {
     background: #555 !important;
 }

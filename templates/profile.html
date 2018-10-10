@@ -21,6 +21,7 @@
             background-color: rgba({{ colors[0] }});
             border-radius: 0px;
             color: {{ colors[1] }};
+            text-align: center;
           }
           .jumbotron a {
             color: {{ colors[1] }};
@@ -35,6 +36,7 @@
           <p style="position: absolute; top: 15px; left: 15px;"><a href="/"><i class="fas fa-arrow-circle-left"></i> Go back</a></p>
           <h1 class="display-4">{{ user.username }}</h1>
           <p class="lead">{{ count }} total plays</p>
+          <hr width="250"/>
           <p class="lead">Most played video:</p>
           
           <iframe id="yt-player" type="text/html" width="640" height="390"
@@ -44,7 +46,10 @@
           <p class="lead"><span style="font-size: 14px">Played {{ most_played[1] }} times</span></p>
 
           {% if lastfm %}
-            <p style="background: #f46542; border-radius: 5px; padding: 5px; position: absolute; right: 15px; top: 15px" class="lead"><i class="fab fa-lastfm"></i>&nbsp;<a href="https://www.last.fm/user/{{ lastfm.user.name }}"><u>{{ lastfm.user.name }}</u></a> {{ lastfm.user.playcount }} plays</p>
+            <p style="background: #f46542; border-radius: 5px; padding: 5px; position: absolute; right: 15px; top: 15px" class="lead">
+              <i class="fab fa-lastfm"></i>&nbsp;<a href="https://www.last.fm/user/{{ lastfm.user.name }}"><u style="color: white">{{ lastfm.user.name }}</u></a> 
+              <br/>{{ lastfm.user.playcount }} plays
+            </p>
           {% endif %}
         </div>
         <h3 style="text-indent: 1em">

@@ -24,9 +24,9 @@ var connect_socket = function() {
         var user;
         for (user in data.active_users) {
             if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             }
         }
     });
@@ -60,9 +60,9 @@ var connect_socket = function() {
         var user;
         for (user in data.active_users) {
             if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/user/'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
+                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             }
         }
     });
@@ -162,6 +162,8 @@ var connect_socket = function() {
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
+        // Reset LastFM genres
+        $('#genres').html();
 
         $('#video-overlay #page-artist').empty();
     });
@@ -172,6 +174,8 @@ var connect_socket = function() {
             $('#video-overlay #page-artist').html(
                 "<a target='_blank' href='https://www.last.fm/music/"+artist.name.replace(' ', '+')+"'><img src='"+artist.image[2]['#text']+"'></img></a>"
             );
+            console.log(artist);
+            $('#genres').html(artist.tags);
         } else {
             $('#video-overlay #page-artist').empty();
         }        

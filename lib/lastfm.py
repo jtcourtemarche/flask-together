@@ -2,7 +2,6 @@ import json
 import time
 import requests
 import hashlib
-import urllib.request
 import urllib.parse
 from api import LASTFM_KEY, LASTFM_SECRET
 from extensions import pipe
@@ -12,36 +11,53 @@ class FM:
     def __init__(self):
         self.key = LASTFM_KEY
 
-    def search(self, method, params):
+
+    # General API call method
+    def call(self, method, params):
         url = f"http://ws.audioscrobbler.com/2.0/?method={method}&api_key={self.key}&format=json"
         for param, value in params.items():
             url = url + f"&{param}={value}"
 
-        http = urllib.request.urlopen(url)
-        return http.read()
+        http = requests.get(url)
+        return http.json()
 
+
+    # Get data of specific LastFM user
     def get_user(self, name):
-        data = self.search(
+        data = self.call(
             'user.getInfo',
-            {
-                'user': name,
-            }
+            { 'user': name }
         )
 
-        return json.loads(data)
+        # Format user's play count with commas
+        data['user']['playcount'] = ('{:,}').format(data['user']['playcount'])
+        return data
 
+
+    # Get data on artist
     def get_artist(self, query):
+        # Format user query to URL 
         query = urllib.parse.quote(query)
 
-        data = self.search(
+        # Get artist data from LastFM API
+        data = self.call(
             'artist.search',
-            {
-                'artist': query
-            },
+            { 'artist': query },
         )
 
-        jdata = json.loads(data)['results']['artistmatches']['artist']
+        # Get artist tags from LastFM API
+        artist_tags = self.call(
+            'artist.getTopTags',
+            { 'artist': query },
+        )
+        tags = artist_tags['toptags']['tag']
+        tags = [tag['name'] for tag in tags]
 
+        # Convert LastFM response from JSON to dict()
+        jdata = data['results']['artistmatches']['artist']
+        jdata[0]['tags'] = ', '.join(tags[:4])
+
+        # Validate response
         if len(jdata) > 0:
             jdata = jdata[0]
             jdata['listeners'] = "{:,}".format(int(jdata['listeners']))
@@ -49,8 +65,10 @@ class FM:
         else:
             return False
 
+
+    # Construct an md5 hash string to sign API calls
+    #   -> args is a dictionary of parameters and values to pass to API in URL
     def sign_call(self, args):
-        # Construct hash string
         string = ""
         for key, value in sorted(args.items()):
             string += key
@@ -61,14 +79,14 @@ class FM:
         md5hash = hashlib.md5(string.encode('utf-8'))
         return md5hash.hexdigest()
 
+
+    # Get LastFM session key
     def get_session(self, token):
         api_sig = self.sign_call({'api_key': LASTFM_KEY, 'method': 'auth.getSession', 'token': token})
 
-        content = requests.get(
+        session = requests.get(
             f'http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key={LASTFM_KEY}&token={token}&format=json&api_sig={api_sig}'
-        ).content
-
-        session = json.loads(content)
+        ).json()
 
         # Failed to get session
         if 'error' in session:
@@ -76,6 +94,8 @@ class FM:
 
         return True, session['session']
 
+
+    # Pushes scrobble to LastFM 
     def scrobble(self, username):
         pdata = pipe.get(username).execute()[0]
         fmdata = json.loads(pdata)
@@ -108,11 +128,14 @@ class FM:
         return False
 
 
+    # Lists song as 'Now Playing' on LastFM.
+    # Caches currently playing song if available.
+    # When another video is played, if requirements are met,
+    # the cached data will be passed to the scrobble() method
     def update_now_playing(self, artist, track, user, duration):
-        sk = user.fm_sk
-
-        if duration > 30:
-            # Check if duration over 30s
+        # Check if duration over 30s
+        if duration >= 30:
+            # Sign track.updateNowPlaying
             api_sig = self.sign_call({
                 'method': 'track.updateNowPlaying',
                 'api_key': LASTFM_KEY,
@@ -142,7 +165,6 @@ class FM:
                 }
                 pipe_data = json.dumps(pipe_data)
                 pipe.set(user.username, pipe_data)
-
         else:
             # Video does not meet requirements to be scrobbled
             pipe.set(user.username, '')

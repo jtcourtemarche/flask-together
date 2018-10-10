@@ -29,8 +29,8 @@ def login():
 
     if g.user.is_authenticated:
         return redirect('/watch')
-    elif request.form['username'] in logged_in:
-        return render_template('login.html', error='User is already logged in')
+    #elif request.form['username'] in logged_in:
+    #    return render_template('login.html', error='User is already logged in')
     else:
         username = lib.models.User.query.filter_by(
             username=request.form['username']).first()
@@ -97,7 +97,7 @@ def root():
 def index():
     return render_template('index.html')
 
-@urls.route('/user/<string:username>')
+@urls.route('/~<string:username>')
 @login_required
 def user_profile(username):
     user = lib.models.User.query.filter_by(username=username).first()
@@ -127,16 +127,22 @@ def user_profile(username):
                 fg_color = pipe.get(f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
             else:
                 print('Regenerating Palettes')
+                
                 # Get avg color of thumbnail
                 r = requests.get(most_played.video_thumbnail)
+                
                 # Download to /tmp/ directory on Linux
                 with open('/tmp/thumb.jpg', 'wb') as f:
                     for chunk in r.iter_content(chunk_size=128):
                         f.write(chunk)
-                # Use kmeans cluster algorithm to get most dominant color
-                colors = colorgram.extract('/tmp/thumb.jpg', 1)
 
-                dom = colors[0].rgb
+                # Use kmeans cluster algorithm to get most dominant color
+                # Retrieve 2 clusters
+                colors = colorgram.extract('/tmp/thumb.jpg', 2)
+
+                # Get the second most dominant color because the first is generally black
+                # due to the black bars in Youtube thumbnails
+                dom = colors[1].rgb
 
                 if ((dom.g * 0.299) + (dom.b * 0.587) + (dom.r * 0.114)) > 186:
                     fg_color = '#000000'

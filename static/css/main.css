@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css?family=Mako');
+@import url('https://fonts.googleapis.com/css?family=Roboto');
 
 body {
-    font-family: 'Mako', sans-serif !important;
+    font-family: 'Roboto', sans-serif !important;
 
     height: 100%;
     width: 100%;
@@ -85,15 +85,18 @@ body {
     float: right;
 }
 #duration-container {
-    background: #303030;
+    background: rgb(29, 32, 36);
     color: white;
     height: 30px;
     width: 100%;
     text-indent: 1em;
 }
 #duration-container h6 {
-    margin-top: 4px;
+    margin-top: 6px;
+    margin-bottom: -4px;
     float: left;
+    font-size: 18px;
+    background: ;
 }
 #progress-bar {
     cursor: pointer;
@@ -143,6 +146,14 @@ body {
     -webkit-text-stroke-width: 1px;
     -webkit-text-stroke-color: black;
 }
+#genres {
+    float: right;
+    font-style: italic;
+    font-size: 16px;
+    color: #ccc;
+    margin-right: 12px;
+    margin-top: 5px;
+}
 
 /* SEARCH & HISTORY LISTS -------------------------------------- */
 
@@ -172,11 +183,15 @@ body {
 }
 #list-result {
     border-radius: 0;
+    background-color: rgb(19, 21, 24); 
+    color: white;
+    border-color: black;
 }
 #list-result:hover {
     cursor: pointer;
-    background: #ccc !important;
+    background-color: rgb(37, 41, 48) !important; 
 }
+
 .no-search {
     color: #CCC;
     vertical-align: middle;

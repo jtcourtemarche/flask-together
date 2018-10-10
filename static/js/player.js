@@ -53,8 +53,6 @@ function stateChange (event) {
         $('#pause').hide();
         $('#replay').show();
     }
-    if (event.data == -1) {
-    }
 
     $("#page-title").html("<a target='_blank' href='https://www.youtube.com/watch?v=" + event.target.getVideoData().video_id + "'>" + event.target.getVideoData().title + "</a>");
     $("#page-author").html(event.target.getVideoData().author);

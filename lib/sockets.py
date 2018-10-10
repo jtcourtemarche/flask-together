@@ -14,6 +14,11 @@ import lib.utils as utils
 import lib.models as models
 
 
+# Generate a list of currently online/offline users from cache 'server:logged'
+# Every item in list contains tuple 
+#   1: username
+#   2: online status (0 = offline, 1 = online)
+#
 def get_active_users():
     active_users = []
     
@@ -33,6 +38,7 @@ def get_active_users():
     return active_users
 
 
+# Handle when a user joins
 @socketio.on('user:joined')
 def handle_connect():
     # New connection handler
@@ -55,14 +61,14 @@ def handle_connect():
 
     history_schema = models.HistorySchema()
 
-    #try:
-    most_recent = models.History.query.order_by(db.text('-id')).first()
-    most_recent = history_schema.dump(most_recent).data
-    most_recent_username = models.User.query.get(
-        most_recent['user']).username
-    #except:
-    #    most_recent = None
-    #    most_recent_username = None
+    try:
+        # Get most recent ID
+        most_recent = models.History.query.order_by(db.text('-id')).first()
+        most_recent = history_schema.dump(most_recent).data
+        most_recent_username = models.User.query.get(most_recent['user']).username
+    except KeyError:
+        most_recent = None
+        most_recent_username = None
 
     history_schema = models.HistorySchema(many=True)
     history = models.History.query.order_by(db.text('id')).all()
@@ -76,6 +82,17 @@ def handle_connect():
     }, room=request.sid)
 
 
+"""
+    This is the path that preloaded data takes:
+    
+    New User -------> Server --------> Online User
+        ^                                   |
+        |                                   |
+        ------------- Server <--------------|
+
+    Initialize a request to an online user to get the currently playing video's time 
+    If there are no online users, the video will play at 0:00 by default.
+"""
 @socketio.on('user:init-preload')
 def init_preload():
     emit('server:request-data', {
@@ -83,11 +100,13 @@ def init_preload():
     }, broadcast=True, include_self=False)
 
 
+# Gather then send preload data to the newly joined user
 @socketio.on('user:preload-info')
 def preload(data):
     emit('server:preload', data, room=data['sid'])
 
 
+# Handle when a user disconnects
 @socketio.on('disconnect', namespace='/')
 def handle_dc():
     # Update list of active users
@@ -109,17 +128,7 @@ def handle_dc():
                                'active_users': active_users}, broadcast=True)
 
 
-# Play / Pause
-@socketio.on('user:play')
-def play(data):
-    emit('server:play', data["time"], broadcast=True)
-
-
-@socketio.on('user:pause')
-def pause(data):
-    emit('server:pause', data["time"], broadcast=True)
-
-
+# Process new video being played.
 @socketio.on('user:play-new')
 def play_new(data):
     # Extract video id from yt url
@@ -166,6 +175,7 @@ def play_new(data):
         emit('server:serve-list', results, room=request.sid)
 
 
+# This is for managing cache for LastFM scrobbling
 @socketio.on('user:play-callback')
 def play_new_handler(d):
     # Scrobbling
@@ -209,11 +219,25 @@ def play_new_handler(d):
         pipe.set(current_user.username, '').execute()
 
 
+# Play
+@socketio.on('user:play')
+def play(data):
+    emit('server:play', data["time"], broadcast=True)
+
+
+# Pause
+@socketio.on('user:pause')
+def pause(data):
+    emit('server:pause', data["time"], broadcast=True)
+
+
+# Playback rate
 @socketio.on('user:rate')
 def handle_rate(data):
     emit('server:rate', data["rate"], broadcast=True)
 
 
+# Skip
 @socketio.on('user:skip')
 def handle_skip(data):
     emit('server:skip', data["time"], broadcast=True)

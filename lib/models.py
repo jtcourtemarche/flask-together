@@ -44,7 +44,6 @@ class History(db.Model):
     # User data
     date = db.Column(db.DateTime, default=datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey(User.id),  nullable=False)
-
     user = db.relationship('User', foreign_keys='History.user_id')
 
     def __repr__(self):
