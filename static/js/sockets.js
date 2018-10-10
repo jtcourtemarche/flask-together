@@ -146,8 +146,6 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server:play-new', function (data) {
-        socket.emit('user:play-callback', {data: JSON.stringify(data)});
-            
         $('#yt-search').html('Search');
 
         appendHistory(data.history);
@@ -166,6 +164,13 @@ var connect_socket = function() {
         $('#genres').html();
 
         $('#video-overlay #page-artist').empty();
+
+        // Clear history from data to send to server 
+        // clearing the history will speed up the transaction
+        var callback = data;
+        callback.history = null;
+        console.log(callback);
+        socket.emit('user:play-callback', {data: JSON.stringify(callback)});
     });
 
     socket.on('server:play-new-artist', function(data) {
