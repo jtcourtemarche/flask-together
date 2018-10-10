@@ -71,7 +71,7 @@ def handle_connect():
 
     history_schema = models.HistorySchema(many=True)
     history = models.History.query.order_by(db.text('id')).all()
-    history = history_schema.dump(history).data
+    history = history_schema.dump(history).data[20:]
 
     emit('server:sync', {
         'most_recent': most_recent,
@@ -155,7 +155,7 @@ def play_new(data):
 
         history_schema = models.HistorySchema(many=True)
         history = models.History.query.order_by(db.text('id')).all()
-        history = history_schema.dump(history).data
+        history = history_schema.dump(history).data[20:]
 
         emit('server:play-new', {
             'id': items['id'],

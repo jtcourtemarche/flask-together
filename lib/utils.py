@@ -24,6 +24,7 @@ def search_yt(query):
     )
 
     feed = requests.get(url).json()
+    print(feed['items'])
     return feed['items']
 
 
