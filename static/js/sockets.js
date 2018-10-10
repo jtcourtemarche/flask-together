@@ -118,29 +118,29 @@ var connect_socket = function() {
         $('#replay').hide();
     });
 
-    // Play / Pause ------------------------->
-    socket.on('server:play', function (time) {
-        player.seekTo(time);
+    // Controls ------------------------->
+    socket.on('server:play', function (data) {
+        player.seekTo(data['time']);
         player.playVideo();
 
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
     });
-    socket.on('server:pause', function (time) {
-        player.seekTo(time);
+    socket.on('server:pause', function (data) {
+        player.seekTo(data['time']);
         player.pauseVideo();
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
     });
-    socket.on('server:rate', function(rate) {
-        player.setPlaybackRate(rate);
+    socket.on('server:rate', function(data) {
+        player.setPlaybackRate(data['rate']);
         // Cancel previous animation
         $('.playback-rate').stop(true, true).fadeOut(2500);
 
         $('.playback-rate').show();
-        $('.playback-rate').html(rate+'x');
+        $('.playback-rate').html(data['rate']+'x');
         $('.playback-rate').fadeOut(2500);
     });
 

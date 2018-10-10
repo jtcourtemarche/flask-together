@@ -221,25 +221,25 @@ def play_new_handler(d):
 # Play
 @socketio.on('user:play')
 def play(data):
-    emit('server:play', data["time"], broadcast=True)
+    emit('server:play', {'time':data["time"]}, broadcast=True)
 
 
 # Pause
 @socketio.on('user:pause')
 def pause(data):
-    emit('server:pause', data["time"], broadcast=True)
+    emit('server:pause', {'time':data["time"]}, broadcast=True)
 
 
 # Playback rate
 @socketio.on('user:rate')
 def handle_rate(data):
-    emit('server:rate', data["rate"], broadcast=True)
+    emit('server:rate', {'rate':data["rate"]}, broadcast=True)
 
 
 # Skip
 @socketio.on('user:skip')
 def handle_skip(data):
-    emit('server:skip', data["time"], broadcast=True)
+    emit('server:skip', {'time':data["time"]}, broadcast=True)
 
 
 # Error handling
