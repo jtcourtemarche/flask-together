@@ -1,10 +1,11 @@
+import hashlib
 import json
 import time
-import requests
-import hashlib
-import urllib.parse
+
 from api import LASTFM_KEY, LASTFM_SECRET
 from extensions import pipe
+import requests
+from urllib.parse import quote
 
 
 class FM:
@@ -36,8 +37,8 @@ class FM:
 
     # Get data on artist
     def get_artist(self, query):
-        # Format user query to URL 
-        query = urllib.parse.quote(query)
+        # Format user query to URL
+        query = quote(query)
 
         # Get artist data from LastFM API
         data = self.call(
@@ -95,7 +96,7 @@ class FM:
         return True, session['session']
 
 
-    # Pushes scrobble to LastFM 
+    # Pushes scrobble to LastFM
     def scrobble(self, username):
         pdata = pipe.get(username).execute()[0]
         fmdata = json.loads(pdata)

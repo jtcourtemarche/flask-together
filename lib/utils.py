@@ -2,9 +2,7 @@
 
 import requests
 import json
-import urllib.request
-import urllib.error
-import urllib.parse
+from urllib.parse import quote
 from api import API_KEY
 
 
@@ -14,19 +12,19 @@ def check_channel_yt(url):
         API_KEY
     )
 
-    feed = urllib.request.urlopen(api_url).read()
-    return json.loads(feed)['items']
+    feed = requests.get(api_url).json()
+    return feed['items']
 
 
 def search_yt(query):
-    query = str(urllib.parse.quote(query))
+    query = quote(query)
     url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=relevance&q={0}&key={1}&part=id%2Csnippet".format(
         query,
         API_KEY
     )
 
-    feed = urllib.request.urlopen(url).read()
-    return json.loads(feed)['items']
+    feed = requests.get(url).json()
+    return feed['items']
 
 
 # Tool that checks if valid youtube video

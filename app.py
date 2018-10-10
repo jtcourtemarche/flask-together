@@ -17,7 +17,7 @@
     MMMyo++++++++++++++oomMMM
     MMMNho++++++++++++osmMMMM
     MMMMMNmhhhhhhhhhhdmMMMMMM
-    
+
 """
 
 from flask import Flask, redirect, render_template
@@ -47,7 +47,7 @@ import logging
 # Write errors to error.log
 logging.basicConfig(
     filename='error.log',
-    level=logging.DEBUG
+    level=logging.ERROR
 )
 
 # Load modules

@@ -1,17 +1,16 @@
 #!/usr/bin/python
 
+import json
 import re
 import time
-import json
 import traceback
+
+from extensions import db, fm, socketio, pipe, r
 from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
-
-from extensions import db, fm, socketio, pipe, r
-
-import lib.utils as utils
 import lib.models as models
+import lib.utils as utils
 
 
 # Generate a list of currently online/offline users from cache 'server:logged'
