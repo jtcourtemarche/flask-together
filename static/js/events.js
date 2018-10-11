@@ -42,6 +42,13 @@ $('html').on('keydown', function(event) {
 	}
 });
 
+$('#list-result').on('keypress', function(event) {
+	console.log(event);
+	if (event.which == 13) {
+		this.click();
+	}
+});
+
 $("#volume-slider").on('input', function() {
 	player.setVolume($("#volume-slider").val());
 	$('#volume-display').stop().animate({opacity:'100'});

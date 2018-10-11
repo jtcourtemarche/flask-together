@@ -33,30 +33,30 @@
         <div class="active-users"></div>
         
         <ul class="navbar-nav ml-auto">
-        {% if current_user.lastfm_connected() %}
-          <a target="_blank" href="https://www.last.fm/user/{{ current_user.fm_name }}">
-            <button type="button" class="btn btn-success" style="margin-right: 4px">
-              <i class="fab fa-lastfm-square"></i>
-              <span>{{ current_user.fm_name }}</span>
-            </button>
-          </a>
-        {% else %}
-          <a href="auth/lastfm">
-            <button type="button" class="btn btn-danger" style="margin-right: 4px">
-              <i class="fab fa-lastfm-square"></i>
-              <span>Connect your account</span>
-            </button>
-          </a>
-          <br/>
-        {% endif %}
-        <div class="form-inline my-2 my-lg-0">
-        <div class="input-group">
-          <div id="yt-url-close" class="input-group-prepend">
-            <span id="yt-url-close-icon" aria-hidden="true" class="input-group-text"><i class="fas fa-times"></i></span>
+          {% if current_user.lastfm_connected() %}
+            <a target="_blank" href="https://www.last.fm/user/{{ current_user.fm_name }}">
+              <button type="button" class="btn btn-success" style="margin-right: 4px">
+                <i class="fab fa-lastfm-square"></i>
+                <span>{{ current_user.fm_name }}</span>
+              </button>
+            </a>
+          {% else %}
+            <a href="auth/lastfm">
+              <button type="button" class="btn btn-danger" style="margin-right: 4px">
+                <i class="fab fa-lastfm-square"></i>
+                <span>Connect your account</span>
+              </button>
+            </a>
+            <br/>
+          {% endif %}
+          <div class="form-inline my-2 my-lg-0">
+          <div class="input-group">
+            <div id="yt-url-close" class="input-group-prepend">
+              <span id="yt-url-close-icon" aria-hidden="true" class="input-group-text"><i class="fas fa-times"></i></span>
+            </div>
+            <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
           </div>
-          <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
-        </div>
-        <button id="yt-search" class="btn my-2 my-sm-0">Search</button>
+          <button id="yt-search" class="btn my-2 my-sm-0">Search</button>
         </ul>
       </div>
       </nav>
@@ -75,7 +75,7 @@
                     <div id="page-user"></div>
                     <div id="page-artist"></div>
                   </div>
-                  <input type="range" id="progress-bar" value="0"/>
+                  <input aria-label="Progress bar" type="range" id="progress-bar" value="0"/>
                   <div id="duration-container">
                       <h6 id="current-time"></h6>
                       <h6>&nbsp;/&nbsp;</h6>
@@ -86,13 +86,13 @@
                     <div class="input-group">
                       <div class="col col-11">
                         <div class="input-group mr-2" role="group">
-                          <button id="play" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
-                          <button id="pause" class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
-                          <button id="replay" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-redo"></i></button>
-                          <button class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
-                          <input type="text" id="skip_to" placeholder="Skip to"/>
-                          <input type="range" id="volume-slider" alt="Change volume" value="50"/>
-                          <span id="volume-display">50%</span>
+                          <button id="play" aria-label="Play video" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
+                          <button id="pause" aria-label="Pause video" class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
+                          <button id="replay" aria-label="Replay video" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-redo"></i></button>
+                          <button aria-label="Enter fullscreen video" class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
+                          <input aria-label="Skip to time" type="text" id="skip_to" placeholder="Skip to"/>
+                          <input aria-label="Volume slider" type="range" id="volume-slider" alt="Change volume" value="50"/>
+                          <span aria-label="Volume percentage" id="volume-display">50%</span>
                         </div>
                       </div>
                       <div class="col col-1">

@@ -161,7 +161,7 @@ var connect_socket = function() {
         $('#play').hide();
         $('#replay').hide();
         // Reset LastFM genres
-        $('#genres').html();
+        $('#genres').empty();
 
         $('#video-overlay #page-artist').empty();
 
@@ -169,7 +169,6 @@ var connect_socket = function() {
         // clearing the history will speed up the transaction
         var callback = data;
         callback.history = null;
-        console.log(callback);
         socket.emit('user:play-callback', {data: JSON.stringify(callback)});
     });
 
@@ -192,9 +191,9 @@ var connect_socket = function() {
         $("#search-list").empty();
         var r = 0;
         for (r in results) {
-            $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+            $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
              results[r].id.videoId + "\")'><p>" + 
-             results[r].snippet.title + "</p><img class='thumbnail' src='" + 
+             results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" + 
              results[r].snippet.thumbnails.high.url + 
              "' /><span class='upload-date'>"+ 
              results[r].snippet.publishedAt.split('T')[0] +
