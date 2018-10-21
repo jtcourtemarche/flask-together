@@ -96,7 +96,7 @@ body {
     margin-bottom: -4px;
     float: left;
     font-size: 18px;
-    background: ;
+    background: none;
 }
 #progress-bar {
     cursor: pointer;
