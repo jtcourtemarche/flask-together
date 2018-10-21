@@ -12,6 +12,11 @@ from flask_socketio import emit, join_room
 import lib.models as models
 import lib.utils as utils
 
+"""
+
+    USERS
+
+"""
 
 # Generate a list of currently online/offline users from cache 'server:logged'
 # Every item in list contains tuple 
@@ -71,7 +76,11 @@ def handle_connect():
 
     history_schema = models.HistorySchema(many=True)
     history = models.History.query.order_by(db.text('id')).all()
-    history = history_schema.dump(history).data[20:]
+    history = history_schema.dump(history).data
+
+    # Load only 20 videos if there are more than 20 DB entries
+    if len(history) > 20:
+        history = history[-20:]
 
     emit('server:sync', {
         'most_recent': most_recent,
@@ -126,52 +135,78 @@ def handle_dc():
     emit('server:disconnected', {'username': current_user.username,
                                'active_users': active_users}, broadcast=True)
 
+"""
+
+    YOUTUBE
+
+"""
 
 # Process new video being played.
 @socketio.on('user:play-new')
 def play_new(data):
-    # Extract video id from yt url
-    yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
-    yt_id = re.findall(yt_re, data["url"])
-
-    # Check if valid youtube url, if not serve search results
-    if yt_id != []:
-        yt = utils.check_yt(yt_id[0][3])
-
-        items = yt.get_items()
-        content = yt.get_content()
-
-        h = models.History(
-            video_id=items['id'],
-            video_date=items['snippet']['publishedAt'],
-            video_title=items['snippet']['title'],
-            video_thumbnail=items['snippet']['thumbnails']['default']['url'],
-            user_id=data['user']['id'],
-        )
-
-        user = models.User.query.get(data['user']['id'])
-        db.session.add(h)
-        db.session.commit()
+    """
+    if 'twitch.tv' in data['url']:
+        channel = data['url'].split('/')[-1]
 
         history_schema = models.HistorySchema(many=True)
         history = models.History.query.order_by(db.text('id')).all()
-        history = history_schema.dump(history).data[20:]
+        history = history_schema.dump(history).data
 
         emit('server:play-new', {
-            'id': items['id'],
-            'title': items['snippet']['title'],
-            'author': items['snippet']['channelTitle'],
-            'history': history, 
-            'user': user.username,
-            'content': content,
+            'player': 'twitch',
+            'channel': channel,
+            'history': history,
         }, broadcast=True)
+        """
+    if True:
+        # Extract video id from Youtube url
+        yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
+        yt_id = re.findall(yt_re, data['url'])
 
-    elif '/channel/' in data['url']:
-        results = utils.check_channel_yt(data['url'])
-        emit('server:serve-list', results, room=request.sid)
-    else:
-        results = utils.search_yt(data['url'])
-        emit('server:serve-list', results, room=request.sid)
+        # Play specific video ID
+        if yt_id != []:
+            yt = utils.check_yt(yt_id[0][3])
+
+            items = yt.get_items()
+            content = yt.get_content()
+
+            h = models.History(
+                video_id=items['id'],
+                video_date=items['snippet']['publishedAt'],
+                video_title=items['snippet']['title'],
+                video_thumbnail=items['snippet']['thumbnails']['default']['url'],
+                user_id=data['user']['id'],
+            )
+
+            user = models.User.query.get(data['user']['id'])
+            db.session.add(h)
+            db.session.commit()
+
+            history_schema = models.HistorySchema(many=True)
+            history = models.History.query.order_by(db.text('id')).all()
+
+            history = history_schema.dump(history).data
+
+            # Load only 20 videos if there are more than 20 DB entries
+            if len(history) > 20:
+                history = history[-20:]
+
+            emit('server:play-new', {
+                'player': 'youtube',
+                'id': items['id'],
+                'title': items['snippet']['title'],
+                'history': history, 
+                'user': user.username,
+                'content': content,
+            }, broadcast=True)
+        # Channel URL entered into search bar
+        elif '/channel/' in data['url']:
+            results = utils.check_channel_yt(data['url'])
+            emit('server:serve-list', results, room=request.sid)
+        # Standard Youtube search
+        else:
+            results = utils.search_yt(data['url'])
+            emit('server:serve-list', results, room=request.sid)
 
 
 # This is for managing cache for LastFM scrobbling
@@ -217,6 +252,11 @@ def play_new_handler(d):
         # Denote that nothing is being scrobbled anymore
         pipe.set(current_user.username, '').execute()
 
+"""
+
+    CONTROLS
+
+"""
 
 # Play
 @socketio.on('user:play')
@@ -227,7 +267,8 @@ def play(data):
 # Pause
 @socketio.on('user:pause')
 def pause(data):
-    emit('server:pause', {'time':data["time"]}, broadcast=True)
+    # Pausing video locally for user who requested pause makes interface slightly smoother
+    emit('server:pause', {'time':data["time"]}, broadcast=True, include_self=False)
 
 
 # Playback rate

@@ -12,78 +12,15 @@ from api import LASTFM_KEY, LASTFM_SECRET
 from extensions import db, fm, pipe
 import lib.models
 
+# Register these views with app
 urls = Blueprint('urls', __name__)
 
-
+# Make current_user a global variable
 @urls.before_request
 def before_request():
     g.user = current_user
 
-
-@urls.route('/login', methods=['POST'])
-def login():
-    # Retrieve server:logged from cache    
-    logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
-    # Decode byte string from redis to Python string
-    logged_in = [user.decode('utf-8') for user in logged_in]
-
-    if g.user.is_authenticated:
-        return redirect('/watch')
-    #elif request.form['username'] in logged_in:
-    #    return render_template('login.html', error='User is already logged in')
-    else:
-        username = lib.models.User.query.filter_by(
-            username=request.form['username']).first()
-        if username:
-            if username.checkpass(request.form['password']):
-                login_user(username)
-                return redirect('/watch')
-            else:
-                return render_template('login.html', error='Invalid password')
-        else:
-            return render_template('login.html', error='Invalid username')
-
-
-@urls.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect('/')
-
-
-# LastFM
-@urls.route('/auth/lastfm')
-@login_required
-def auth_lastfm():
-    if not current_user.lastfm_connected():
-        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}register')
-
-    return f'Your account {current_user.fm_name} is already connected'
-
-
-@urls.route('/register', methods=['GET'])
-@login_required
-def register():
-    if 'token' in request.args and len(request.args['token']) == 32:
-        token = request.args['token']
-
-        resp = fm.get_session(token)
-
-        if resp[0]:
-            # Register LastFM in DB
-            current_user.fm_name = resp[1]['name']
-            current_user.fm_token = token
-            current_user.fm_sk = resp[1]['key']
-
-            db.session.commit()
-
-            return '<span>Registered {}</span><br/><a href="/">Take me back</a>'.format(resp[1]['name'])
-        else:
-            return 'Error connecting to your LastFM account: {}'.format(resp[1]['message'])
-    else:
-        return 'Failed to connect to your LastFM'
-
-
+# Index page
 @urls.route('/')
 def root():
     if g.user.is_authenticated:
@@ -92,11 +29,14 @@ def root():
     return render_template('login.html')
 
 
+# Standard viewing page
 @urls.route('/watch')
 @login_required
 def index():
     return render_template('index.html')
 
+
+# User profiles
 @urls.route('/~<string:username>')
 @login_required
 def user_profile(username):
@@ -177,3 +117,70 @@ def user_profile(username):
         )
 
     return 'Not a valid user.'
+
+
+# Login view
+@urls.route('/login', methods=['POST'])
+def login():
+    # Retrieve server:logged from cache    
+    logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
+    # Decode byte string from redis to Python string
+    logged_in = [user.decode('utf-8') for user in logged_in]
+
+    if g.user.is_authenticated:
+        return redirect('/watch')
+    #elif request.form['username'] in logged_in:
+    #    return render_template('login.html', error='User is already logged in')
+    else:
+        username = lib.models.User.query.filter_by(
+            username=request.form['username']).first()
+        if username:
+            if username.checkpass(request.form['password']):
+                login_user(username)
+                return redirect('/watch')
+            else:
+                return render_template('login.html', error='Invalid password')
+        else:
+            return render_template('login.html', error='Invalid username')
+
+
+# Logout view
+@urls.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
+
+
+# Redirect user to LastFM authentication page
+@urls.route('/auth/lastfm')
+@login_required
+def auth_lastfm():
+    if not current_user.lastfm_connected():
+        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}register')
+
+    return f'Your account {current_user.fm_name} is already connected'
+
+
+# Register LastFM credentials into ytdl database
+@urls.route('/register', methods=['GET'])
+@login_required
+def register():
+    if 'token' in request.args and len(request.args['token']) == 32:
+        token = request.args['token']
+
+        resp = fm.get_session(token)
+
+        if resp[0]:
+            # Register LastFM in DB
+            current_user.fm_name = resp[1]['name']
+            current_user.fm_token = token
+            current_user.fm_sk = resp[1]['key']
+
+            db.session.commit()
+
+            return '<span>Registered {}</span><br/><a href="/">Take me back</a>'.format(resp[1]['name'])
+        else:
+            return 'Error connecting to your LastFM account: {}'.format(resp[1]['message'])
+    else:
+        return 'Failed to connect to your LastFM'

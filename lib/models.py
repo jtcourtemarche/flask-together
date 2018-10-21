@@ -10,7 +10,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
-    
+
     fm_name = db.Column(db.String(), nullable=True, default='')
     fm_sk = db.Column(db.String(32), nullable=True, default='')
 

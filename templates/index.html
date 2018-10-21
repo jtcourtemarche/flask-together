@@ -67,13 +67,8 @@
                <div id="video-card" class="row" style="overflow: hidden;">
                   <div class="playback-rate"></div>
                   <div class="embed-responsive embed-responsive-16by9">
-                    <div id="video-placeholder"></div>
-                  </div>
-                  <div id="video-overlay">
-                    <div id="page-title"></div>
-                    <div id="page-author"></div>
-                    <div id="page-user"></div>
-                    <div id="page-artist"></div>
+                    <div id="youtube-player"></div>
+                    <div id="twitch-player"></div>
                   </div>
                   <input aria-label="Progress bar" type="range" id="progress-bar" value="0"/>
                   <div id="duration-container">
@@ -95,6 +90,13 @@
                           <span aria-label="Volume percentage" id="volume-display">50%</span>
                         </div>
                       </div>
+                      <div id="qualities-dropdown" class="dropdown" style="display: none">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Quality
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        </div>
+                      </div>
                       <div class="col col-1">
                         <div class="btn-group mr-1" id="playback-rates" role="group"></div>
                       </div>
@@ -112,7 +114,12 @@
          </div>
       </div>
       <script type="text/javascript" src="../static/js/sockets.js"></script>
+      <!-- Youtube iFrame API -->
       <script src="https://www.youtube.com/iframe_api"></script>
+      <!-- Twitch iFrame API -->
+      <script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+      
+      <!-- Player managers -->
       <script type="text/javascript" src="../static/js/player.js"></script>
       <script type="text/javascript" src="../static/js/events.js"></script>
    </body>

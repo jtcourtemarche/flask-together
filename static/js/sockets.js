@@ -5,7 +5,7 @@ var socket, start_time, start_video;
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
-        // Change socket URL based on request scheme 
+        // Change socket URL based on request scheme
         var scheme = $('meta[name=scheme]').attr('content');
         if (scheme == 'https') {
             socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
@@ -18,11 +18,10 @@ var connect_socket = function() {
     socket.on('connect', function() {
         socket.emit('user:joined');
     });
-    
+
     socket.on('server:disconnected', function(data) {
         $('.active-users').empty();
-        var user;
-        for (user in data.active_users) {
+        for (var user in data.active_users) {
             if (data.active_users[user][1] == 1) {
                 $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
             } else if (data.active_users[user][1] == 0) {
@@ -36,7 +35,7 @@ var connect_socket = function() {
         // Play last video from DB
         if (data.most_recent != null && data.most_recent_username != null) {
             player.loadVideoById(data.most_recent.video_id);
-            $('#page-user').html(data.most_recent_username);
+            //$('#page-user').html(data.most_recent_username);
             $('title').html(data.most_recent.video_title);
             appendHistory(data.history);
 
@@ -47,8 +46,8 @@ var connect_socket = function() {
             $('#history-list').empty();
             $("#history-list").append("<span class='no-search'>No history.</span>");
         }
-        // Often a browser will auto-refresh the page over time 
-        // making it so "No search results" will repeat over 
+        // Often a browser will auto-refresh the page over time
+        // making it so "No search results" will repeat over
         // and over again. To prevent this empty the div.
         $("#search-list").empty();
         $("#search-list").append("<span class='no-search'>No search results.</span>");
@@ -120,16 +119,23 @@ var connect_socket = function() {
 
     // Controls ------------------------->
     socket.on('server:play', function (data) {
-        player.seekTo(data['time']);
-        player.playVideo();
-
+        if ($('#twitch-player').is(':visible')) {
+            twplayer.play();
+        } else {
+            player.seekTo(data['time']);
+            player.playVideo();
+        }
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
     });
     socket.on('server:pause', function (data) {
-        player.seekTo(data['time']);
-        player.pauseVideo();
+        if ($('#twitch-player').is(':visible')) {
+            twplayer.pause();
+        } else {
+            player.seekTo(data['time']);
+            player.pauseVideo();
+        }
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
@@ -146,43 +152,71 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server:play-new', function (data) {
-        $('#yt-search').html('Search');
+        if (data.player == 'twitch') {
+            // End Youtube player
+            player.stopVideo();
+            // Hide default Youtube player elements
+            $('#youtube-player').hide();
+            $('#progress-bar').hide();
+            $('#playback-rates').hide();
+            $('#skip_to').hide();
+            $('#play').show();
 
-        appendHistory(data.history);
+            new_stream_played = true;
 
-        $('#page-user').html(data.user);
-        $('title').html(data.title);
+            $('#twitch-player').show();
+            twplayer.setChannel(data.channel);
+            twplayer.setVolume($('#volume-slider').val() / 100);
+            twplayer.play();
+            $('#yt-search').html('Search');
 
-        player.loadVideoById(data.id);
-        player.seekTo(0);
-        player.playVideo();
+            // Update history
+            appendHistory(data.history);
+        }
+        else if (data.player == 'youtube') {
+            // End Twitch player
+            twplayer.pause();
+            $('#twitch-player').hide();
+            $('#progress-bar').show();
+            $('#skip_to').show();
+            $('#playback-rates').show();
+            $('#qualities-dropdown').hide();
 
+            // Show Youtube player
+            $('#youtube-player').show();
+            $('#yt-search').html('Search');
+
+            //$('#page-user').html(data.user);
+            $('title').html(data.title);
+
+            // Update history
+            appendHistory(data.history);
+
+            player.loadVideoById(data.id);
+            player.seekTo(0);
+            player.playVideo();
+
+            // Send request to LastFM function to see if the video can be scrobbled
+            var callback = data;
+            // Clear history from data to send to server 
+            // clearing the history will speed up the transaction
+            callback.history = null;
+            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+        }
+        // Reset play button
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
+
         // Reset LastFM genres
         $('#genres').empty();
-
-        $('#video-overlay #page-artist').empty();
-
-        // Clear history from data to send to server 
-        // clearing the history will speed up the transaction
-        var callback = data;
-        callback.history = null;
-        socket.emit('user:play-callback', {data: JSON.stringify(callback)});
     });
 
     socket.on('server:play-new-artist', function(data) {
         if (data.artist != false) {
             var artist = JSON.parse(data.artist);
-            $('#video-overlay #page-artist').html(
-                "<a target='_blank' href='https://www.last.fm/music/"+artist.name.replace(' ', '+')+"'><img src='"+artist.image[2]['#text']+"'></img></a>"
-            );
-            console.log(artist);
             $('#genres').html(artist.tags);
-        } else {
-            $('#video-overlay #page-artist').empty();
-        }        
+        }
     });
 
     // Search function ---------------------->

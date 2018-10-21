@@ -50,7 +50,13 @@ $('#list-result').on('keypress', function(event) {
 });
 
 $("#volume-slider").on('input', function() {
-	player.setVolume($("#volume-slider").val());
+	if ($('#twitch-player').is(':visible')) {
+		var vol = $("#volume-slider").val() / 100;
+		twplayer.setVolume(vol);
+	} else {
+		player.setVolume($("#volume-slider").val());
+	}
+
 	$('#volume-display').stop().animate({opacity:'100'});
 	$('#volume-display').show();
 	$('#volume-display').html($('#volume-slider').val()+'%');
@@ -102,13 +108,19 @@ $('#replay').click(function() {
 	$('#replay').hide();
 });
 
+/*
+
+DEPRECATED 9/25/18
+
 $('.embed-responsive').mouseenter(function() {
 	$('#video-overlay').fadeIn(100);
 });
 $('.embed-responsive').mouseleave(function() {
 	$('#video-overlay').fadeOut(0);
 });
+*/
 
+/*
 // Cancel overlay fade out on these click events
 $('#video-overlay #page-title').mouseenter(function() {
 	$('#video-overlay').fadeIn(0);
@@ -116,4 +128,5 @@ $('#video-overlay #page-title').mouseenter(function() {
 $('#video-overlay #page-artist').mouseenter(function() {
 	$('#video-overlay').fadeIn(0);
 });
+*/
 

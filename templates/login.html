@@ -1,4 +1,5 @@
 <html lang="en">
+
 <head>
     <title>Login</title>
     <link rel="icon" type="image/png" href="../static/images/favicon.png">
@@ -15,22 +16,24 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">
-                    Login {% if error %}<div style="color:red"> &bullet; {{ error }} </div>{% endif %}
+                    Login {% if error %}
+                    <div style="color:red"> &bullet; {{ error }} </div>{% endif %}
                 </h5>
                 <div class="card-text">
                     <form action="/login" method="post">
                         <div class="form-group">
                             <input name="username" type="text" class="form-control" id="username-entry" placeholder="Username">
-                            </div>
-                            <div class="form-group">
+                        </div>
+                        <div class="form-group">
                             <input name="password" type="password" class="form-control" id="password-entry" placeholder="Password">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>     
-                        </div>   
-                    </form>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
                 </div>
+                </form>
             </div>
         </div>
     </div>
+    </div>
 </body>
+
 </html>
