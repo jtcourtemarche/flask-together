@@ -42,6 +42,19 @@ def get_active_users():
     return active_users
 
 
+# Retrieve last 20 objects from history
+def get_recent_history():
+    history_schema = models.HistorySchema(many=True)
+    history = models.History.query.order_by(db.text('id')).all()
+    history = history_schema.dump(history).data
+
+    # Load only 20 videos if there are more than 20 DB entries
+    if len(history) > 20:
+        history = history[-20:]
+
+    return history
+
+
 # Handle when a user joins
 @socketio.on('user:joined')
 def handle_connect():
@@ -74,18 +87,10 @@ def handle_connect():
         most_recent = None
         most_recent_username = None
 
-    history_schema = models.HistorySchema(many=True)
-    history = models.History.query.order_by(db.text('id')).all()
-    history = history_schema.dump(history).data
-
-    # Load only 20 videos if there are more than 20 DB entries
-    if len(history) > 20:
-        history = history[-20:]
-
     emit('server:sync', {
-        'most_recent': most_recent,
+        'history': get_recent_history(), 
         'most_recent_username': most_recent_username,
-        'history': history, 
+        'most_recent': most_recent,
         'sid': request.sid,
     }, room=request.sid)
 
@@ -132,8 +137,10 @@ def handle_dc():
 
     active_users = get_active_users()
     
-    emit('server:disconnected', {'username': current_user.username,
-                               'active_users': active_users}, broadcast=True)
+    emit('server:disconnected', {
+        'active_users': active_users,
+        'username': current_user.username,
+    }, broadcast=True)
 
 """
 
@@ -144,21 +151,15 @@ def handle_dc():
 # Process new video being played.
 @socketio.on('user:play-new')
 def play_new(data):
-    """
     if 'twitch.tv' in data['url']:
         channel = data['url'].split('/')[-1]
 
-        history_schema = models.HistorySchema(many=True)
-        history = models.History.query.order_by(db.text('id')).all()
-        history = history_schema.dump(history).data
-
         emit('server:play-new', {
-            'player': 'twitch',
             'channel': channel,
-            'history': history,
+            'history': get_recent_history(),
+            'player': 'twitch',
         }, broadcast=True)
-        """
-    if True:
+    else:
         # Extract video id from Youtube url
         yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
         yt_id = re.findall(yt_re, data['url'])
@@ -182,22 +183,14 @@ def play_new(data):
             db.session.add(h)
             db.session.commit()
 
-            history_schema = models.HistorySchema(many=True)
-            history = models.History.query.order_by(db.text('id')).all()
-
-            history = history_schema.dump(history).data
-
-            # Load only 20 videos if there are more than 20 DB entries
-            if len(history) > 20:
-                history = history[-20:]
-
             emit('server:play-new', {
-                'player': 'youtube',
-                'id': items['id'],
-                'title': items['snippet']['title'],
-                'history': history, 
-                'user': user.username,
+                'author': items['snippet']['channelTitle'],
                 'content': content,
+                'history': get_recent_history(), 
+                'id': items['id'],
+                'player': 'youtube',
+                'title': items['snippet']['title'],
+                'user': user.username,
             }, broadcast=True)
         # Channel URL entered into search bar
         elif '/channel/' in data['url']:
@@ -222,11 +215,24 @@ def play_new_handler(d):
         fm.scrobble(current_user.username)
         pipe.set(current_user.username, '').execute()
     
-    if len(d['title'].split(' - ')) == 2:
-        # Check if song
-        title = d['title'].split(' - ')
-        artist = title[0]
-        name = re.sub(r'\([^)]*\)', '', title[1])
+    if len(d['title'].split(' - ')) == 2 or \
+       len(d['title'].split('- ')) == 2 or \
+       ' - Topic' in d['author']:
+
+        if len(d['title'].split(' - ')) == 2:
+            # Check if song
+            title = d['title'].split(' - ')
+            track = re.sub(r'\([^)]*\)', '', title[1])
+            artist = title[0]
+        elif len(d['title'].split('- ')) == 2:
+            # Check if song
+            title = d['title'].split('- ')
+            track = re.sub(r'\([^)]*\)', '', title[1])
+            artist = title[0]
+        elif ' - Topic' in d['author']:
+            # Youtube "Topic" music videos
+            track = d['title']
+            artist = d['author'].strip(' - Topic')            
 
         emit('server:play-new-artist', {
             'artist': fm.get_artist(artist),
@@ -235,19 +241,7 @@ def play_new_handler(d):
         # Handle scrobbling after playing video
         if current_user.lastfm_connected():
             duration = d['content']['contentDetails']['duration']
-            fm.update_now_playing(artist, name, current_user, duration)
-    elif ' - Topic' in d['author']:
-        # Youtube "Topic" music videos
-        name = d['title']
-        artist = d['author'].strip(' - Topic')
-
-        emit('server:play-new-artist', {
-            'artist': fm.get_artist(artist),
-        }, broadcast=True)
-
-        if current_user.lastfm_connected():
-            duration = d['content']['contentDetails']['duration']
-            fm.update_now_playing(artist, name, current_user, duration)
+            fm.update_now_playing(artist, track, current_user, duration)
     else:
         # Denote that nothing is being scrobbled anymore
         pipe.set(current_user.username, '').execute()

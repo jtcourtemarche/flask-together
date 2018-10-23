@@ -3,6 +3,8 @@
 import hashlib
 import requests
 import json
+import os
+import random
 import colorgram
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
@@ -66,19 +68,22 @@ def user_profile(username):
                 dom_color = pipe.get(f'profile-bgcolor:{user.username}').execute()[0].decode('utf-8')
                 fg_color = pipe.get(f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
             else:
-                print('Regenerating Palettes')
-                
                 # Get avg color of thumbnail
                 r = requests.get(most_played.video_thumbnail)
-                
+
+                key = random.randint(1, 9999)
+
                 # Download to /tmp/ directory on Linux
-                with open('/tmp/thumb.jpg', 'wb') as f:
+                with open(f'/tmp/thumb-{key}.jpg', 'wb') as f:
                     for chunk in r.iter_content(chunk_size=128):
                         f.write(chunk)
 
                 # Use kmeans cluster algorithm to get most dominant color
                 # Retrieve 2 clusters
-                colors = colorgram.extract('/tmp/thumb.jpg', 2)
+                colors = colorgram.extract(f'/tmp/thumb-{key}.jpg', 2)
+                
+                # Clear temp thumbnail
+                os.remove(f'/tmp/thumb-{key}.jpg')
 
                 # Get the second most dominant color because the first is generally black
                 # due to the black bars in Youtube thumbnails
@@ -157,7 +162,7 @@ def logout():
 @login_required
 def auth_lastfm():
     if not current_user.lastfm_connected():
-        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}register')
+        return redirect(f'http://www.last.fm/api/auth/?api_key={LASTFM_KEY}')
 
     return f'Your account {current_user.fm_name} is already connected'
 
