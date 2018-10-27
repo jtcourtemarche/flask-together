@@ -42,8 +42,6 @@ function twitchChangeQuality(quality) {
 
 // Youtube Player
 
-console.log(window.location.hostname);
-
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
         width: $("#progress-bar").width(),

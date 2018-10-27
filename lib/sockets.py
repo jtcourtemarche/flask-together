@@ -25,7 +25,7 @@ import lib.utils as utils
 #
 def get_active_users():
     active_users = []
-    
+
     # Retrieve server:logged from cache    
     logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
     # Decode byte string from redis to Python string
@@ -190,7 +190,7 @@ def play_new(data):
                 'id': items['id'],
                 'player': 'youtube',
                 'title': items['snippet']['title'],
-                'user': user.username,
+                'lastfm_connected': user.lastfm_connected(),
             }, broadcast=True)
         # Channel URL entered into search bar
         elif '/channel/' in data['url']:
@@ -200,7 +200,6 @@ def play_new(data):
         else:
             results = utils.search_yt(data['url'])
             emit('server:serve-list', results, room=request.sid)
-
 
 # This is for managing cache for LastFM scrobbling
 @socketio.on('user:play-callback')
@@ -214,7 +213,6 @@ def play_new_handler(d):
         # Send scrobble to API then clear from cache
         fm.scrobble(current_user.username)
         pipe.set(current_user.username, '').execute()
-    
     if len(d['title'].split(' - ')) == 2 or \
        len(d['title'].split('- ')) == 2 or \
        ' - Topic' in d['author']:
@@ -232,7 +230,7 @@ def play_new_handler(d):
         elif ' - Topic' in d['author']:
             # Youtube "Topic" music videos
             track = d['title']
-            artist = d['author'].strip(' - Topic')            
+            artist = d['author'].rstrip(' - Topic')            
 
         emit('server:play-new-artist', {
             'artist': fm.get_artist(artist),

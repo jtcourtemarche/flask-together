@@ -186,7 +186,6 @@ var connect_socket = function() {
             $('#youtube-player').show();
             $('#yt-search').html('Search');
 
-            //$('#page-user').html(data.user);
             $('title').html(data.title);
 
             // Update history
@@ -196,12 +195,14 @@ var connect_socket = function() {
             player.seekTo(0);
             player.playVideo();
 
-            // Send request to LastFM function to see if the video can be scrobbled
-            var callback = data;
-            // Clear history from data to send to server 
-            // clearing the history will speed up the transaction
-            callback.history = null;
-            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+            if (data.lastfm_connected) {
+                // Send request to LastFM function to see if the video can be scrobbled
+                var callback = data;
+                // Clear history from data to send to server 
+                // clearing the history will speed up the transaction
+                callback.history = null;
+                socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+            }
         }
         // Reset play button
         $('#pause').show();
