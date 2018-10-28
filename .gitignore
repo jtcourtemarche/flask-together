@@ -6,6 +6,7 @@ api.py
 *.bak
 .idea/
 migrations/
+.DS_Store
 
 ### Database ###
 *.accdb
