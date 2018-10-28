@@ -41,6 +41,13 @@ def get_active_users():
 
     return active_users
 
+# Retrieve mpost recent object from history
+def get_last_item_history():
+    history_schema = models.HistorySchema(many=True)
+    history = models.History.query.order_by(db.text('-id')).all()
+    history = history_schema.dump(history).data
+
+    return history[0]
 
 # Retrieve last 20 objects from history
 def get_recent_history():
@@ -156,7 +163,7 @@ def play_new(data):
 
         emit('server:play-new', {
             'channel': channel,
-            'history': get_recent_history(),
+            'history': get_last_item_history(),
             'player': 'twitch',
         }, broadcast=True)
     else:
@@ -186,7 +193,7 @@ def play_new(data):
             emit('server:play-new', {
                 'author': items['snippet']['channelTitle'],
                 'content': content,
-                'history': get_recent_history(), 
+                'history': get_last_item_history(),
                 'id': items['id'],
                 'player': 'youtube',
                 'title': items['snippet']['title'],

@@ -145,7 +145,17 @@ function showPlaybackRates(playback_rates) {
 
 // ------------------------------------------------>
 
-var appendHistory = function(history) {
+var appendHistory = function(latest_item) {
+    $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+    latest_item.video_id + "\")'><p>" + 
+    latest_item.video_title + "</p><img class='thumbnail' src='" + 
+    latest_item.video_thumbnail + 
+    "' /><span class='upload-date'>"+ 
+    latest_item.video_date.split('T')[0] +
+    "</span></li>");    
+}
+
+var preloadHistory = function(history) {
     $("#history-list").empty();
     for (var h in history.reverse()) {
         if (h > 20) {

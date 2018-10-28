@@ -37,7 +37,7 @@ var connect_socket = function() {
             player.loadVideoById(data.most_recent.video_id);
             //$('#page-user').html(data.most_recent_username);
             $('title').html(data.most_recent.video_title);
-            appendHistory(data.history);
+            preloadHistory(data.history);
 
             setTimeout(function() {
                 socket.emit('user:init-preload');
