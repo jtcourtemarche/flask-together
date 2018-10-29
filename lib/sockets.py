@@ -158,54 +158,45 @@ def handle_dc():
 # Process new video being played.
 @socketio.on('user:play-new')
 def play_new(data):
-    if 'twitch.tv' in data['url']:
-        channel = data['url'].split('/')[-1]
+    # Extract video id from Youtube url
+    yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
+    yt_id = re.findall(yt_re, data['url'])
+
+    # Play specific video ID
+    if yt_id != []:
+        yt = utils.check_yt(yt_id[0][3])
+
+        items = yt.get_items()
+        content = yt.get_content()
+
+        h = models.History(
+            video_id=items['id'],
+            video_date=items['snippet']['publishedAt'],
+            video_title=items['snippet']['title'],
+            video_thumbnail=items['snippet']['thumbnails']['default']['url'],
+            user_id=data['user']['id'],
+        )
+
+        user = models.User.query.get(data['user']['id'])
+        db.session.add(h)
+        db.session.commit()
 
         emit('server:play-new', {
-            'channel': channel,
+            'author': items['snippet']['channelTitle'],
+            'content': content,
             'history': get_last_item_history(),
-            'player': 'twitch',
+            'id': items['id'],
+            'player': 'youtube',
+            'title': items['snippet']['title'],
         }, broadcast=True)
+    # Channel URL entered into search bar
+    elif '/channel/' in data['url']:
+        results = utils.check_channel_yt(data['url'])
+        emit('server:serve-list', results, room=request.sid)
+    # Standard Youtube search
     else:
-        # Extract video id from Youtube url
-        yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
-        yt_id = re.findall(yt_re, data['url'])
-
-        # Play specific video ID
-        if yt_id != []:
-            yt = utils.check_yt(yt_id[0][3])
-
-            items = yt.get_items()
-            content = yt.get_content()
-
-            h = models.History(
-                video_id=items['id'],
-                video_date=items['snippet']['publishedAt'],
-                video_title=items['snippet']['title'],
-                video_thumbnail=items['snippet']['thumbnails']['default']['url'],
-                user_id=data['user']['id'],
-            )
-
-            user = models.User.query.get(data['user']['id'])
-            db.session.add(h)
-            db.session.commit()
-
-            emit('server:play-new', {
-                'author': items['snippet']['channelTitle'],
-                'content': content,
-                'history': get_last_item_history(),
-                'id': items['id'],
-                'player': 'youtube',
-                'title': items['snippet']['title'],
-            }, broadcast=True)
-        # Channel URL entered into search bar
-        elif '/channel/' in data['url']:
-            results = utils.check_channel_yt(data['url'])
-            emit('server:serve-list', results, room=request.sid)
-        # Standard Youtube search
-        else:
-            results = utils.search_yt(data['url'])
-            emit('server:serve-list', results, room=request.sid)
+        results = utils.search_yt(data['url'])
+        emit('server:serve-list', results, room=request.sid)
 
 # This is for managing cache for LastFM scrobbling
 @socketio.on('user:play-callback')
