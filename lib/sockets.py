@@ -197,7 +197,6 @@ def play_new(data):
                 'id': items['id'],
                 'player': 'youtube',
                 'title': items['snippet']['title'],
-                'lastfm_connected': user.lastfm_connected(),
             }, broadcast=True)
         # Channel URL entered into search bar
         elif '/channel/' in data['url']:
@@ -216,11 +215,12 @@ def play_new_handler(d):
 
     d = json.loads(d['data'])
 
+    # Checks if the video played can be scrobbled
     if get_cache != [b''] and get_cache != [None]:
         # Send scrobble to API then clear from cache
         fm.scrobble(current_user.username)
         pipe.set(current_user.username, '').execute()
-    if len(d['title'].split(' - ')) == 2 or \
+    elif len(d['title'].split(' - ')) == 2 or \
        len(d['title'].split('- ')) == 2 or \
        ' - Topic' in d['author']:
 
@@ -245,7 +245,7 @@ def play_new_handler(d):
 
         # Handle scrobbling after playing video
         if current_user.lastfm_connected():
-            duration = d['content']['contentDetails']['duration']
+            duration = d['duration']
             fm.update_now_playing(artist, track, current_user, duration)
     else:
         # Denote that nothing is being scrobbled anymore

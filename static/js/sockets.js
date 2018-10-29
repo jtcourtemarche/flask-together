@@ -119,23 +119,15 @@ var connect_socket = function() {
 
     // Controls ------------------------->
     socket.on('server:play', function (data) {
-        if ($('#twitch-player').is(':visible')) {
-            twplayer.play();
-        } else {
-            player.seekTo(data['time']);
-            player.playVideo();
-        }
+        player.seekTo(data['time']);    
+        player.playVideo();
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
     });
     socket.on('server:pause', function (data) {
-        if ($('#twitch-player').is(':visible')) {
-            twplayer.pause();
-        } else {
-            player.seekTo(data['time']);
-            player.pauseVideo();
-        }
+        player.seekTo(data['time']);
+        player.pauseVideo();
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
@@ -152,31 +144,6 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server:play-new', function (data) {
-        if (data.player == 'twitch') {
-            // End Youtube player
-            player.stopVideo();
-            // Hide default Youtube player elements
-            $('#youtube-player').hide();
-            $('#progress-bar').hide();
-            $('#playback-rates').hide();
-            $('#skip_to').hide();
-            $('#play').show();
-
-            new_stream_played = true;
-
-            $('#twitch-player').show();
-            twplayer.setChannel(data.channel);
-            twplayer.setVolume($('#volume-slider').val() / 100);
-            twplayer.play();
-            $('#yt-search').html('Search');
-
-            // Update history
-            appendHistory(data.history);
-        }
-        else if (data.player == 'youtube') {
-            // End Twitch player
-            twplayer.pause();
-            $('#twitch-player').hide();
             $('#progress-bar').show();
             $('#skip_to').show();
             $('#playback-rates').show();
@@ -203,7 +170,6 @@ var connect_socket = function() {
             callback.duration = callback.content.contentDetails.duration;
             delete callback.content;
             socket.emit('user:play-callback', {data: JSON.stringify(callback)});
-        }
         // Reset play button
         $('#pause').show();
         $('#play').hide();

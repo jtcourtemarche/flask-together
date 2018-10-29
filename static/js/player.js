@@ -2,44 +2,6 @@
 
 var player, playback_rates, player_ready, socket;
 
-// Twitch Player
-
-var twplayer = new Twitch.Player(
-    "twitch-player", 
-    {
-        width: $("#progress-bar").width(),
-        height: 447,
-        channel: 'none',
-        autoplay: false,
-        allowfullscreen: true,
-    }
-)
-
-twplayer.addEventListener(Twitch.Player.READY, function() {
-    console.log('👍🏼 Twitch player loaded.')
-})
-
-var new_stream_played = false;
-
-twplayer.addEventListener(Twitch.Player.PLAYING, function() {
-    // Load qualities
-    if (new_stream_played) {
-        $('#qualities-dropdown').show();
-        $('#video-title').html(twplayer.getChannel());
-        var qualities = twplayer.getQualities();
-            $('#qualities-dropdown').show();
-            //$('#qualities-dropdown').empty();
-            for (var q in qualities) {
-                $('#qualities-dropdown .dropdown-menu').append('<a class="dropdown-item" onclick="twitchChangeQuality(\''+qualities[q].name+'\')">'+qualities[q].name+'</a>')
-            }
-        new_stream_played = false;
-    }
-})
-
-function twitchChangeQuality(quality) {
-    twplayer.setQuality(quality);
-}
-
 // Youtube Player
 
 function onYouTubeIframeAPIReady() {
@@ -127,13 +89,8 @@ function updateProgressBar() {
 
 function updateTimerDisplay() {
     // Update current time text display.
-    if ($('#twitch-player').is(':visible')) {
-        $('#current-time').text(formatTime(twplayer.getCurrentTime()));
-        $('#duration').text('Live');   
-    } else {
-        $('#current-time').text(formatTime(player.getCurrentTime()));
-        $('#duration').text(formatTime(player.getDuration()));        
-    }
+    $('#current-time').text(formatTime(player.getCurrentTime()));
+    $('#duration').text(formatTime(player.getDuration()));        
 }
 
 function showPlaybackRates(playback_rates) {
@@ -194,12 +151,7 @@ var controlPlayNew = function (url) {
 // Fullscreen --------------------------->
 var controlFullscreen = function () {
     if (typeof socket != 'undefined') {
-        if ($('twitch-player').is(':visible')) {
-            var iframe = document.getElementById("twitch-player"); 
-            twplayer.setFullscreen(true);          
-        } else {
-            var iframe = document.getElementById("youtube-player");
-        }
+        var iframe = document.getElementById("youtube-player");
         // Chrome only implementation
         iframe.webkitRequestFullScreen();
     }
@@ -207,30 +159,17 @@ var controlFullscreen = function () {
 
 var controlPlay = function () {
     if (typeof socket != 'undefined') {
-        if ($('#twitch-player').is(':visible')) {
-            socket.emit('user:play', {
-                time: ''
-            });     
-        } else {
-            socket.emit('user:play', {
-                time: player.getCurrentTime()
-            });            
-        }
+        socket.emit('user:play', {
+            time: player.getCurrentTime()
+        });            
     }
 };
 var controlPause = function () {
     if (typeof socket != 'undefined') {
-        if ($('#twitch-player').is(':visible')) {
-            twplayer.pause();
-            socket.emit('user:pause', {
-                time: ''
-            });
-        } else {
-            player.pauseVideo();
-            socket.emit('user:pause', {
-                time: player.getCurrentTime()
-            });
-        }
+        player.pauseVideo();
+        socket.emit('user:pause', {
+            time: player.getCurrentTime()
+        });
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();

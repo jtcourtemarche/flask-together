@@ -50,12 +50,7 @@ $('#list-result').on('keypress', function(event) {
 });
 
 $("#volume-slider").on('input', function() {
-	if ($('#twitch-player').is(':visible')) {
-		var vol = $("#volume-slider").val() / 100;
-		twplayer.setVolume(vol);
-	} else {
-		player.setVolume($("#volume-slider").val());
-	}
+	player.setVolume($("#volume-slider").val());
 
 	$('#volume-display').stop().animate({opacity:'100'});
 	$('#volume-display').show();
