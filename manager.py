@@ -11,6 +11,7 @@ class Manager:
             'add_user':self.add_user,
             'del_user':self.del_user,
             'list_users':self.list_users,
+            'exit':self.exit,
         }
 
         print("""
@@ -24,6 +25,7 @@ class Manager:
             * del_user => remove a user from the database
                 - params: username
             * list_users => list all registered users
+            * exit => exit program
         """)
 
     def run(self):
@@ -35,6 +37,9 @@ class Manager:
         except Exception as e:
             print('Error ', e)
             exit()
+
+    def exit(self):
+        exit()
 
     def printc(self, msg):
         print(msg)
@@ -97,4 +102,7 @@ if __name__ == '__main__':
     from app import app, models
     from extensions import db
     mgr = Manager(db, models)
-    mgr.run()
+    
+    while 1:
+        mgr.run()
+
