@@ -192,17 +192,17 @@ var connect_socket = function() {
             appendHistory(data.history);
 
             player.loadVideoById(data.id);
-            player.seekTo(0);
-            player.playVideo();
-
-            if (data.lastfm_connected) {
-                // Send request to LastFM function to see if the video can be scrobbled
-                var callback = data;
-                // Clear history from data to send to server 
-                // clearing the history will speed up the transaction
-                callback.history = null;
-                socket.emit('user:play-callback', {data: JSON.stringify(callback)});
-            }
+            player.seekTo(0);   
+            
+            // Send request to LastFM function to see if the video can be scrobbled
+            var callback = data;
+            // Clear history from data to send to server 
+            // clearing the history will speed up the transaction
+            delete callback.history;
+            delete callback.player;
+            callback.duration = callback.content.contentDetails.duration;
+            delete callback.content;
+            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
         }
         // Reset play button
         $('#pause').show();
