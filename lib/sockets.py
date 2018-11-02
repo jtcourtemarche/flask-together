@@ -53,12 +53,12 @@ def get_last_item_history():
 def get_recent_history():
     history_schema = models.HistorySchema(many=True)
     history = models.History.query.order_by(db.text('id')).all()
-    history = history_schema.dump(history).data
-
+    history = history_schema.dump(history).data[20:]
+    """
     # Load only 20 videos if there are more than 20 DB entries
     if len(history) > 20:
         history = history[-20:]
-
+    """
     return history
 
 
@@ -206,38 +206,40 @@ def play_new_handler(d):
 
     d = json.loads(d['data'])
 
+    scrobbleable = False
+
     # Checks if the video played can be scrobbled
     if get_cache != [b''] and get_cache != [None]:
         # Send scrobble to API then clear from cache
         fm.scrobble(current_user.username)
         pipe.set(current_user.username, '').execute()
-    elif len(d['title'].split(' - ')) == 2 or \
-       len(d['title'].split('- ')) == 2 or \
-       ' - Topic' in d['author']:
-
-        if len(d['title'].split(' - ')) == 2:
-            # Check if song
-            title = d['title'].split(' - ')
-            track = re.sub(r'\([^)]*\)', '', title[1])
-            artist = title[0]
-        elif len(d['title'].split('- ')) == 2:
-            # Check if song
-            title = d['title'].split('- ')
-            track = re.sub(r'\([^)]*\)', '', title[1])
-            artist = title[0]
-        elif ' - Topic' in d['author']:
-            # Youtube "Topic" music videos
-            track = d['title']
-            artist = d['author'].rstrip(' - Topic')            
-
+    elif len(d['title'].split(' - ')) == 2:
+        # Check if song
+        title = d['title'].split(' - ')
+        track = re.sub(r'\([^)]*\)', '', title[1])
+        artist = title[0]
+        scrobbleable = True
+    elif len(d['title'].split('- ')) == 2:
+        # Check if song
+        title = d['title'].split('- ')
+        track = re.sub(r'\([^)]*\)', '', title[1])
+        artist = title[0]
+        scrobbleable = True
+    elif ' - Topic' in d['author']:
+        # Youtube "Topic" music videos
+        track = d['title']
+        artist = d['author'].rstrip(' - Topic')            
+        scrobbleable = True
+    
+    if scrobbleable:
         emit('server:play-new-artist', {
             'artist': fm.get_artist(artist),
         }, broadcast=True)
 
-        # Handle scrobbling after playing video
-        if current_user.lastfm_connected():
-            duration = d['duration']
-            fm.update_now_playing(artist, track, current_user, duration)
+    # Handle scrobbling after playing video
+    if current_user.lastfm_connected():
+        duration = d['duration']
+        fm.update_now_playing(artist, track, current_user, duration)
     else:
         # Denote that nothing is being scrobbled anymore
         pipe.set(current_user.username, '').execute()
@@ -258,7 +260,7 @@ def play(data):
 @socketio.on('user:pause')
 def pause(data):
     # Pausing video locally for user who requested pause makes interface slightly smoother
-    emit('server:pause', {'time':data["time"]}, broadcast=True, include_self=False)
+    emit('server:pause', {'time':data["time"]}, broadcast=True) 
 
 
 # Playback rate

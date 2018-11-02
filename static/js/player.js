@@ -166,7 +166,6 @@ var controlPlay = function () {
 };
 var controlPause = function () {
     if (typeof socket != 'undefined') {
-        player.pauseVideo();
         socket.emit('user:pause', {
             time: player.getCurrentTime()
         });
