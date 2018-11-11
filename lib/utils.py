@@ -16,15 +16,12 @@ def check_channel_yt(url):
     return feed['items']
 
 
-def search_yt(query):
+def search_yt(query, srange):
     query = quote(query)
-    url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=relevance&q={0}&key={1}&part=id%2Csnippet".format(
-        query,
-        API_KEY
-    )
+    url = f"https://www.googleapis.com/youtube/v3/search?maxResults={srange[1]}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
 
     feed = requests.get(url).json()
-    return feed['items']
+    return feed['items'][srange[0]:]
 
 
 # Tool that checks if valid youtube video

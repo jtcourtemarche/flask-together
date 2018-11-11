@@ -33,9 +33,8 @@ var connect_socket = function() {
     // Load last video from DB -------------->
     socket.on('server:sync', function(data) {
         // Play last video from DB
-        if (data.most_recent != null && data.most_recent_username != null) {
+        if (data.most_recent != null) {
             player.loadVideoById(data.most_recent.video_id);
-            //$('#page-user').html(data.most_recent_username);
             $('title').html(data.most_recent.video_title);
             preloadHistory(data.history);
 
@@ -82,14 +81,17 @@ var connect_socket = function() {
             // Playing
             $('#play').hide();
             $('#pause').show();
+            player.playVideo();
         } else if (data.state == 2) {
             // Paused
             $('#play').show();
             $('#pause').hide();
+            player.pauseVideo();
         } else if (data.state == 3) {
             // Buffering : assume playing
             $('#play').hide();
             $('#pause').show();
+            player.playVideo();
         } else if (data.state == 0) {
             // Ended
             $('#replay').show();
@@ -97,6 +99,7 @@ var connect_socket = function() {
             $('#pause').hide();
             player.pauseVideo();
         } else {
+            console.log(data);
             console.log('Could not get player state!');   
         }
     });
@@ -160,7 +163,8 @@ var connect_socket = function() {
 
             player.loadVideoById(data.id);
             player.seekTo(0);   
-            
+            player.playVideo();
+
             // Send request to LastFM function to see if the video can be scrobbled
             var callback = data;
             // Clear history from data to send to server 

@@ -20,7 +20,7 @@ function onYouTubeIframeAPIReady() {
             origin: 'localhost',
             frameborder: 0,
             iv_load_policy: 3,
-            autoplay: 0,
+            autoplay: 1,
             modestbranding: 1,
             disablekb: 1,
             origin: window.location.hostname,
@@ -56,6 +56,7 @@ function stateChange (event) {
     if (event.data == 5) {
         socket.emit('user:player-ready', event.target);
     }
+    /*
     if (event.data == 2) {
         controlPause();
     }
@@ -64,6 +65,7 @@ function stateChange (event) {
             controlPlay();
         }
     }
+    */
     if (event.data == 0) {
         // Video ended
         $('#play').hide();

@@ -22,7 +22,7 @@ import lib.utils as utils
 # Every item in list contains tuple 
 #   1: username
 #   2: online status (0 = offline, 1 = online)
-#
+# Triggered whenever a user joins or leaves the page
 def get_active_users():
     active_users = []
 
@@ -41,13 +41,14 @@ def get_active_users():
 
     return active_users
 
-# Retrieve mpost recent object from history
-def get_last_item_history():
-    history_schema = models.HistorySchema(many=True)
-    history = models.History.query.order_by(db.text('-id')).all()
+# Retrieve most recent object from history
+def get_most_recent_video():
+    history_schema = models.HistorySchema()
+    history = models.History.query.order_by(db.text('-id')).first()
     history = history_schema.dump(history).data
 
-    return history[0]
+    # Return last item
+    return history 
 
 # Retrieve last 20 objects from history
 def get_recent_history():
@@ -85,19 +86,9 @@ def handle_connect():
 
     history_schema = models.HistorySchema()
 
-    try:
-        # Get most recent ID
-        most_recent = models.History.query.order_by(db.text('-id')).first()
-        most_recent = history_schema.dump(most_recent).data
-        most_recent_username = models.User.query.get(most_recent['user']).username
-    except KeyError:
-        most_recent = None
-        most_recent_username = None
-
     emit('server:sync', {
         'history': get_recent_history(), 
-        'most_recent_username': most_recent_username,
-        'most_recent': most_recent,
+        'most_recent': get_most_recent_video(), 
         'sid': request.sid,
     }, room=request.sid)
 
@@ -184,7 +175,7 @@ def play_new(data):
         emit('server:play-new', {
             'author': items['snippet']['channelTitle'],
             'content': content,
-            'history': get_last_item_history(),
+            'history': get_most_recent_video(),
             'id': items['id'],
             'player': 'youtube',
             'title': items['snippet']['title'],
@@ -195,7 +186,7 @@ def play_new(data):
         emit('server:serve-list', results, room=request.sid)
     # Standard Youtube search
     else:
-        results = utils.search_yt(data['url'])
+        results = utils.search_yt(data['url'], (20, 40))
         emit('server:serve-list', results, room=request.sid)
 
 # This is for managing cache for LastFM scrobbling
@@ -280,3 +271,4 @@ def handle_skip(data):
 def error_handler(e):
     print(e.args, type(e).__name__)
     traceback.print_exc()
+
