@@ -192,6 +192,12 @@ body {
     background-color: rgb(37, 41, 48) !important; 
 }
 
+.load-more {
+    text-align: center;
+    background-color: rgb(19, 21, 24) !important;
+    padding: 15px;
+}
+
 .no-search {
     color: #CCC;
     vertical-align: middle;

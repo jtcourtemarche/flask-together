@@ -191,24 +191,35 @@ var connect_socket = function() {
     });
 
     // Search function ---------------------->
-    socket.on('server:serve-list', function (results) {
+    socket.on('server:serve-list', function (results, append, page) {
         $('#yt-search').html('Search');
-        $("#search-list").empty();
-        var r = 0;
-        for (r in results) {
-            $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-             results[r].id.videoId + "\")'><p>" + 
-             results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" + 
-             results[r].snippet.thumbnails.high.url + 
-             "' /><span class='upload-date'>"+ 
-             results[r].snippet.publishedAt.split('T')[0] +
-             "</span></li>");
+
+        if (!append)
+            $("#search-list").empty();
+        else { 
+            $('.load-more').remove();
         }
+
+        var r = 0;
         if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
+        } else {
+            for (r in results) {
+                $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+                 results[r].id.videoId + "\")'><p>" + 
+                 results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" + 
+                 results[r].snippet.thumbnails.high.url + 
+                 "' /><span class='upload-date'>"+ 
+                 results[r].snippet.publishedAt.split('T')[0] +
+                 "</span></li>");
+            }
+            $("#search-list").append("<li id='list-result' class='load-more' tabindex='"+results.length+"' class='list-group-item' onclick='controlLoadMore("+page+1+")'><i class='fas fa-chevron-circle-down'></i></li>");
         }
-        $('#search-list').scrollTo(0);
+
+        if (!append)
+            $('#search-list').scrollTo(0);
     });
 
     return socket;
 };
+

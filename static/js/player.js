@@ -205,3 +205,13 @@ var controlRate = function (rate) {
         });
     }
 };
+
+var controlLoadMore = function (page) {
+    if (typeof socket != 'undefined') {
+        socket.emit('user:search-load-more', {
+            url: $('#yt-url').val(),
+            page: page
+        });
+    }
+}
+

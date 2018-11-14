@@ -186,8 +186,22 @@ def play_new(data):
         emit('server:serve-list', results, room=request.sid)
     # Standard Youtube search
     else:
-        results = utils.search_yt(data['url'], (20, 40))
-        emit('server:serve-list', results, room=request.sid)
+        results = utils.search_yt(data['url'], (0, 20))
+        emit('server:serve-list', (results, False, 0), room=request.sid)
+
+
+# Handles loading more results for a Youtube search
+@socketio.on('user:search-load-more')
+def search_load_more(data):
+    p = data['page']
+
+    if p != 0:
+        results = utils.search_yt(data['url'], ((p-1) * 10, p * 10))
+    else:
+        results = utils.search_yt(data['url'], (0, 20))
+
+    emit('server:serve-list', (results, True, p+1), room=request.sid)
+
 
 # This is for managing cache for LastFM scrobbling
 @socketio.on('user:play-callback')

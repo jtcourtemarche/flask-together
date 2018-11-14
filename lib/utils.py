@@ -17,10 +17,19 @@ def check_channel_yt(url):
 
 
 def search_yt(query, srange):
-    query = quote(query)
-    url = f"https://www.googleapis.com/youtube/v3/search?maxResults={srange[1]}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
+    max_results = srange[1]
+    
+    # Max query size = 50
+    if srange[0] > 50:
+        return False
+    elif srange[1] > 50:
+        max_results = 50
 
+    query = quote(query)
+    url = f"https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
+    
     feed = requests.get(url).json()
+   
     return feed['items'][srange[0]:]
 
 
