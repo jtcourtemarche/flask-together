@@ -151,54 +151,51 @@ def handle_dc():
 def play_new(data):
     # Extract video id from Youtube url
     yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
-    yt_id = re.findall(yt_re, data['url'])
+    user_input = re.findall(yt_re, data['url'])
 
-    # Play specific video ID
-    if yt_id != []:
-        yt = utils.check_yt(yt_id[0][3])
+    # Check if user wants to play a specific video link
+    if user_input != []:
+        video = utils.Video(user_input[0][3])
 
-        items = yt.get_items()
-        content = yt.get_content()
-
-        h = models.History(
-            video_id=items['id'],
-            video_date=items['snippet']['publishedAt'],
-            video_title=items['snippet']['title'],
-            video_thumbnail=items['snippet']['thumbnails']['default']['url'],
+        history = models.History(
+            video_id=video.id,
+            video_date=video.date,
+            video_title=video.title,
+            video_thumbnail=video.thumbnail,
             user_id=data['user']['id'],
         )
 
         user = models.User.query.get(data['user']['id'])
-        db.session.add(h)
+        db.session.add(history)
         db.session.commit()
 
         emit('server:play-new', {
-            'author': items['snippet']['channelTitle'],
-            'content': content,
+            'author': video.author,
+            'content': video.content,
             'history': get_most_recent_video(),
-            'id': items['id'],
-            'player': 'youtube',
-            'title': items['snippet']['title'],
+            'id': video.id,
+            'title': video.title,
         }, broadcast=True)
+
     # Channel URL entered into search bar
     elif '/channel/' in data['url']:
         results = utils.check_channel_yt(data['url'])
         emit('server:serve-list', results, room=request.sid)
-    # Standard Youtube search
+    
+    # Standard Youtube search query
     else:
-        results = utils.search_yt(data['url'], (0, 20))
-        emit('server:serve-list', (results, False, 0), room=request.sid)
+        results = utils.search_yt(data['url'], (0, 10))
+        emit('server:serve-list', (results, False, 1), room=request.sid)
 
 
 # Handles loading more results for a Youtube search
 @socketio.on('user:search-load-more')
 def search_load_more(data):
     p = data['page']
-
     if p != 0:
-        results = utils.search_yt(data['url'], ((p-1) * 10, p * 10))
+        results = utils.search_yt(data['url'], (p * 10, ((p)+1) * 10))
     else:
-        results = utils.search_yt(data['url'], (0, 20))
+        results = utils.search_yt(data['url'], (0, 10))
 
     emit('server:serve-list', (results, True, p+1), room=request.sid)
 

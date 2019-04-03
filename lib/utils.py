@@ -18,7 +18,7 @@ def check_channel_yt(url):
 
 def search_yt(query, srange):
     max_results = srange[1]
-    
+
     # Max query size = 50
     if srange[0] > 50:
         return False
@@ -30,21 +30,27 @@ def search_yt(query, srange):
     
     feed = requests.get(url).json()
    
-    return feed['items'][srange[0]:]
+    return feed['items'][srange[0]:srange[1]]
 
 
-# Tool that checks if valid youtube video
+# Youtube video object
 class Video:
-    def __init__(self, items, contentDetails):
-        if items and contentDetails:
-            self.items = items
-            self.contentDetails = contentDetails
+    def __init__(self, video_id):
+        self.feed = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet').content
+        self.content = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&part=contentDetails&key={API_KEY}').content
 
-    def get_items(self):
-        return json.loads(self.items)['items'][0]
+        items = json.loads(self.feed)['items'][0]
+
+        self.id = items['id'],
+        self.date = items['snippet']['publishedAt']
+        self.title = items['snippet']['title']
+        self.author = items['snippet']['channelTitle']
+        self.thumbnail = items['snippet']['thumbnails']['default']['url']
+
+        self.content = self.get_content()
 
     def get_content(self):
-        content = json.loads(self.contentDetails)['items'][0]
+        content = json.loads(self.content)['items'][0]
         duration = content['contentDetails']['duration']
 
         # Separate duration format into array where ->
@@ -76,9 +82,3 @@ class Video:
 
         return content
 
-
-def check_yt(id):
-    feed = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={id}&key={API_KEY}&part=snippet').content
-    content = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={id}&part=contentDetails&key={API_KEY}').content
-
-    return Video(feed, content)

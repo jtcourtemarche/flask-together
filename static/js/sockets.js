@@ -148,38 +148,39 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server:play-new', function (data) {
-            $('#progress-bar').show();
-            $('#skip_to').show();
-            $('#playback-rates').show();
-            $('#qualities-dropdown').hide();
+        $('#progress-bar').show();
+        $('#skip_to').show();
+        $('#playback-rates').show();
+        $('#qualities-dropdown').hide();
 
-            // Show Youtube player
-            $('#youtube-player').show();
-            $('#yt-search').html('Search');
-
-            $('title').html(data.title);
-            $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
-
-            // Update history
-            appendHistory(data.history);
-
-            player.loadVideoById(data.id);
-            player.seekTo(0);   
-            player.playVideo();
-
-            // Send request to LastFM function to see if the video can be scrobbled
-            var callback = data;
-            // Clear history from data to send to server 
-            // clearing the history will speed up the transaction
-            delete callback.history;
-            delete callback.player;
-            callback.duration = callback.content.contentDetails.duration;
-            delete callback.content;
-            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
         // Reset play button
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
+
+        // Show Youtube player
+        $('#yt-search').html('Search');
+
+        $('title').html(data.title);
+        $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
+
+        // Update history
+        appendHistory(data.history);
+
+        player.loadVideoById(data.id[0]);
+        player.seekTo(0);   
+        player.playVideo();
+
+        var callback = data;
+        // Clear history from data to send to server 
+        // clearing the history will speed up the transaction
+        delete callback.history;
+        delete callback.player;
+        callback.duration = callback.content.contentDetails.duration;
+        delete callback.content;
+
+        // Send request to LastFM function to see if the video can be scrobbled
+        socket.emit('user:play-callback', {data: JSON.stringify(callback)});
 
         // Reset LastFM genres
         $('#genres').empty();
@@ -202,11 +203,10 @@ var connect_socket = function() {
             $('.load-more').remove();
         }
 
-        var r = 0;
         if (results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         } else {
-            for (r in results) {
+            for (var r in results) {
                 $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
                  results[r].id.videoId + "\")'><p>" + 
                  results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" + 
@@ -215,7 +215,7 @@ var connect_socket = function() {
                  results[r].snippet.publishedAt.split('T')[0] +
                  "</span></li>");
             }
-            $("#search-list").append("<li id='list-result' class='load-more' tabindex='"+results.length+"' class='list-group-item' onclick='controlLoadMore("+page+1+")'><i class='fas fa-chevron-circle-down'></i></li>");
+            $("#search-list").append("<li id='list-result' class='load-more' tabindex='"+results.length+"' class='list-group-item' onclick='controlLoadMore("+page+")'><i class='fas fa-chevron-circle-down'></i></li>");
         }
 
         if (!append)
