@@ -45,8 +45,7 @@ class History(db.Model):
     user = db.relationship('User', foreign_keys='History.user_id')
 
     def __repr__(self):
-        return '<History %r>' % self.id
-
+        return '["'+self.video_title+'", '+self.video_id+']'
 
 class HistorySchema(ma.ModelSchema):
     class Meta:

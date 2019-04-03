@@ -36,6 +36,7 @@ var connect_socket = function() {
         if (data.most_recent != null) {
             player.loadVideoById(data.most_recent.video_id);
             $('title').html(data.most_recent.video_title);
+            $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
             preloadHistory(data.history);
 
             setTimeout(function() {
@@ -157,6 +158,7 @@ var connect_socket = function() {
             $('#yt-search').html('Search');
 
             $('title').html(data.title);
+            $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
 
             // Update history
             appendHistory(data.history);

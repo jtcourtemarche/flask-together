@@ -1,0 +1,4 @@
+{% for item in history %}
+	<span><li class="list-group-item"><a target="_blank" href="https://www.youtube.com/watch?v={{ item.video_id }}">{{ item.video_title }}</a><br>{{ item.date }}</li></span>
+	<br>
+{% endfor %}

@@ -2,11 +2,10 @@
 
 import hashlib
 import requests
-import json
 import os
 import random
 import colorgram
-from flask import Blueprint, g, redirect, render_template, request, url_for
+from flask import Blueprint, g, redirect, render_template, request, url_for, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 
 from api import LASTFM_KEY, LASTFM_SECRET
@@ -30,13 +29,28 @@ def root():
 
     return render_template('login.html')
 
-
 # Standard viewing page
 @urls.route('/watch')
 @login_required
 def index():
     return render_template('index.html')
 
+# User history
+@urls.route('/~<string:username>/history/<int:index>')
+@urls.route('/~<string:username>/history')
+@login_required
+def user_history(username, index=1):
+    user = lib.models.User.query.filter_by(username=username).first()
+    if user:
+        history = lib.models.History.query.filter_by(
+            user_id=user.id).order_by(db.text('-id')).all()
+
+        return render_template(
+            'history.html',
+            history=history[25*(index-1):25*index]
+        )
+    else:
+        return 'User ' + user + ' does not exist.'
 
 # User profiles
 @urls.route('/~<string:username>')

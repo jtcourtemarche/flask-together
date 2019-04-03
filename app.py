@@ -41,6 +41,7 @@ app.config.update(
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(password)s@%(host)s:%(port)s/%(dbname)s' % POSTGRES
 
+"""
 # Logging
 import logging
 
@@ -49,6 +50,7 @@ logging.basicConfig(
     filename='error.log',
     level=logging.ERROR
 )
+"""
 
 # Load modules
 import extensions
