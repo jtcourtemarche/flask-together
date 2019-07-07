@@ -7,11 +7,7 @@ var connect_socket = function() {
     if (socket == undefined) {
         // Change socket URL based on request scheme
         var scheme = $('meta[name=scheme]').attr('content');
-        if (scheme == 'https') {
             socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
-        } else if (scheme == 'http') {
-            socket = io.connect('ws://' + document.domain + ':' + location.port);
-        }
     }
 
     // Handle Connect ----------------------->
