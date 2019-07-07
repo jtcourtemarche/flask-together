@@ -41,6 +41,7 @@ app.config.update(
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(password)s@%(host)s:%(port)s/%(dbname)s' % POSTGRES
 
+"""
 # Logging
 import logging
 
@@ -49,6 +50,7 @@ logging.basicConfig(
     filename='error.log',
     level=logging.ERROR
 )
+"""
 
 # Load modules
 import extensions
@@ -78,11 +80,13 @@ else:
     def redis_handler(path):
         return render_template('redis.html')
 
-
 @app.errorhandler(404)
 def page_not_found(error):
     return redirect('/')
 
+@app.errorhandler(401)
+def unauthorized(error):
+    return redirect('/')
 
 if __name__ == '__main__':
     extensions.socketio.run(app)
