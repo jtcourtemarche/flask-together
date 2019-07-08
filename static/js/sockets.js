@@ -219,6 +219,9 @@ var connect_socket = function() {
 
                 // Hide Twitch elements
                 $('#twitch-info-bar').css('display', 'none');
+
+                // Set volume 
+                player.setVolume($('#volume-slider').val());
             }
 
             // Clear loading animation
@@ -284,6 +287,9 @@ var connect_socket = function() {
             $('.twitch-avatar').attr('src', data.avatar);
             $('.twitch-channel').text(data.channel);
             $('.twitch-title').text(data.title);
+
+            // Set volume
+            TwitchPlayer.setVolume($('#volume-slider').val() * 0.01);
         }
     });
 
