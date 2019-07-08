@@ -9,6 +9,32 @@ body {
     overflow-y: hidden;
 }
 
+.loading-screen {
+    background-color: #222;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    text-align: center;
+    cursor: default;
+}
+.loading-screen h1 {
+    color: white;
+    margin: 0;
+    vertical-align: middle;
+    position: relative;
+    transform: translateY(-50%);
+    top: 50%;
+}
+.loading-screen img {
+    width: 100px;
+    height: 100px;
+    /* Make spinner white */
+    filter: brightness(0) invert(1);
+}
+
 /* VIDEO CONTAINER / IFRAME ------------------------------------ */
 
 #video-container {

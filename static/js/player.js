@@ -2,6 +2,10 @@
 
 var TwitchPlayer, player, playback_rates, player_ready, socket;
 
+window.onload = function() {
+    $('.loading-screen').css('display', 'block');
+}
+
 // Initialize Youtube player
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
@@ -66,6 +70,8 @@ function onReady (event) {
 
         // Establish socket when Twitch player load
         socket = connect_socket(event.target);
+
+        $('.loading-screen').css('display', 'none');
     });
 }
 
