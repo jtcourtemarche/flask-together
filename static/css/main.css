@@ -231,7 +231,7 @@ body {
 #twitch-player {
     display: none;
     margin-bottom: -7px;
-    pointer-events: none;
+    /*pointer-events: none;*/
 }
 #youtube-player {
     margin-bottom: -7px;
