@@ -186,7 +186,13 @@ var controlPlayNew = function (url) {
 // Fullscreen --------------------------->
 var controlFullscreen = function () {
     if (typeof socket != 'undefined') {
-        var iframe = document.getElementById("youtube-player");
+        if ($('#youtube-player').css('display') == 'none')
+        {
+            var iframe = document.getElementById("twitch-player");
+        } else {
+            var iframe = document.getElementById("youtube-player");
+        }
+
         // Chrome only implementation
         iframe.webkitRequestFullScreen();
     }
