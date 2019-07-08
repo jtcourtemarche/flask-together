@@ -77,6 +77,13 @@
                       <h6 id="duration"></h6>
                       <div id="genres"></div>
                   </div>
+                  <div id="twitch-info-bar">
+                    <img class="twitch-avatar" width="50" height="50">
+                    <span class="twitch-category"></span>
+                    <span class="twitch-channel"></span>
+                    <span class="twitch-title"></span>
+                    <span class="twitch-viewers"></span>
+                  </div>
                   <div style="text-indent: 1em" class="video_title"></div>
                   <div class="row" id="controls">
                     <div class="input-group">
@@ -114,14 +121,13 @@
               </div>
          </div>
       </div>
-      <script type="text/javascript" src="../static/js/sockets.js"></script>
       <!-- Youtube iFrame API -->
       <script src="https://www.youtube.com/iframe_api"></script>
       <!-- Twitch iFrame API -->
       <script src= "https://player.twitch.tv/js/embed/v1.js"></script>
-      
       <!-- Player managers -->
+      <script type="text/javascript" src="../static/js/sockets.js"></script>
       <script type="text/javascript" src="../static/js/player.js"></script>
-      <script type="text/javascript" src="../static/js/events.js"></script>
+      <script type="text/javascript" src="../static/js/uievents.js"></script>
    </body>
 </html>

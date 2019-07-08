@@ -9,8 +9,8 @@ from extensions import db, fm, socketio, pipe, r
 from flask import request, session
 from flask_login import current_user
 from flask_socketio import emit, join_room
+from lib.utils import Video, YoutubeAPI, TwitchAPI
 import lib.models as models
-import lib.utils as utils
 
 """
 
@@ -86,11 +86,20 @@ def handle_connect():
 
     history_schema = models.HistorySchema()
 
-    emit('server:sync', {
-        'history': get_recent_history(), 
-        'most_recent': get_most_recent_video(), 
-        'sid': request.sid,
-    }, room=request.sid)
+    most_recent_video = get_most_recent_video()
+
+    if most_recent_video['player'] == 'twitch':
+        emit('server:sync', {
+            'history': get_recent_history(), 
+            'most_recent': most_recent_video, 
+            'sid': request.sid,
+        }, room=request.sid)
+    else:
+        emit('server:sync', {
+            'history': get_recent_history(), 
+            'most_recent': most_recent_video, 
+            'sid': request.sid,
+        }, room=request.sid)
 
 
 """
@@ -149,42 +158,82 @@ def handle_dc():
 # Process new video being played.
 @socketio.on('user:play-new')
 def play_new(data):
-    # Extract video id from Youtube url
-    yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
-    user_input = re.findall(yt_re, data['url'])
+    # Check what player the link is:
+    if 'twitch.tv/' in data['url']:
+        player = 'twitch'
+    else:
+        # Extract video id from Youtube url
+        yt_re = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
+        user_input = re.findall(yt_re, data['url'])
+
+        player = 'youtube'
 
     # Check if user wants to play a specific video link
-    if user_input != []:
-        video = utils.Video(user_input[0][3])
+    if player == 'twitch':
+        channel = data['url'].split('twitch.tv/')[1].strip()
+        channel_data = TwitchAPI.get_channel_data(channel)
 
+        if channel_data == False:
+            channel_title = channel
+            channel_thumbnail = 'https://static-cdn.jtvnw.net/ttv-static/404_preview-320x180.jpg'
+        else:
+            channel_title = channel_data['title']
+            channel_thumbnail = channel_data['thumbnail_url'].replace("{width}", '320').replace('{height}', '180')
+        
+        channel_avatar = TwitchAPI.get_channel_avatar(channel)
+
+        # Create history object
         history = models.History(
-            video_id=video.id,
-            video_date=video.date,
-            video_title=video.title,
-            video_thumbnail=video.thumbnail,
+            video_id=channel,
+            video_title=channel_title,
+            video_thumbnail=channel_thumbnail,
+            twitch_avatar=channel_avatar,
             user_id=data['user']['id'],
+            player='twitch',
         )
 
-        user = models.User.query.get(data['user']['id'])
         db.session.add(history)
         db.session.commit()
 
         emit('server:play-new', {
-            'author': video.author,
-            'content': video.content,
-            'history': get_most_recent_video(),
-            'id': video.id,
-            'title': video.title,
-        }, broadcast=True)
+                'player': player,
+                'channel': channel,
+                'title': channel_title,
+                'avatar': channel_avatar,
+                'history': get_most_recent_video(),
+            }, broadcast=True)
+    elif user_input != []:
+        if player == 'youtube':
+            # Create video object
+            video = Video(user_input[0][3])
 
+            # Create history object
+            history = models.History(
+                video_id=video.id,
+                video_title=video.title,
+                video_thumbnail=video.thumbnail,
+                user_id=data['user']['id'],
+                player='youtube'
+            )
+
+            db.session.add(history)
+            db.session.commit()
+
+            emit('server:play-new', {
+                'author': video.author,
+                'content': video.content,
+                'history': get_most_recent_video(),
+                'id': video.id,
+                'title': video.title,
+                'player': player,
+            }, broadcast=True)
     # Channel URL entered into search bar
     elif '/channel/' in data['url']:
-        results = utils.check_channel_yt(data['url'])
+        results = YoutubeAPI.check_channel(data['url'])
         emit('server:serve-list', results, room=request.sid)
-    
     # Standard Youtube search query
     else:
-        results = utils.search_yt(data['url'], (0, 10))
+        results = YoutubeAPI.search(data['url'], (0, 10))
         emit('server:serve-list', (results, False, 1), room=request.sid)
 
 
@@ -193,9 +242,9 @@ def play_new(data):
 def search_load_more(data):
     p = data['page']
     if p != 0:
-        results = utils.search_yt(data['url'], (p * 10, ((p)+1) * 10))
+        results = YoutubeAPI.search(data['url'], (p * 10, ((p)+1) * 10))
     else:
-        results = utils.search_yt(data['url'], (0, 10))
+        results = YoutubeAPI.search(data['url'], (0, 10))
 
     emit('server:serve-list', (results, True, p+1), room=request.sid)
 

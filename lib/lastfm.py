@@ -12,7 +12,6 @@ class FM:
     def __init__(self):
         self.key = LASTFM_KEY
 
-
     # General API call method
     def call(self, method, params):
         url = f"http://ws.audioscrobbler.com/2.0/?method={method}&api_key={self.key}&format=json"

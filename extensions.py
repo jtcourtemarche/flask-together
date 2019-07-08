@@ -25,7 +25,10 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 pipe = r.pipeline()
 
 # Flask migrate
-migrate = Migrate(app, db)
+migrate = Migrate(
+	app, db, 
+	# Allows migrate to notice String length changes in models.py
+	compare_type=True)
 
 # Flask socketio
 socketio = SocketIO(app)

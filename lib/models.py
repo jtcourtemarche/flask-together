@@ -25,7 +25,7 @@ class User(db.Model, UserMixin):
             return True
         return False
 
-    # When you print the user model it returns this
+    # When you print the User model it returns this
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -33,17 +33,22 @@ class User(db.Model, UserMixin):
 class History(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    # Video data
-    video_id = db.Column(db.String(11), unique=False, nullable=False)
-    video_date = db.Column(db.String(24), unique=False, nullable=False)
-    video_title = db.Column(db.String(100), unique=False, nullable=False)
-    video_thumbnail = db.Column(db.String, unique=False, nullable=False)
+    player = db.Column(db.String, unique=False, nullable=True) # Player (youtube or twitch)
+
+    # Youtube/Twitch data
+    video_id = db.Column(db.String(25), unique=False, nullable=False) # Twitch channel / Youtube watch id
+    video_title = db.Column(db.String(100), unique=False, nullable=False) # Twitch stream title / Youtube video title
+    video_thumbnail = db.Column(db.String, unique=False, nullable=False) # Twitch stream thumbnail / Youtube video thumbnail
+
+    # Twitch data
+    twitch_avatar = db.Column(db.String, unique=False, nullable=True)
 
     # User data
-    date = db.Column(db.DateTime, default=datetime.now())
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id),  nullable=False)
-    user = db.relationship('User', foreign_keys='History.user_id')
+    date = db.Column(db.DateTime, default=datetime.now()) # Date watched
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id),  nullable=False) # User who selected the video's primary key
+    user = db.relationship('User', foreign_keys='History.user_id') # User who selected the video's object
 
+    # When you print the History model it returns this
     def __repr__(self):
         return '["'+self.video_title+'", '+self.video_id+']'
 

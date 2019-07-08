@@ -7,7 +7,11 @@ var connect_socket = function() {
     if (socket == undefined) {
         // Change socket URL based on request scheme
         var scheme = $('meta[name=scheme]').attr('content');
+        if (scheme == 'https') {
             socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
+        } else if (scheme == 'http') {
+            socket = io.connect('ws://' + document.domain + ':' + location.port);
+        }
     }
 
     // Handle Connect ----------------------->
@@ -30,9 +34,39 @@ var connect_socket = function() {
     socket.on('server:sync', function(data) {
         // Play last video from DB
         if (data.most_recent != null) {
-            player.loadVideoById(data.most_recent.video_id);
-            $('title').html(data.most_recent.video_title);
-            $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
+            if (data.most_recent.player == 'twitch')
+            {
+                // Hide YT player elements
+                $('#duration-container').css('display', 'none');
+                $('#playback-rates').css('display', 'none');
+                $('#skip_to').css('display', 'none');
+                $('#progress-bar').css('display', 'none');
+                $('.video_title').css('display', 'none');
+
+                // Show Twitch elements
+                $('#twitch-info-bar').css('display', 'block');
+
+                // Switch to Twitch player
+                $('#youtube-player').css('display', 'none');
+                $('#twitch-player').css('display', 'block');
+
+                // Stop Youtube video if one is playing
+                player.stopVideo()
+
+                // Play channel
+                TwitchPlayer.setChannel(data.most_recent.video_id);
+
+                // Set Twitch data
+                $('title').html(data.most_recent.video_id + ' [Twitch]');
+                $('.twitch-avatar').attr('src', data.most_recent.twitch_avatar);
+                $('.twitch-channel').text(data.most_recent.video_id);
+                $('.twitch-title').text(data.most_recent.video_title);
+
+            } else if (data.most_recent.player == 'youtube') {
+                player.loadVideoById(data.most_recent.video_id);
+                $('title').html(data.most_recent.video_title);
+                $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
+            }
             preloadHistory(data.history);
 
             setTimeout(function() {
@@ -119,15 +153,27 @@ var connect_socket = function() {
 
     // Controls ------------------------->
     socket.on('server:play', function (data) {
-        player.seekTo(data['time']);    
-        player.playVideo();
+        // Check which player is being used
+        if ($('#youtube-player').css('display') == 'none') {
+            TwitchPlayer.play();
+        } else {
+            player.seekTo(data['time']);    
+            player.playVideo();
+        }
+
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
     });
     socket.on('server:pause', function (data) {
-        player.seekTo(data['time']);
-        player.pauseVideo();
+        // Check which player is being used
+        if ($('#youtube-player').css('display') == 'none') {
+            TwitchPlayer.pause();
+        } else {
+            player.seekTo(data['time']);
+            player.pauseVideo();
+        }
+
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
@@ -154,32 +200,91 @@ var connect_socket = function() {
         $('#play').hide();
         $('#replay').hide();
 
-        // Show Youtube player
-        $('#yt-search').html('Search');
+        if (data.player == 'youtube') {
+            if ($('#youtube-player').css('display') == 'none')
+            {
+                // Pause active Twitch player
+                TwitchPlayer.pause();
 
-        $('title').html(data.title);
-        $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
+                // Switch to Youtube player
+                $('#youtube-player').css('display', 'block');
+                $('#twitch-player').css('display', 'none');
 
-        // Update history
-        appendHistory(data.history);
+                // Show YT elements
+                $('#duration-container').css('display', 'block');
+                $('#playback-rates').css('display', 'block');
+                $('#skip_to').css('display', 'block');
+                $('#progress-bar').css('display', 'block');
+                $('.video_title').css('display', 'block');
 
-        player.loadVideoById(data.id[0]);
-        player.seekTo(0);   
-        player.playVideo();
+                // Hide Twitch elements
+                $('#twitch-info-bar').css('display', 'none');
+            }
 
-        var callback = data;
-        // Clear history from data to send to server 
-        // clearing the history will speed up the transaction
-        delete callback.history;
-        delete callback.player;
-        callback.duration = callback.content.contentDetails.duration;
-        delete callback.content;
+            // Clear loading animation
+            $('#yt-search').html('Search');
 
-        // Send request to LastFM function to see if the video can be scrobbled
-        socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+            $('title').html(data.title);
+            $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
 
-        // Reset LastFM genres
-        $('#genres').empty();
+            // Update history
+            appendHistory(data.history, 'youtube');
+
+            player.loadVideoById(data.id[0]);
+            player.seekTo(0);   
+            player.playVideo();
+
+            var callback = data;
+            // Clear history from data to send to server 
+            // clearing the history will speed up the transaction
+            delete callback.history;
+            delete callback.player;
+            callback.duration = callback.content.contentDetails.duration;
+            delete callback.content;
+
+            // Send request to LastFM function to see if the video can be scrobbled
+            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+
+            // Reset LastFM genres
+            $('#genres').empty();
+        }
+        else if (data.player == 'twitch')
+        {
+            // Update history
+            appendHistory(data.history, 'twitch');
+
+            // Reset LastFM genres
+            $('#genres').empty();
+
+            // Hide YT player elements
+            $('#duration-container').css('display', 'none');
+            $('#playback-rates').css('display', 'none');
+            $('#skip_to').css('display', 'none');
+            $('#progress-bar').css('display', 'none');
+            $('.video_title').css('display', 'none');
+
+            // Show Twitch elements
+            $('#twitch-info-bar').css('display', 'block');
+
+            // Clear loading animation
+            $('#yt-search').html('Search');
+
+            // Switch to Twitch player
+            $('#youtube-player').css('display', 'none');
+            $('#twitch-player').css('display', 'block');
+
+            // Stop Youtube video if one is playing
+            player.stopVideo()
+
+            // Play channel
+            TwitchPlayer.setChannel(data.channel);
+
+            // Set Twitch data
+            $('title').html(data.channel + ' [Twitch]');
+            $('.twitch-avatar').attr('src', data.avatar);
+            $('.twitch-channel').text(data.channel);
+            $('.twitch-title').text(data.title);
+        }
     });
 
     socket.on('server:play-new-artist', function(data) {

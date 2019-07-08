@@ -10,15 +10,28 @@ $('html').on('keydown', function(event) {
 				// F
 				controlFullscreen();
 				break;
+			/*
+			!!! Volume key binds no longer supported
+
 			case 187:
 				// +
-				vol = player.getVolume() + 5;
-				if (player.getVolume() >= 100) {
-					vol = 100;
-				}
-				player.setVolume(vol);
-				$('#volume-slider').val(vol);
 
+				if ($('#youtube-player').css('display') == 'none') {
+					vol = TwitchPlayer.getVolume() + 5;
+					if (TwitchPlayer.getVolume() >= 100) {
+						vol = 100;
+					}
+					TwitchPlayer.setVolume(vol);
+				}
+				else {
+					vol = player.getVolume() + 5;
+					if (player.getVolume() >= 100) {
+						vol = 100;
+					}
+					player.setVolume(vol);
+				}
+
+				$('#volume-slider').val(vol);
 				$('#volume-display').stop().animate({opacity:'100'});
 				$('#volume-display').show();
 				$('#volume-display').html(vol+'%');
@@ -26,18 +39,28 @@ $('html').on('keydown', function(event) {
 				break;
 			case 189:
 				// -
-				vol = player.getVolume() - 5;
-				if (player.getVolume() <= 0) {
-					vol = 0;
-				}
-				player.setVolume(vol);
-				$('#volume-slider').val(vol);
 
+				if ($('#youtube-player').css('display') == 'none') {
+					vol = TwitchPlayer.getVolume() - 5;
+					if (TwitchPlayer.getVolume() <= 0) {
+						vol = 0;
+					}
+					TwitchPlayer.setVolume(vol);
+				} else {
+					vol = player.getVolume() - 5;
+					if (player.getVolume() <= 0) {
+						vol = 0;
+					}
+					player.setVolume(vol);
+				}
+
+				$('#volume-slider').val(vol);
 				$('#volume-display').stop().animate({opacity:'100'});
 				$('#volume-display').show();
 				$('#volume-display').html(vol+'%');
 				$('#volume-display').fadeOut(1000);
 				break;
+			*/
 		}
 	}
 });
@@ -50,7 +73,13 @@ $('#list-result').on('keypress', function(event) {
 });
 
 $("#volume-slider").on('input', function() {
-	player.setVolume($("#volume-slider").val());
+	if ($('#youtube-player').css('display') == 'none') {
+		TwitchPlayer.setMuted(false);
+		TwitchPlayer.setVolume($("#volume-slider").val() * 0.01);	
+	}
+	else {
+		player.setVolume($("#volume-slider").val());	
+	}
 
 	$('#volume-display').stop().animate({opacity:'100'});
 	$('#volume-display').show();

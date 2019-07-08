@@ -1,9 +1,8 @@
 "use strict"
 
-var player, playback_rates, player_ready, socket;
+var TwitchPlayer, player, playback_rates, player_ready, socket;
 
-// Youtube Player
-
+// Initialize Youtube player
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
         width: $("#progress-bar").width(),
@@ -49,23 +48,32 @@ function onReady (event) {
         updateTimerDisplay();
     }, 1000);
 
-    socket = connect_socket(event.target);
+    // Initialize Twitch player
+    TwitchPlayer = new Twitch.Player("twitch-player", {
+        width: $("#progress-bar").width(),
+        height: 447,
+        channel: "undefined",
+    });
+
+    // Wait for Twitch player to load
+    TwitchPlayer.addEventListener('ready', function() {
+        console.log('👍🏼 Twitch player loaded.');  
+        TwitchPlayer.setChannel('hello_world'); 
+
+        // Set TwitchPlayer volume
+        TwitchPlayer.setMuted(false);
+        TwitchPlayer.setVolume($("#volume-slider").val() * 0.01);  
+
+        // Establish socket when Twitch player load
+        socket = connect_socket(event.target);
+    });
 }
 
 function stateChange (event) {
     if (event.data == 5) {
         socket.emit('user:player-ready', event.target);
     }
-    /*
-    if (event.data == 2) {
-        controlPause();
-    }
-    if (event.data == 1) {
-        if ($('#play').is(':visible')) {
-            controlPlay();
-        }
-    }
-    */
+
     if (event.data == 0) {
         // Video ended
         $('#play').hide();
@@ -104,14 +112,23 @@ function showPlaybackRates(playback_rates) {
 
 // ------------------------------------------------>
 
-var appendHistory = function(latest_item) {
-    $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-    latest_item.video_id + "\")'><p>" + 
-    latest_item.video_title + "</p><img class='thumbnail' src='" + 
-    latest_item.video_thumbnail + 
-    "' /><span class='upload-date'>"+ 
-    latest_item.video_date.split('T')[0] +
-    "</span></li>");    
+var appendHistory = function(latest_item, player) {
+    if (player == 'youtube')
+    {
+        $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+        latest_item.video_id + "\")'><p>" + 
+        latest_item.video_title + "</p><img class='thumbnail' src='" + 
+        latest_item.video_thumbnail + 
+        "' /></li>");    
+    }
+    else if (player == 'twitch')
+    {
+        $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.twitch.tv/" +
+        latest_item.video_id + "\")'><p>" + 
+        latest_item.video_title + "</p><img class='thumbnail' src='" + 
+        latest_item.video_thumbnail + 
+        "' /></li>");    
+    }
 }
 
 var preloadHistory = function(history) {
@@ -129,13 +146,23 @@ var preloadHistory = function(history) {
             // Avoid repeats
             if (prev_video_title != history[h].video_title) {
                 prev_video_title = history[h].video_title;
-                $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                history[h].video_id + "\")'><p>" + 
-                history[h].video_title + "</p><img class='thumbnail' src='" + 
-                history[h].video_thumbnail + 
-                "' /><span class='upload-date'>"+ 
-                history[h].video_date.split('T')[0] +
-                "</span></li>");
+
+                if (history[h].player == 'youtube')
+                {
+                    $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+                    history[h].video_id + "\")'><p>" + 
+                    history[h].video_title + "</p><img class='thumbnail' src='" + 
+                    history[h].video_thumbnail + 
+                    "' /></li>");
+                }
+                else if (history[h].player == 'twitch')
+                {
+                    $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.twitch.tv/" +
+                    history[h].video_id + "\")'><p>" + 
+                    history[h].video_title + "</p><img class='thumbnail' src='" + 
+                    history[h].video_thumbnail + 
+                    "' /></li>");
+                }
             }
         }
     }

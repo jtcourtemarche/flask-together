@@ -3,34 +3,43 @@
 import requests
 import json
 from urllib.parse import quote
-from api import API_KEY
+from api import API_KEY, TWITCH_KEY
 
+class TwitchAPI:
+    def get_channel_data(channel):
+        req = requests.get("https://api.twitch.tv/helix/streams?first=1&user_login="+channel, headers={"Client-ID":TWITCH_KEY})
+        try:
+            return req.json()['data'][0]
+        except IndexError:
+            return False
 
-def check_channel_yt(url):
-    api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
-        url.split('/channel/')[1],
-        API_KEY
-    )
+    def get_channel_avatar(channel):
+        req = requests.get("https://api.twitch.tv/helix/users?login="+channel, headers={"Client-ID":TWITCH_KEY})
+        return req.json()['data'][0]['profile_image_url']
 
-    feed = requests.get(api_url).json()
-    return feed['items']
+class YoutubeAPI:
+    # Returns JSON data for channel info query
+    def check_channel(url):
+        api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
+            url.split('/channel/')[1],
+            API_KEY
+        )
+        return requests.get(api_url).json()['items']
 
+    # Returns JSON data for search query
+    def search(query, srange):
+        max_results = srange[1]
 
-def search_yt(query, srange):
-    max_results = srange[1]
+        # Max query size = 50
+        if srange[0] > 50:
+            return False
+        elif srange[1] > 50:
+            max_results = 50
 
-    # Max query size = 50
-    if srange[0] > 50:
-        return False
-    elif srange[1] > 50:
-        max_results = 50
-
-    query = quote(query)
-    url = f"https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
-    
-    feed = requests.get(url).json()
-   
-    return feed['items'][srange[0]:srange[1]]
+        query = quote(query)
+        url = f"https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
+        
+        return requests.get(url).json()['items'][srange[0]:srange[1]]
 
 
 # Youtube video object
@@ -45,7 +54,7 @@ class Video:
         self.date = items['snippet']['publishedAt']
         self.title = items['snippet']['title']
         self.author = items['snippet']['channelTitle']
-        self.thumbnail = items['snippet']['thumbnails']['default']['url']
+        self.thumbnail = items['snippet']['thumbnails']['medium']['url']
 
         self.content = self.get_content()
 
@@ -53,8 +62,9 @@ class Video:
         content = json.loads(self.content)['items'][0]
         duration = content['contentDetails']['duration']
 
-        # Separate duration format into array where ->
+        # Separate duration formats into array where ->
         #   [hours, minutes, seconds]
+
         # Remove PT
         duration = duration.replace('PT', '')
 

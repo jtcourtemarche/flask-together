@@ -155,6 +155,19 @@ body {
     margin-top: 5px;
 }
 
+#twitch-info-bar {
+    display: none;
+    background: radial-gradient(circle, rgba(255,255,255,1) 11%, rgba(245,245,245,1) 33%, rgba(236,236,236,1) 98%, rgba(255,255,255,1) 100%);
+    width: 100%;
+}
+#twitch-info-bar .twitch-channel {
+    padding-left: 25px;
+    padding-right: 25px;
+}
+#twitch-info-bar .twitch-title {
+    color: #666;
+}
+
 /* SEARCH & HISTORY LISTS -------------------------------------- */
 
 #search-list {
