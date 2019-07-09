@@ -176,12 +176,12 @@ def play_new(data):
         if channel_data == False:
             channel_title = channel
             channel_thumbnail = 'https://static-cdn.jtvnw.net/ttv-static/404_preview-320x180.jpg'
-            channel_avatar = 'https://static-cdn.jtvnw.net/ttv-static/404_preview-320x180.jpg'
         else:
             channel_title = channel_data['title']
             channel_thumbnail = channel_data['thumbnail_url'].replace("{width}", '320').replace('{height}', '180')
-            channel_avatar = TwitchAPI.get_channel_avatar(channel)
-
+        
+        channel_avatar = TwitchAPI.get_channel_avatar(channel)
+        
         # Create history object
         history = models.History(
             video_id=channel,

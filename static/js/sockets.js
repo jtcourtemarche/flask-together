@@ -66,12 +66,14 @@ var connect_socket = function() {
                 player.loadVideoById(data.most_recent.video_id);
                 $('title').html(data.most_recent.video_title);
                 $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
+                
+                player.addEventListener('onStateChange', function(state) {
+                    if (state.data == 1) {
+                        socket.emit('user:init-preload');
+                    }
+                });
             }
             preloadHistory(data.history);
-
-            setTimeout(function() {
-                socket.emit('user:init-preload');
-            }, 1000);
         } else {
             $('#history-list').empty();
             $("#history-list").append("<span class='no-search'>No history.</span>");
@@ -196,6 +198,7 @@ var connect_socket = function() {
         $('#replay').hide();
 
         if (data.player == 'youtube') {
+            // Case for if Twitch player switched to Youtube player
             if ($('#youtube-player').css('display') == 'none')
             {
                 // Pause active Twitch player
@@ -219,18 +222,19 @@ var connect_socket = function() {
                 player.setVolume($('#volume-slider').val());
             }
 
-            // Clear loading animation
-            $('#yt-search').html('Search');
-
+            // Set Youtube data
             $('title').html(data.title);
             $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
 
-            // Update history
-            appendHistory(data.history, 'youtube');
-
+            // Load new video
             player.loadVideoById(data.id[0]);
             player.seekTo(0);   
             player.playVideo();
+
+            // Update history bar
+            appendHistory(data.history, data.player);
+
+            // Scrobble LastFM
 
             var callback = data;
             // Clear history from data to send to server 
@@ -242,37 +246,29 @@ var connect_socket = function() {
 
             // Send request to LastFM function to see if the video can be scrobbled
             socket.emit('user:play-callback', {data: JSON.stringify(callback)});
-
-            // Reset LastFM genres
-            $('#genres').empty();
         }
         else if (data.player == 'twitch')
         {
-            // Update history
-            appendHistory(data.history, 'twitch');
+            // Case for if Youtube player switched to Twitch player
+            if ($('#youtube-player').css('display') != 'none')
+            {
+                // Hide YT player elements
+                $('#duration-container').css('display', 'none');
+                $('#playback-rates-dropdown').css('display', 'none');
+                $('#skip_to').css('display', 'none');
+                $('#progress-bar').css('display', 'none');
+                $('.video_title').css('display', 'none');
 
-            // Reset LastFM genres
-            $('#genres').empty();
+                // Stop Youtube video if one is playing
+                player.stopVideo();
 
-            // Hide YT player elements
-            $('#duration-container').css('display', 'none');
-            $('#playback-rates-dropdown').css('display', 'none');
-            $('#skip_to').css('display', 'none');
-            $('#progress-bar').css('display', 'none');
-            $('.video_title').css('display', 'none');
+                // Switch to Twitch player
+                $('#youtube-player').css('display', 'none');
+                $('#twitch-player').css('display', 'block');
 
-            // Show Twitch elements
-            $('#twitch-info-bar').css('display', 'block');
-
-            // Clear loading animation
-            $('#yt-search').html('Search');
-
-            // Switch to Twitch player
-            $('#youtube-player').css('display', 'none');
-            $('#twitch-player').css('display', 'block');
-
-            // Stop Youtube video if one is playing
-            player.stopVideo()
+                // Show Twitch elements
+                $('#twitch-info-bar').css('display', 'block');
+            }
 
             // Play channel
             TwitchPlayer.setChannel(data.channel);
@@ -285,7 +281,15 @@ var connect_socket = function() {
 
             // Set volume
             TwitchPlayer.setVolume($('#volume-slider').val() * 0.01);
+
+            // Update history bar
+            appendHistory(data.history, data.player);
         }
+        // Clear loading animation
+        $('#yt-search').html('Search');
+
+        // Reset LastFM genres
+        $('#genres').empty();
     });
 
     socket.on('server:play-new-artist', function(data) {
