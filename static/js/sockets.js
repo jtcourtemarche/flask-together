@@ -67,9 +67,10 @@ var connect_socket = function() {
                 $('title').html(data.most_recent.video_title);
                 $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
                 
-                player.addEventListener('onStateChange', function(state) {
+                player.addEventListener('onStateChange', function YTplayingListener(state) {
                     if (state.data == 1) {
                         socket.emit('user:init-preload');
+                        player.removeEventListener('onStateChange', YTplayingListener, true);
                     }
                 });
             }
