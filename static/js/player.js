@@ -112,7 +112,7 @@ function updateTimerDisplay() {
 function showPlaybackRates(playback_rates) {
     $("#playback-rates").empty();
     for (var p in playback_rates) {
-        $("#playback-rates").append("<button onclick='controlRate("+playback_rates[p]+")' class='btn btn-outline-secondary'>"+playback_rates[p]+"</button>");
+        $("#playback-rates").append("<a class='dropdown-item' onclick='controlRate("+playback_rates[p]+")'>"+playback_rates[p]+"</a>");
     }
 }
 

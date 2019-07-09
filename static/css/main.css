@@ -148,6 +148,7 @@ body {
 }
 #skip_to {
     margin-left: 5px;
+    margin-right: 5px;
     border-radius: 5px;
     border: 1px solid #6C757D;
     text-indent: 1em;

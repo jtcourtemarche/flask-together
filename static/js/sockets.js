@@ -38,7 +38,7 @@ var connect_socket = function() {
             {
                 // Hide YT player elements
                 $('#duration-container').css('display', 'none');
-                $('#playback-rates').css('display', 'none');
+                $('#playback-rates-dropdown').css('display', 'none');
                 $('#skip_to').css('display', 'none');
                 $('#progress-bar').css('display', 'none');
                 $('.video_title').css('display', 'none');
@@ -190,11 +190,6 @@ var connect_socket = function() {
 
     // Process playing new video ------------>
     socket.on('server:play-new', function (data) {
-        $('#progress-bar').show();
-        $('#skip_to').show();
-        $('#playback-rates').show();
-        $('#qualities-dropdown').hide();
-
         // Reset play button
         $('#pause').show();
         $('#play').hide();
@@ -212,7 +207,7 @@ var connect_socket = function() {
 
                 // Show YT elements
                 $('#duration-container').css('display', 'block');
-                $('#playback-rates').css('display', 'block');
+                $('#playback-rates-dropdown').css('display', 'block');
                 $('#skip_to').css('display', 'block');
                 $('#progress-bar').css('display', 'block');
                 $('.video_title').css('display', 'block');
@@ -261,7 +256,7 @@ var connect_socket = function() {
 
             // Hide YT player elements
             $('#duration-container').css('display', 'none');
-            $('#playback-rates').css('display', 'none');
+            $('#playback-rates-dropdown').css('display', 'none');
             $('#skip_to').css('display', 'none');
             $('#progress-bar').css('display', 'none');
             $('.video_title').css('display', 'none');
