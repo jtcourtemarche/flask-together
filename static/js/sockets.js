@@ -1,6 +1,8 @@
 "use strict"
 
-var socket, start_time, start_video;
+var socket, start_time, start_video, player_initialized;
+
+player_initialized = false;
 
 // Initialize socket events ------------->
 var connect_socket = function() {
@@ -67,14 +69,12 @@ var connect_socket = function() {
                 $('title').html(data.most_recent.video_title);
                 $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
                 
-                function YTplayingListener(state) {
-                    if (state.data == 1) {
+                player.addEventListener('onStateChange', function a(state) {
+                    if (state.data == 1 && player_initialized == false) {
                         socket.emit('user:init-preload');
-                        player.removeEventListener('onStateChange', YTplayingListener, true);
+                        player_initialized = true;
                     }
-                }
-
-                player.addEventListener('onStateChange', YTplayingListener);
+                });
             }
             preloadHistory(data.history);
         } else {
