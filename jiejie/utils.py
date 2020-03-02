@@ -1,26 +1,34 @@
 #!/usr/bin/python
-
-import requests
 import json
 from urllib.parse import quote
-from api import API_KEY, TWITCH_KEY
+
+import requests
+
+from api import API_KEY
+from api import TWITCH_KEY
+
 
 class TwitchAPI:
     def get_channel_data(channel):
-        req = requests.get("https://api.twitch.tv/helix/streams?first=1&user_login="+channel, headers={"Client-ID":TWITCH_KEY})
+        req = requests.get(
+                'https://api.twitch.tv/helix/streams?first=1&user_login=' +
+                channel, headers={'Client-ID': TWITCH_KEY}
+        )
         try:
             return req.json()['data'][0]
         except IndexError:
             return False
 
     def get_channel_avatar(channel):
-        req = requests.get("https://api.twitch.tv/helix/users?login="+channel, headers={"Client-ID":TWITCH_KEY})
+        req = requests.get('https://api.twitch.tv/helix/users?login=' +
+                           channel, headers={'Client-ID': TWITCH_KEY})
         return req.json()['data'][0]['profile_image_url']
+
 
 class YoutubeAPI:
     # Returns JSON data for channel info query
     def check_channel(url):
-        api_url = "https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet".format(
+        api_url = 'https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet'.format(
             url.split('/channel/')[1],
             API_KEY
         )
@@ -37,16 +45,18 @@ class YoutubeAPI:
             max_results = 50
 
         query = quote(query)
-        url = f"https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet"
-        
+        url = f'https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={API_KEY}&part=id%2Csnippet'
+
         return requests.get(url).json()['items'][srange[0]:srange[1]]
 
 
 # Youtube video object
 class Video:
     def __init__(self, video_id):
-        self.feed = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet').content
-        self.content = requests.get(f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&part=contentDetails&key={API_KEY}').content
+        self.feed = requests.get(
+            f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={API_KEY}&part=snippet').content
+        self.content = requests.get(
+            f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&part=contentDetails&key={API_KEY}').content
 
         items = json.loads(self.feed)['items'][0]
 
@@ -79,7 +89,7 @@ class Video:
             duration.append(split_secondhand[1].replace('S', ''))
         else:
             duration.append(duration[1].replace('S', ''))
-            duration[1] = 0 
+            duration[1] = 0
 
         if duration[2] == '':
             duration[2] = 0
@@ -91,4 +101,3 @@ class Video:
         content['contentDetails']['duration'] = duration
 
         return content
-

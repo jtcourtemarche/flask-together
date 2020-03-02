@@ -1,17 +1,24 @@
 #!/usr/bin/python
-
-import hashlib
-import requests
 import os
 import random
+
 import colorgram
-from flask import Blueprint, g, redirect, render_template, request, url_for, jsonify
-from flask_login import current_user, login_required, login_user, logout_user
+import requests
+from flask import Blueprint
+from flask import g
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask_login import current_user
+from flask_login import login_required
+from flask_login import login_user
+from flask_login import logout_user
 
-from api import LASTFM_KEY, LASTFM_SECRET
-
-from extensions import db, fm, pipe
-import lib.models
+import jiejie.models
+from api import LASTFM_KEY
+from extensions import db
+from extensions import fm
+from extensions import pipe
 
 # Register these views with app
 urls = Blueprint('urls', __name__)
@@ -40,9 +47,9 @@ def index():
 @urls.route('/~<string:username>/history')
 @login_required
 def user_history(username, index=1):
-    user = lib.models.User.query.filter_by(username=username).first()
+    user = jiejie.models.User.query.filter_by(username=username).first()
     if user:
-        history = lib.models.History.query.filter_by(
+        history = jiejie.models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()
 
         return render_template(
@@ -56,14 +63,14 @@ def user_history(username, index=1):
 @urls.route('/~<string:username>')
 @login_required
 def user_profile(username):
-    user = lib.models.User.query.filter_by(username=username).first()
+    user = jiejie.models.User.query.filter_by(username=username).first()
     if user:
         if user.lastfm_connected():
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None
 
-        history = lib.models.History.query.filter_by(
+        history = jiejie.models.History.query.filter_by(
             user_id=user.id).order_by(db.text('-id')).all()
         hmap = [x.video_id for x in history]
 
@@ -72,15 +79,17 @@ def user_profile(username):
             # Get mode of hmap to find most played video
             most_played_id = max(set(hmap), key=hmap.count)
             # Get most_played video object from DB
-            most_played = lib.models.History.query.filter_by(
+            most_played = jiejie.models.History.query.filter_by(
                 video_id=most_played_id).first()
 
             cached_mp = pipe.get(f'profile-mp:{user.username}').execute()
 
             # If this id is already stored in cache
-            if cached_mp[0] != None and cached_mp[0].decode('utf-8') == most_played_id:
-                dom_color = pipe.get(f'profile-bgcolor:{user.username}').execute()[0].decode('utf-8')
-                fg_color = pipe.get(f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
+            if cached_mp[0] is not None and cached_mp[0].decode('utf-8') == most_played_id:
+                dom_color = pipe.get(
+                    f'profile-bgcolor:{user.username}').execute()[0].decode('utf-8')
+                fg_color = pipe.get(
+                    f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
             else:
                 # Get avg color of thumbnail
                 r = requests.get(most_played.video_thumbnail)
@@ -95,7 +104,7 @@ def user_profile(username):
                 # Use kmeans cluster algorithm to get most dominant color
                 # Retrieve 2 clusters
                 colors = colorgram.extract(f'/tmp/thumb-{key}.jpg', 2)
-                
+
                 # Clear temp thumbnail
                 os.remove(f'/tmp/thumb-{key}.jpg')
 
@@ -125,14 +134,14 @@ def user_profile(username):
             fg_color = 'black'
 
         return render_template(
-           'profile.html',
-           user=user,
-           history=enumerate(history),
-           count=len(history),
-           most_played=(
-               most_played, hmap.count(most_played_id)),
-           colors=(dom_color, fg_color),
-           lastfm=lastfm_data
+            'profile.html',
+            user=user,
+            history=enumerate(history),
+            count=len(history),
+            most_played=(
+                most_played, hmap.count(most_played_id)),
+            colors=(dom_color, fg_color),
+            lastfm=lastfm_data
         )
 
     return 'Not a valid user.'
@@ -141,17 +150,17 @@ def user_profile(username):
 # Login view
 @urls.route('/login', methods=['POST'])
 def login():
-    # Retrieve server:logged from cache    
+    # Retrieve server:logged from cache
     logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
     # Decode byte string from redis to Python string
     logged_in = [user.decode('utf-8') for user in logged_in]
 
     if g.user.is_authenticated:
         return redirect('/watch')
-    #elif request.form['username'] in logged_in:
+    # elif request.form['username'] in logged_in:
     #    return render_template('login.html', error='User is already logged in')
     else:
-        username = lib.models.User.query.filter_by(
+        username = jiejie.models.User.query.filter_by(
             username=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):

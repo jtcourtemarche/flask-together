@@ -1,29 +1,14 @@
 #!/usr/bin/python
-
-"""
-
-    youtube de locke
-    by jtcourtemarche
-
-    MMMMMMMMNNMMMMMNNMMMMMMMM
-    MMMMMMMMs:ys+ys:yMMMMMMMM
-    MMMMMMMMhoo: +o+dMMMMMMMM
-    MMMMMMMNoos::ssooNMMMMMMM
-    MMMMMNdyoooohsoooymNMMMMM
-    MMMNyo++++ooyyo+++osdMMMM
-    MMMso++++++++++++++oodMMM
-    MMmoo+++++++++++++++osMMM
-    MMmoo+++++++++++++++osMMM
-    MMMyo++++++++++++++oomMMM
-    MMMNho++++++++++++osmMMMM
-    MMMMMNmhhhhhhhhhhdmMMMMMM
-
-"""
-
-from flask import Flask, redirect, render_template
 import redis
+from flask import Flask
+from flask import redirect
+from flask import render_template
 
-from api import SECRET_KEY, POSTGRES
+import extensions
+from api import POSTGRES
+from api import SECRET_KEY
+from jiejie import models
+from jiejie.views import urls
 
 # Initializers
 
@@ -53,11 +38,7 @@ logging.basicConfig(
 """
 
 # Load modules
-import extensions
 
-from lib import models
-from lib import sockets
-from lib.views import urls
 
 # Make sure everything works before running
 try:
@@ -65,6 +46,7 @@ try:
     redis_connected = True
 except redis.exceptions.ConnectionError:
     redis_connected = False
+
 
 @extensions.login_manager.user_loader
 def load_user(user_id):
@@ -75,18 +57,21 @@ if redis_connected:
     # Register program's standard views
     app.register_blueprint(urls)
 else:
-    @app.route('/', defaults={'path':''})
+    @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def redis_handler(path):
         return render_template('redis.html')
+
 
 @app.errorhandler(404)
 def page_not_found(error):
     return redirect('/')
 
+
 @app.errorhandler(401)
 def unauthorized(error):
     return redirect('/')
+
 
 if __name__ == '__main__':
     extensions.socketio.run(app)

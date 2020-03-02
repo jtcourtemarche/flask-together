@@ -1,16 +1,22 @@
 #!/usr/bin/python
-
 import json
 import re
-import time
 import traceback
 
-from extensions import db, fm, socketio, pipe, r
-from flask import request, session
+from flask import request
+from flask import session
 from flask_login import current_user
-from flask_socketio import emit, join_room
-from lib.utils import Video, YoutubeAPI, TwitchAPI
-import lib.models as models
+from flask_socketio import emit
+from flask_socketio import join_room
+
+import jiejie.models as models
+from extensions import db
+from extensions import fm
+from extensions import pipe
+from extensions import socketio
+from jiejie.utils import TwitchAPI
+from jiejie.utils import Video
+from jiejie.utils import YoutubeAPI
 
 """
 
@@ -19,14 +25,16 @@ import lib.models as models
 """
 
 # Generate a list of currently online/offline users from cache 'server:logged'
-# Every item in list contains tuple 
+# Every item in list contains tuple
 #   1: username
 #   2: online status (0 = offline, 1 = online)
 # Triggered whenever a user joins or leaves the page
+
+
 def get_active_users():
     active_users = []
 
-    # Retrieve server:logged from cache    
+    # Retrieve server:logged from cache
     logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
     # Decode byte string from redis to Python string
     logged_in = [user.decode('utf-8') for user in logged_in]
@@ -42,15 +50,19 @@ def get_active_users():
     return active_users
 
 # Retrieve most recent object from history
+
+
 def get_most_recent_video():
     history_schema = models.HistorySchema()
     history = models.History.query.order_by(db.text('-id')).first()
     history = history_schema.dump(history).data
 
     # Return last item
-    return history 
+    return history
 
 # Retrieve last 20 objects from history
+
+
 def get_recent_history():
     history_schema = models.HistorySchema(many=True)
     history = models.History.query.order_by(db.text('id')).all()
@@ -84,33 +96,31 @@ def handle_connect():
         'active_users': active_users
     }, broadcast=True)
 
-    history_schema = models.HistorySchema()
-
     most_recent_video = get_most_recent_video()
 
     if most_recent_video['player'] == 'twitch':
         emit('server:sync', {
-            'history': get_recent_history(), 
-            'most_recent': most_recent_video, 
+            'history': get_recent_history(),
+            'most_recent': most_recent_video,
             'sid': request.sid,
         }, room=request.sid)
     else:
         emit('server:sync', {
-            'history': get_recent_history(), 
-            'most_recent': most_recent_video, 
+            'history': get_recent_history(),
+            'most_recent': most_recent_video,
             'sid': request.sid,
         }, room=request.sid)
 
 
 """
     This is the path that preloaded data takes:
-    
+
     New User -------> Server --------> Online User
         ^                                   |
         |                                   |
         ------------- Server <--------------|
 
-    Initialize a request to an online user to get the currently playing video's time 
+    Initialize a request to an online user to get the currently playing video's time
     If there are no online users, the video will play at 0:00 by default.
 """
 @socketio.on('user:init-preload')
@@ -136,18 +146,19 @@ def handle_dc():
     logged_in = [user.decode('utf-8') for user in logged_in]
 
     if current_user.username in logged_in:
-        # remove all matching keys from redis 
+        # remove all matching keys from redis
         pipe.lrem('server:logged', 0, current_user.username).execute()
 
     # Clear LastFM cache for user
     pipe.set(current_user.username, '').execute()
 
     active_users = get_active_users()
-    
+
     emit('server:disconnected', {
         'active_users': active_users,
         'username': current_user.username,
     }, broadcast=True)
+
 
 """
 
@@ -173,15 +184,16 @@ def play_new(data):
         channel = data['url'].split('twitch.tv/')[1].strip()
         channel_data = TwitchAPI.get_channel_data(channel)
 
-        if channel_data == False:
+        if not channel_data:
             channel_title = channel
             channel_thumbnail = 'https://static-cdn.jtvnw.net/ttv-static/404_preview-320x180.jpg'
         else:
             channel_title = channel_data['title']
-            channel_thumbnail = channel_data['thumbnail_url'].replace("{width}", '320').replace('{height}', '180')
-        
+            channel_thumbnail = channel_data['thumbnail_url'].replace(
+                '{width}', '320').replace('{height}', '180')
+
         channel_avatar = TwitchAPI.get_channel_avatar(channel)
-        
+
         # Create history object
         history = models.History(
             video_id=channel,
@@ -196,12 +208,12 @@ def play_new(data):
         db.session.commit()
 
         emit('server:play-new', {
-                'player': player,
-                'channel': channel,
-                'title': channel_title,
-                'avatar': channel_avatar,
-                'history': get_most_recent_video(),
-            }, broadcast=True)
+            'player': player,
+            'channel': channel,
+            'title': channel_title,
+            'avatar': channel_avatar,
+            'history': get_most_recent_video(),
+        }, broadcast=True)
     elif user_input != []:
         if player == 'youtube':
             # Create video object
@@ -279,9 +291,9 @@ def play_new_handler(d):
     elif ' - Topic' in d['author']:
         # Youtube "Topic" music videos
         track = d['title']
-        artist = d['author'].rstrip(' - Topic')            
+        artist = d['author'].rstrip(' - Topic')
         scrobbleable = True
-    
+
     if scrobbleable:
         emit('server:play-new-artist', {
             'artist': fm.get_artist(artist),
@@ -295,6 +307,7 @@ def play_new_handler(d):
         # Denote that nothing is being scrobbled anymore
         pipe.set(current_user.username, '').execute()
 
+
 """
 
     CONTROLS
@@ -304,26 +317,26 @@ def play_new_handler(d):
 # Play
 @socketio.on('user:play')
 def play(data):
-    emit('server:play', {'time':data["time"]}, broadcast=True)
+    emit('server:play', {'time': data['time']}, broadcast=True)
 
 
 # Pause
 @socketio.on('user:pause')
 def pause(data):
     # Pausing video locally for user who requested pause makes interface slightly smoother
-    emit('server:pause', {'time':data["time"]}, broadcast=True) 
+    emit('server:pause', {'time': data['time']}, broadcast=True)
 
 
 # Playback rate
 @socketio.on('user:rate')
 def handle_rate(data):
-    emit('server:rate', {'rate':data["rate"]}, broadcast=True)
+    emit('server:rate', {'rate': data['rate']}, broadcast=True)
 
 
 # Skip
 @socketio.on('user:skip')
 def handle_skip(data):
-    emit('server:skip', {'time':data["time"]}, broadcast=True)
+    emit('server:skip', {'time': data['time']}, broadcast=True)
 
 
 # Error handling
@@ -331,4 +344,3 @@ def handle_skip(data):
 def error_handler(e):
     print(e.args, type(e).__name__)
     traceback.print_exc()
-

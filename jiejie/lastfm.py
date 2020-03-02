@@ -1,11 +1,13 @@
 import hashlib
 import json
 import time
-
-from api import LASTFM_KEY, LASTFM_SECRET
-from extensions import pipe
-import requests
 from urllib.parse import quote
+
+import requests
+
+from api import LASTFM_KEY
+from api import LASTFM_SECRET
+from extensions import pipe
 
 
 class FM:
@@ -14,27 +16,27 @@ class FM:
 
     # General API call method
     def call(self, method, params):
-        url = f"http://ws.audioscrobbler.com/2.0/?method={method}&api_key={self.key}&format=json"
+        url = f'http://ws.audioscrobbler.com/2.0/?method={method}&api_key={self.key}&format=json'
         for param, value in params.items():
-            url = url + f"&{param}={value}"
+            url = url + f'&{param}={value}'
 
         http = requests.get(url)
         return http.json()
 
-
     # Get data of specific LastFM user
+
     def get_user(self, name):
         data = self.call(
             'user.getInfo',
-            { 'user': name }
+            {'user': name}
         )
 
         # Format user's play count with commas
         data['user']['playcount'] = ('{:,}').format(data['user']['playcount'])
         return data
 
-
     # Get data on artist
+
     def get_artist(self, query):
         # Format user query to URL
         query = quote(query)
@@ -42,13 +44,13 @@ class FM:
         # Get artist data from LastFM API
         data = self.call(
             'artist.search',
-            { 'artist': query },
+            {'artist': query},
         )
 
         # Get artist tags from LastFM API
         artist_tags = self.call(
             'artist.getTopTags',
-            { 'artist': query },
+            {'artist': query},
         )
         tags = artist_tags['toptags']['tag']
         tags = [tag['name'] for tag in tags]
@@ -60,16 +62,16 @@ class FM:
         # Validate response
         if len(jdata) > 0:
             jdata = jdata[0]
-            jdata['listeners'] = "{:,}".format(int(jdata['listeners']))
+            jdata['listeners'] = '{:,}'.format(int(jdata['listeners']))
             return json.dumps(jdata)
         else:
             return False
 
-
     # Construct an md5 hash string to sign API calls
     #   -> args is a dictionary of parameters and values to pass to API in URL
+
     def sign_call(self, args):
-        string = ""
+        string = ''
         for key, value in sorted(args.items()):
             string += key
             string += value
@@ -79,10 +81,11 @@ class FM:
         md5hash = hashlib.md5(string.encode('utf-8'))
         return md5hash.hexdigest()
 
-
     # Get LastFM session key
+
     def get_session(self, token):
-        api_sig = self.sign_call({'api_key': LASTFM_KEY, 'method': 'auth.getSession', 'token': token})
+        api_sig = self.sign_call(
+            {'api_key': LASTFM_KEY, 'method': 'auth.getSession', 'token': token})
 
         session = requests.get(
             f'http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key={LASTFM_KEY}&token={token}&format=json&api_sig={api_sig}'
@@ -94,8 +97,8 @@ class FM:
 
         return True, session['session']
 
-
     # Pushes scrobble to LastFM
+
     def scrobble(self, username):
         pdata = pipe.get(username).execute()[0]
         fmdata = json.loads(pdata)
@@ -127,11 +130,11 @@ class FM:
                 return True
         return False
 
-
     # Lists song as 'Now Playing' on LastFM.
     # Caches currently playing song if available.
     # When another video is played, if requirements are met,
     # the cached data will be passed to the scrobble() method
+
     def update_now_playing(self, artist, track, user, duration):
         # Check if duration over 30s
         if duration >= 30:
