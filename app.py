@@ -1,20 +1,24 @@
 #!/usr/bin/python
-import redis
 from flask import Flask
-from flask import redirect
 from flask import render_template
+from flask_migrate import Migrate
 
-import extensions
-from api import POSTGRES
-from api import SECRET_KEY
-from jiejie import models
+from config import POSTGRES
+from config import SECRET_KEY
+from extensions import fm
+from extensions import login_manager
+from extensions import pipe
+from extensions import redis_connected
+from extensions import socketio
+from jiejie.models import db
+from jiejie.models import ma
 from jiejie.views import urls
 
-# Initializers
+# Initialize APP
 
-app = Flask(__name__)
+APP = Flask(__name__)
 
-app.config.update(
+APP.config.update(
     TEMPLATES_AUTO_RELOAD=True,
     SERVER_HOST='0.0.0.0:5000',
     DEBUG=True,
@@ -23,7 +27,7 @@ app.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
 )
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
+APP.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(password)s@%(host)s:%(port)s/%(dbname)s' % POSTGRES
 
 """
@@ -37,41 +41,33 @@ logging.basicConfig(
 )
 """
 
-# Load modules
+# Start DB
+db.init_app(APP)
+ma.init_app(APP)
 
+migrate = Migrate(
+    APP, db,
+    # allow migrate to notice string length changes
+    compare_type=True
+)
 
-# Make sure everything works before running
-try:
-    extensions.r.ping()
-    redis_connected = True
-except redis.exceptions.ConnectionError:
-    redis_connected = False
-
-
-@extensions.login_manager.user_loader
-def load_user(user_id):
-    return models.User.query.get(int(user_id))
-
-
+# Tests
+# TODO: make this not just one test before views registered
 if redis_connected:
     # Register program's standard views
-    app.register_blueprint(urls)
-else:
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
+    APP.register_blueprint(urls)
+elif not redis_connected:
+    # Show only error page
+    @APP.route('/', defaults={'path': ''})
+    @APP.route('/<path:path>')
     def redis_handler(path):
         return render_template('redis.html')
 
+# Tie extensions to APP
 
-@app.errorhandler(404)
-def page_not_found(error):
-    return redirect('/')
-
-
-@app.errorhandler(401)
-def unauthorized(error):
-    return redirect('/')
-
+fm.init_app(APP, pipe)
+login_manager.init_app(APP)
+socketio.init_app(APP)
 
 if __name__ == '__main__':
-    extensions.socketio.run(app)
+    socketio.run(APP)

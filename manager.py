@@ -1,18 +1,22 @@
+from flask_sqlalchemy import SQLAlchemy
+
+import jiejie.models as models
+from app import APP
+
 # Manager is designed to make simple database commands easily accessible
 
-class Manager:
-    def __init__(self, db, models):
-        self.db = db
-        self.models = models
 
+class Manager:
+    def __init__(self, db):
         self.commands = {
-            'init_db':self.init_db,
-            'wipe_db':self.wipe_db,
-            'add_user':self.add_user,
-            'del_user':self.del_user,
-            'list_users':self.list_users,
-            'exit':self.exit,
+            'init_db': self.init_db,
+            'wipe_db': self.wipe_db,
+            'add_user': self.add_user,
+            'del_user': self.del_user,
+            'list_users': self.list_users,
+            'exit': self.exit,
         }
+        self.db = db
 
         print("""
             Welcome to the Locke manager
@@ -59,7 +63,7 @@ class Manager:
         username = input('Username: ')
         password = input('Password: ')
 
-        u = self.models.User(username=username)
+        u = models.User(username=username)
         u.setpass(password)
 
         self.db.session.add(u)
@@ -71,10 +75,11 @@ class Manager:
         # Deprecated
         # Requires [('username', 'password'), ...] parameter
         for user in users:
-            u = self.models.User(username=user[0])
+            u = models.User(username=user[0])
             u.setpass(user[1])
 
             self.db.session.add(u)
+
         self.db.session.commit()
 
         users = [user[0] for user in users]
@@ -84,25 +89,24 @@ class Manager:
     def del_user(self):
         username = input('Username: ')
 
-        u = self.models.User.query.filter_by(username=username).first()
+        user = models.User.query.filter_by(username=username).first()
 
-        if u != None:
-            self.db.session.delete(u)
+        if user:
+            self.db.session.delete(user)
             self.db.session.commit()
-            self.printc(f'Deleted user: {u}')
+            self.printc(f'Deleted user: {user}')
         else:
             print(f'Could not find username {username}')
 
     def list_users(self):
-        users = self.models.User.query.all()
+        users = models.User.query.all()
         users = [user.username for user in users]
         self.printc(', '.join(users))
 
+
 if __name__ == '__main__':
-    from app import app, models
-    from extensions import db
-    mgr = Manager(db, models)
-    
+    db = SQLAlchemy(APP)
+    mgr = Manager(db)
+
     while 1:
         mgr.run()
-

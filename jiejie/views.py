@@ -14,14 +14,19 @@ from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
 
-import jiejie.models
-from api import LASTFM_KEY
-from extensions import db
+import jiejie.models as models
+from config import LASTFM_KEY
 from extensions import fm
+from extensions import login_manager
 from extensions import pipe
 
 # Register these views with app
 urls = Blueprint('urls', __name__)
+
+# Login manager user handler
+@login_manager.user_loader
+def load_user(user_id):
+    return models.User.query.get(int(user_id))
 
 # Make current_user a global variable
 @urls.before_request
@@ -47,10 +52,10 @@ def index():
 @urls.route('/~<string:username>/history')
 @login_required
 def user_history(username, index=1):
-    user = jiejie.models.User.query.filter_by(username=username).first()
+    user = models.User.query.filter_by(username=username).first()
     if user:
-        history = jiejie.models.History.query.filter_by(
-            user_id=user.id).order_by(db.text('-id')).all()
+        history = models.History.query.filter_by(
+            user_id=user.id).order_by(models.db.text('-id')).all()
 
         return render_template(
             'history.html',
@@ -63,15 +68,15 @@ def user_history(username, index=1):
 @urls.route('/~<string:username>')
 @login_required
 def user_profile(username):
-    user = jiejie.models.User.query.filter_by(username=username).first()
+    user = models.User.query.filter_by(username=username).first()
     if user:
         if user.lastfm_connected():
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None
 
-        history = jiejie.models.History.query.filter_by(
-            user_id=user.id).order_by(db.text('-id')).all()
+        history = models.History.query.filter_by(
+            user_id=user.id).order_by(models.db.text('-id')).all()
         hmap = [x.video_id for x in history]
 
         # If there are > 0 videos played by this user
@@ -79,7 +84,7 @@ def user_profile(username):
             # Get mode of hmap to find most played video
             most_played_id = max(set(hmap), key=hmap.count)
             # Get most_played video object from DB
-            most_played = jiejie.models.History.query.filter_by(
+            most_played = models.History.query.filter_by(
                 video_id=most_played_id).first()
 
             cached_mp = pipe.get(f'profile-mp:{user.username}').execute()
@@ -160,7 +165,7 @@ def login():
     # elif request.form['username'] in logged_in:
     #    return render_template('login.html', error='User is already logged in')
     else:
-        username = jiejie.models.User.query.filter_by(
+        username = models.User.query.filter_by(
             username=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):
@@ -205,10 +210,23 @@ def register():
             current_user.fm_token = token
             current_user.fm_sk = resp[1]['key']
 
-            db.session.commit()
+            models.db.session.commit()
 
             return '<span>Registered {}</span><br/><a href="/">Take me back</a>'.format(resp[1]['name'])
         else:
             return 'Error connecting to your LastFM account: {}'.format(resp[1]['message'])
     else:
         return 'Failed to connect to your LastFM'
+
+
+# Page errors
+
+
+@urls.errorhandler(404)
+def page_not_found(error):
+    return redirect('/')
+
+
+@urls.errorhandler(401)
+def unauthorized(error):
+    return redirect('/')

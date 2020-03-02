@@ -5,18 +5,19 @@ from urllib.parse import quote
 
 import requests
 
-from api import LASTFM_KEY
-from api import LASTFM_SECRET
-from extensions import pipe
+from config import LASTFM_KEY
+from config import LASTFM_SECRET
 
 
-class FM:
-    def __init__(self):
-        self.key = LASTFM_KEY
+class LastFMAPI:
+    def init_app(self, app, redis_pipeline):
+        # params: Flask object, Redis pipeline
+        self.app = app
+        self.pipe = redis_pipeline
 
     # General API call method
     def call(self, method, params):
-        url = f'http://ws.audioscrobbler.com/2.0/?method={method}&api_key={self.key}&format=json'
+        url = f'http://ws.audioscrobbler.com/2.0/?method={method}&api_key={LASTFM_KEY}&format=json'
         for param, value in params.items():
             url = url + f'&{param}={value}'
 
@@ -100,7 +101,7 @@ class FM:
     # Pushes scrobble to LastFM
 
     def scrobble(self, username):
-        pdata = pipe.get(username).execute()[0]
+        pdata = self.pipe.get(username).execute()[0]
         fmdata = json.loads(pdata)
 
         time_prior = time.time() - float(fmdata['timestamp'])
@@ -167,9 +168,9 @@ class FM:
                     'duration': duration,
                 }
                 pipe_data = json.dumps(pipe_data)
-                pipe.set(user.username, pipe_data)
+                self.pipe.set(user.username, pipe_data)
         else:
             # Video does not meet requirements to be scrobbled
-            pipe.set(user.username, '')
+            self.pipe.set(user.username, '')
 
-        pipe.execute()
+        self.pipe.execute()

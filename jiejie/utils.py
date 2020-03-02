@@ -4,15 +4,15 @@ from urllib.parse import quote
 
 import requests
 
-from api import API_KEY
-from api import TWITCH_KEY
+from config import API_KEY
+from config import TWITCH_KEY
 
 
 class TwitchAPI:
     def get_channel_data(channel):
         req = requests.get(
-                'https://api.twitch.tv/helix/streams?first=1&user_login=' +
-                channel, headers={'Client-ID': TWITCH_KEY}
+            'https://api.twitch.tv/helix/streams?first=1&user_login=' +
+            channel, headers={'Client-ID': TWITCH_KEY}
         )
         try:
             return req.json()['data'][0]

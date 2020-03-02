@@ -2,11 +2,13 @@
 from datetime import datetime
 
 from flask_login import UserMixin
+from flask_marshmallow import Marshmallow
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
-from extensions import db
-from extensions import ma
+db = SQLAlchemy()
+ma = Marshmallow()
 
 
 class User(db.Model, UserMixin):

@@ -9,6 +9,7 @@ var connect_socket = function() {
     if (socket == undefined) {
         // Change socket URL based on request scheme
         var scheme = $('meta[name=scheme]').attr('content');
+
         if (scheme == 'https') {
             socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
         } else if (scheme == 'http') {
@@ -68,7 +69,7 @@ var connect_socket = function() {
                 player.loadVideoById(data.most_recent.video_id);
                 $('title').html(data.most_recent.video_title);
                 $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
-                
+
                 player.addEventListener('onStateChange', function a(state) {
                     if (state.data == 1 && player_initialized == false) {
                         socket.emit('user:init-preload');
@@ -136,7 +137,7 @@ var connect_socket = function() {
             player.pauseVideo();
         } else {
             console.log(data);
-            console.log('Could not get player state!');   
+            console.log('Could not get player state!');
         }
     });
 
@@ -147,7 +148,7 @@ var connect_socket = function() {
             $('#play').show();
             $('#pause').hide();
             player.pauseVideo();
-        } 
+        }
         else {
             $('#pause').show();
             $('#play').hide();
@@ -162,7 +163,7 @@ var connect_socket = function() {
         if ($('#youtube-player').css('display') == 'none') {
             TwitchPlayer.play();
         } else {
-            player.seekTo(data['time']);    
+            player.seekTo(data['time']);
             player.playVideo();
         }
 
@@ -221,7 +222,7 @@ var connect_socket = function() {
                 // Hide Twitch elements
                 $('#twitch-info-bar').css('display', 'none');
 
-                // Set volume 
+                // Set volume
                 player.setVolume($('#volume-slider').val());
             }
 
@@ -231,7 +232,7 @@ var connect_socket = function() {
 
             // Load new video
             player.loadVideoById(data.id[0]);
-            player.seekTo(0);   
+            player.seekTo(0);
             player.playVideo();
 
             // Update history bar
@@ -240,7 +241,7 @@ var connect_socket = function() {
             // Scrobble LastFM
 
             var callback = data;
-            // Clear history from data to send to server 
+            // Clear history from data to send to server
             // clearing the history will speed up the transaction
             delete callback.history;
             delete callback.player;
@@ -308,7 +309,7 @@ var connect_socket = function() {
 
         if (!append)
             $("#search-list").empty();
-        else { 
+        else {
             $('.load-more').remove();
         }
 
@@ -317,10 +318,10 @@ var connect_socket = function() {
         } else {
             for (var r in results) {
                 $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                 results[r].id.videoId + "\")'><p>" + 
-                 results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" + 
-                 results[r].snippet.thumbnails.high.url + 
-                 "' /><span class='upload-date'>"+ 
+                 results[r].id.videoId + "\")'><p>" +
+                 results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" +
+                 results[r].snippet.thumbnails.high.url +
+                 "' /><span class='upload-date'>"+
                  results[r].snippet.publishedAt.split('T')[0] +
                  "</span></li>");
             }
@@ -333,4 +334,3 @@ var connect_socket = function() {
 
     return socket;
 };
-
