@@ -1,57 +1,93 @@
 import jiejie.models as models
+from app import APP
 
 
-def test_user_model():
+def test_user_model(db):
     user = models.User(
         name='test9999'
     )
-    models.db.session.add(user)
-    models.db.session.commit()
-
     user.setpass('password123')
 
     # test password
     if not user.checkpass('password123'):
-        models.db.session.delete(user)
-        models.db.session.commit()
+        db.session.delete(user)
+        db.session.commit()
         exit('setting password failed')
+
+    db.session.add(user)
+    db.session.commit()
 
     return user
 
 
-def test_video_model(user):
+def test_video_model(db, user, room):
     video = models.Video(
-        unique_id='dQw4w9WgXcQ',
+        watch_id='dQw4w9WgXcQ',
         title='Rick Astley - Never Gonna Give You Up (Video)',
         thumbnail='',
-        user=user,
-        player='youtube'
+        user_id=user.id,
+        room_id=room.id
     )
-    models.db.session.add(video)
-    models.db.session.commit()
+    db.session.add(video)
+    db.session.commit()
 
     return video
 
 
-def test_room_model():
-    user = test_user_model()
-    video = test_video_model(user)
+def test_room_model(db):
+    user = test_user_model(db)
 
     room = models.Room()
+    db.session.add(room)
+    db.session.commit()
 
-    # test room methods
+    video1 = test_video_model(db, user, room)
+    test_video_model(db, user, room)
 
-    print('room.get_most_recent_video():')
-    print(room.get_most_recent_video())
+    # method tests
+    try:
+        print('user: {0}\nroom: {1}\nvideo: {2}'.format(user, room, video1))
 
-    print('room.get_online_users():')
-    # room.get_online_users()
+        print('\nvideos played in room: ', room.videos)
 
-    print('room.get_recent_history():')
-    print(room.get_recent_history())
+        # room related methods
+        print()
+
+        print('user.join_room()')
+        user.join_room(room)
+
+        print('users in room: ', room.users)
+
+        print('user.leave_room()')
+        user.leave_room(room)
+
+        print('users in room: ', room.users)
+
+        # test room methods
+        print()
+
+        print('room.get_most_recent_video():')
+        print(room.get_most_recent_video().data)
+
+        print('room.get_online_users()')
+        # room.get_online_users()
+
+        print('room.get_recent_history():')
+        print(room.get_recent_history().data)
+    except Exception as error:
+        print('!! FAILED: ', error)
 
     # delete objects created
-    models.db.session.delete(user)
-    models.db.session.delete(video)
-    models.db.session.delete(room)
-    models.db.session.commit()
+    print()
+    print('cleaning up...')
+
+    db.session.delete(user)
+    db.session.delete(room)
+    db.session.commit()
+
+    print('success!!!')
+
+
+if __name__ == '__main__':
+    with APP.app_context():
+        test_room_model(models.db)
