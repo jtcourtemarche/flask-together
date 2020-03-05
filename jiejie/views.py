@@ -54,8 +54,8 @@ def index():
 def user_history(username, index=1):
     user = models.User.query.filter_by(username=username).first()
     if user:
-        history = models.History.query.filter_by(
-            user_id=user.id).order_by(models.db.text('-id')).all()
+        history = models.Video.query.filter_by(
+            user_id=user.pk).order_by(models.db.text('-pk')).all()
 
         return render_template(
             'history.html',
@@ -75,17 +75,17 @@ def user_profile(username):
         else:
             lastfm_data = None
 
-        history = models.History.query.filter_by(
-            user_id=user.id).order_by(models.db.text('-id')).all()
-        hmap = [x.video_id for x in history]
+        history = models.Video.query.filter_by(
+            user_id=user.pk).order_by(models.db.text('-pk')).all()
+        hmap = [x.unique_id for x in history]
 
         # If there are > 0 videos played by this user
         if hmap != []:
             # Get mode of hmap to find most played video
             most_played_id = max(set(hmap), key=hmap.count)
             # Get most_played video object from DB
-            most_played = models.History.query.filter_by(
-                video_id=most_played_id).first()
+            most_played = models.Video.query.filter_by(
+                unique_id=most_played_id).first()
 
             cached_mp = pipe.get(f'profile-mp:{user.username}').execute()
 
@@ -97,7 +97,7 @@ def user_profile(username):
                     f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
             else:
                 # Get avg color of thumbnail
-                r = requests.get(most_played.video_thumbnail)
+                r = requests.get(most_played.thumbnail)
 
                 key = random.randint(1, 9999)
 
