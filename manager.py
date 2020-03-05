@@ -1,5 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
-
 import jiejie.models as models
 from app import APP
 
@@ -63,7 +61,7 @@ class Manager:
         username = input('Username: ')
         password = input('Password: ')
 
-        u = models.User(username=username)
+        u = models.User(name=username)
         u.setpass(password)
 
         self.db.session.add(u)
@@ -75,7 +73,7 @@ class Manager:
         # Deprecated
         # Requires [('username', 'password'), ...] parameter
         for user in users:
-            u = models.User(username=user[0])
+            u = models.User(name=user[0])
             u.setpass(user[1])
 
             self.db.session.add(u)
@@ -89,7 +87,7 @@ class Manager:
     def del_user(self):
         username = input('Username: ')
 
-        user = models.User.query.filter_by(username=username).first()
+        user = models.User.query.filter_by(name=username).first()
 
         if user:
             self.db.session.delete(user)
@@ -100,13 +98,13 @@ class Manager:
 
     def list_users(self):
         users = models.User.query.all()
-        users = [user.username for user in users]
+        users = [user.name for user in users]
         self.printc(', '.join(users))
 
 
 if __name__ == '__main__':
-    db = SQLAlchemy(APP)
-    mgr = Manager(db)
+    with APP.app_context():
+        mgr = Manager(models.db)
 
-    while 1:
-        mgr.run()
+        while 1:
+            mgr.run()
