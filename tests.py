@@ -37,7 +37,7 @@ def test_video_model(db, user, room):
 def test_room_model(db):
     user = test_user_model(db)
 
-    room = models.Room()
+    room = models.Room(name='my cool new room')
     db.session.add(room)
     db.session.commit()
 
