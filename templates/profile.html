@@ -2,7 +2,7 @@
 <html lang="en">
    <head>
       <meta charset="utf-8">
-      <title>{{ user.username }}'s profile</title>
+      <title>{{ user.name }}'s profile</title>
       <meta name="description" content="">
       <meta name="author" content="">
       <!-- Mobile Specific Metas -->
@@ -20,32 +20,32 @@
    <body>
         <style>
           .jumbotron {
-            background-color: rgba({{ colors[0] }});
+            background-color: white;
             border-radius: 0px;
-            color: {{ colors[1] }};
+            color: black; 
             text-align: center;
           }
           .jumbotron a {
-            color: {{ colors[1] }};
+            color: black;
           }
           #yt-player {
             width: 250px;
             height: auto;
-            border: 1px solid {{ colors[1] }};
+            border: 1px solid black;
           }
         </style>
         <div class="jumbotron">
           <p style="position: absolute; top: 15px; left: 15px;"><a href="/"><i class="fas fa-arrow-circle-left"></i> Go back</a></p>
-          <h1 class="display-4">{{ user.username }}</h1>
-          <p class="lead">{{ count }} total plays</p>
+          <h1 class="display-4">{{ user.name }}</h1>
+          <p class="lead">{{ total_plays }} total plays</p>
           <hr width="250"/>
-          <p class="lead">Most played video:</p>
-          
-          <iframe id="yt-player" type="text/html" width="640" height="390"
-          src="https://www.youtube.com/embed/{{ most_played[0].video_id }}?enablejsapi=1"
-          frameborder="0"></iframe>
-
-          <p class="lead"><span style="font-size: 14px">Played {{ most_played[1] }} times</span></p>
+          {% if most_played %}
+              <p class="lead">Most played video:</p>
+              
+              <iframe id="yt-player" type="text/html" width="640" height="390"
+                                                                  src="https://www.youtube.com/embed/{{ most_played.watch_id }}?enablejsapi=1"
+              frameborder="0"></iframe>
+          {% endif %}
 
           {% if lastfm %}
             <p style="background: #f46542; border-radius: 5px; padding: 5px; position: absolute; right: 15px; top: 15px" class="lead">
@@ -55,18 +55,6 @@
           {% endif %}
         </div>
         <h3 style="text-indent: 1em">
-            <a href="/~{{ user.username }}/history/1">Play History</a>
+            <a href="/~{{ user.name }}/history/1">Play History</a>
         </h3>
-
-        <!--
-        <ul class="list-group">
-        {% for h in history %}
-            <li class="list-group-item">
-                <b>#{{ h[0]+1 }}</b>
-                <a target="_blank" href="https://www.youtube.com/watch?v={{ h[1].video_id  }}">{{ h[1].video_title }}</a> <br/>
-                Played on {{ h[1].date }} <br/>
-            </li>
-        {% endfor %}
-        </ul>
-        -->
     </body>
