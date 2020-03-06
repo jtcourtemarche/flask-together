@@ -81,6 +81,7 @@ users = db.Table('users',
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=False, nullable=False)
 
     # users registered for the room
     # use Room.query.with_parent(user_object) to get user's rooms
@@ -128,4 +129,4 @@ class Room(db.Model):
         return schema.dump(self.videos[:20])
 
     def __repr__(self):
-        return '<Room: %r>' % (self.id)
+        return '<Room: %r, %r>' % (self.id, self.name)

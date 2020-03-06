@@ -1,9 +1,4 @@
 #!/usr/bin/python
-import os
-import random
-
-import colorgram
-import requests
 from flask import Blueprint
 from flask import g
 from flask import redirect
@@ -37,120 +32,84 @@ def before_request():
 @urls.route('/')
 def root():
     if g.user.is_authenticated:
-        return redirect('/watch')
+        return render_template(
+            'lobby.html',
+            rooms=models.Room.query.with_parent(g.user)
+        )
 
     return render_template('login.html')
 
-# Standard viewing page
-@urls.route('/watch')
+
+@urls.route('/create/room', methods=['POST'])
 @login_required
-def index():
-    return render_template('index.html')
+def create_room():
+    if request.form:
+        # TODO: use Flask-WTF forms for this
+        room = models.Room(
+            name=request.form['room_name']
+        )
+
+        models.db.session.add(room)
+        models.db.session.commit()
+
+        g.user.join_room(room)
+
+    return redirect('/')
+
+# Standard viewing page
+@urls.route('/watch/<int:room_id>')
+@login_required
+def room(room_id):
+    room = models.Room.query.filter_by().first()
+
+    if room:
+        if room.public or g.user in room.users:
+            return render_template('index.html')
+
+    return 'Room doesn\'t exist.'
 
 # User history
-@urls.route('/~<string:username>/history/<int:index>')
-@urls.route('/~<string:username>/history')
+@urls.route('/~<string:name>/history/<int:index>')
+@urls.route('/~<string:name>/history')
 @login_required
-def user_history(username, index=1):
-    user = models.User.query.filter_by(username=username).first()
+def user_history(name, index=1):
+    user = models.User.query.filter_by(name=name).first()
     if user:
-        history = models.Video.query.filter_by(
-            user_id=user.pk).order_by(models.db.text('-pk')).all()
-
         return render_template(
             'history.html',
-            history=history[25*(index-1):25*index]
+            history=user.videos[25*(index-1):25*index]
         )
     else:
-        return 'User ' + user + ' does not exist.'
+        return 'User ' + name + ' does not exist.'
 
 # User profiles
-@urls.route('/~<string:username>')
+@urls.route('/~<string:name>')
 @login_required
-def user_profile(username):
-    user = models.User.query.filter_by(username=username).first()
+def user_profile(name):
+    user = models.User.query.filter_by(name=name).first()
     if user:
         if user.lastfm_connected():
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None
 
-        history = models.Video.query.filter_by(
-            user_id=user.pk).order_by(models.db.text('-pk')).all()
-        hmap = [x.unique_id for x in history]
-
-        # If there are > 0 videos played by this user
-        if hmap != []:
-            # Get mode of hmap to find most played video
-            most_played_id = max(set(hmap), key=hmap.count)
-            # Get most_played video object from DB
+        # get most played video
+        most_played = None
+        if user.videos:
+            video_watch_ids = [v.watch_id for v in user.videos]
+            most_played = max(set(video_watch_ids), key=video_watch_ids.count)
             most_played = models.Video.query.filter_by(
-                unique_id=most_played_id).first()
-
-            cached_mp = pipe.get(f'profile-mp:{user.username}').execute()
-
-            # If this id is already stored in cache
-            if cached_mp[0] is not None and cached_mp[0].decode('utf-8') == most_played_id:
-                dom_color = pipe.get(
-                    f'profile-bgcolor:{user.username}').execute()[0].decode('utf-8')
-                fg_color = pipe.get(
-                    f'profile-fgcolor:{user.username}').execute()[0].decode('utf-8')
-            else:
-                # Get avg color of thumbnail
-                r = requests.get(most_played.thumbnail)
-
-                key = random.randint(1, 9999)
-
-                # Download to /tmp/ directory on Linux
-                with open(f'/tmp/thumb-{key}.jpg', 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=128):
-                        f.write(chunk)
-
-                # Use kmeans cluster algorithm to get most dominant color
-                # Retrieve 2 clusters
-                colors = colorgram.extract(f'/tmp/thumb-{key}.jpg', 2)
-
-                # Clear temp thumbnail
-                os.remove(f'/tmp/thumb-{key}.jpg')
-
-                # Get the second most dominant color because the first is generally black
-                # due to the black bars in Youtube thumbnails
-                dom = colors[1].rgb
-
-                if ((dom.g * 0.299) + (dom.b * 0.587) + (dom.r * 0.114)) > 186:
-                    fg_color = '#000000'
-                else:
-                    fg_color = '#FFFFFF'
-
-                # Convert to CSS rgb
-                dom = [str(c) for c in dom]
-                dom_color = ', '.join(dom)
-
-                # Cache colors so they don't have to be generated them until most played id changes
-                pipe.set(f'profile-bgcolor:{user.username}', dom_color)
-                pipe.set(f'profile-fgcolor:{user.username}', fg_color)
-                pipe.set(f'profile-mp:{user.username}', most_played_id)
-                pipe.execute()
-        else:
-            # Defaults
-            most_played = None
-            most_played_id = None
-            dom_color = 'white'
-            fg_color = 'black'
+                watch_id=most_played).first()
 
         return render_template(
             'profile.html',
             user=user,
-            history=enumerate(history),
-            count=len(history),
-            most_played=(
-                most_played, hmap.count(most_played_id)),
-            colors=(dom_color, fg_color),
+            total_plays=len(user.videos),
+            most_played=most_played,
             lastfm=lastfm_data
         )
 
-    return 'Not a valid user.'
-
+    return 'User ' + name + ' does not exist.'
 
 # Login view
 @urls.route('/login', methods=['POST'])
@@ -162,11 +121,9 @@ def login():
 
     if g.user.is_authenticated:
         return redirect('/watch')
-    # elif request.form['username'] in logged_in:
-    #    return render_template('login.html', error='User is already logged in')
     else:
         username = models.User.query.filter_by(
-            username=request.form['username']).first()
+            name=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):
                 login_user(username)

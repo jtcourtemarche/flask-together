@@ -1,0 +1,15 @@
+<a href="">Create new room</a>
+
+<form action="/create/room" method="POST">
+    <label for="room_name">Room Name</label>
+    <input type="text" id="room_name" name="room_name">
+
+    <input type="submit" value="Submit">
+</form>
+
+<h2>Rooms you're in: </h2>
+{% for room in rooms %}
+    <a href="/watch/{{ room.id }}">{{ room.name }}</a><br>
+{% endfor %}   
+
+<h2>Public rooms: </h2>
