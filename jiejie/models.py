@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from collections import Counter
 from datetime import datetime
 
 from flask_login import UserMixin
@@ -42,6 +43,17 @@ class User(db.Model, UserMixin):
     def leave_room(self, room):
         room.users.remove(self)
         db.session.commit()
+
+    def most_played_video(self):
+        if self.videos:
+            most_played = Counter(
+                [video.watch_id for video in self.videos]).most_common(1)
+
+            most_played = Video.query.filter_by(
+                watch_id=most_played[0][0]).first()
+
+            return most_played
+        return None
 
     def __repr__(self):
         return '<User %r>' % self.name

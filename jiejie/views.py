@@ -93,19 +93,11 @@ def user_profile(name):
         else:
             lastfm_data = None
 
-        # get most played video
-        most_played = None
-        if user.videos:
-            video_watch_ids = [v.watch_id for v in user.videos]
-            most_played = max(set(video_watch_ids), key=video_watch_ids.count)
-            most_played = models.Video.query.filter_by(
-                watch_id=most_played).first()
-
         return render_template(
             'profile.html',
             user=user,
             total_plays=len(user.videos),
-            most_played=most_played,
+            most_played=user.most_played_video(),
             lastfm=lastfm_data
         )
 
