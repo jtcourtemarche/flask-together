@@ -13,7 +13,6 @@ import jiejie.models as models
 from config import LASTFM_KEY
 from extensions import fm
 from extensions import login_manager
-from extensions import pipe
 
 # Register these views with app
 urls = Blueprint('urls', __name__)
@@ -30,11 +29,12 @@ def before_request():
 
 # Index page
 @urls.route('/')
-def root():
+def lobby():
     if g.user.is_authenticated:
         return render_template(
             'lobby.html',
-            rooms=models.Room.query.with_parent(g.user)
+            user_rooms=models.Room.query.with_parent(g.user),
+            public_rooms=models.Room.query.filter_by(public=True).all()
         )
 
     return render_template('login.html')
@@ -60,11 +60,13 @@ def create_room():
 @urls.route('/watch/<int:room_id>')
 @login_required
 def room(room_id):
-    room = models.Room.query.filter_by().first()
+    room = models.Room.query.filter_by(id=room_id).first()
 
-    if room:
-        if room.public or g.user in room.users:
-            return render_template('index.html')
+    if room and room.public:
+        if g.user not in room.users:
+            g.user.join_room(room)
+
+        return render_template('room.html', room=room)
 
     return 'Room doesn\'t exist.'
 
@@ -97,29 +99,25 @@ def user_profile(name):
             'profile.html',
             user=user,
             total_plays=len(user.videos),
-            most_played=user.most_played_video(),
+            most_played=user.get_most_played_video(),
             lastfm=lastfm_data
         )
 
     return 'User ' + name + ' does not exist.'
 
 # Login view
+# TODO: next redirect
 @urls.route('/login', methods=['POST'])
 def login():
-    # Retrieve server:logged from cache
-    logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
-    # Decode byte string from redis to Python string
-    logged_in = [user.decode('utf-8') for user in logged_in]
-
     if g.user.is_authenticated:
-        return redirect('/watch')
+        return redirect('/')
     else:
         username = models.User.query.filter_by(
             name=request.form['username']).first()
         if username:
             if username.checkpass(request.form['password']):
                 login_user(username)
-                return redirect('/watch')
+                return redirect('/')
             else:
                 return render_template('login.html', error='Invalid password')
         else:

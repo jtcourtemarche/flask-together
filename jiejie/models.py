@@ -8,6 +8,8 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
+from extensions import pipe
+
 db = SQLAlchemy()
 ma = Marshmallow()
 
@@ -31,6 +33,7 @@ class User(db.Model, UserMixin):
     def checkpass(self, password):
         return check_password_hash(self.password, password)
 
+    # TODO: Change this to be an attribute
     def lastfm_connected(self):
         if self.fm_sk != '':
             return True
@@ -42,9 +45,14 @@ class User(db.Model, UserMixin):
 
     def leave_room(self, room):
         room.users.remove(self)
+
+        # if no users left in room, delete room
+        if len(room.users) <= 0:
+            db.session.delete(room)
+
         db.session.commit()
 
-    def most_played_video(self):
+    def get_most_played_video(self):
         if self.videos:
             most_played = Counter(
                 [video.watch_id for video in self.videos]).most_common(1)
@@ -82,6 +90,12 @@ class HistorySchema(ma.Schema):
         fields = ('id', 'watch_id', 'title', 'thumbnail', 'date', 'user_id')
 
 
+class UserSchema(ma.Schema):
+    class Meta:
+        model = User
+        fields = ('id', 'name')
+
+
 # many to many relationship btwn user & room
 users = db.Table('users',
                  db.Column('room_id', db.Integer, db.ForeignKey(
@@ -94,6 +108,8 @@ users = db.Table('users',
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
+
+    # TODO: Owner field?
 
     # users registered for the room
     # use Room.query.with_parent(user_object) to get user's rooms
@@ -108,31 +124,23 @@ class Room(db.Model):
     public = db.Column(db.Boolean, default=True,
                        server_default='t', nullable=False)
 
-    # TODO: fix
     def get_online_users(self):
-        """
-        active_users = []
+        # room_users = self.users
 
-        # Retrieve server:logged from cache
-        logged_in = pipe.lrange('server:logged', 0, -1).execute()[0]
-        # Decode byte string from redis to Python string
-        logged_in = [user.decode('utf-8') for user in logged_in]
-        # Generate list of online/offline users
-        #   1 => Online
-        #   2 => Offline
-        for user in models.User.query.all():
-            if user.username in logged_in:
-                active_users.append((user.username, 1))
-            else:
-                active_users.append((user.username, 0))
-        """
-        return []
+        online_users = pipe.smembers(
+            'room:' + str(self.id)
+        ).execute()
+
+        if len(online_users) <= 0:
+            return []
+
+        return list(online_users[0])
 
     # Retrieve most recent object from history
     def get_most_recent_video(self):
         schema = HistorySchema()
 
-        return schema.dump(self.videos[0])
+        return schema.dump(self.videos[0]) if self.videos else None
 
     # Retrieve last 20 objects from history
     def get_recent_history(self):

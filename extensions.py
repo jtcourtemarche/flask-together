@@ -2,6 +2,7 @@ import redis
 from flask_login import LoginManager
 from flask_socketio import SocketIO
 
+import jiejie.events  # import socket events
 from jiejie.lastfm import LastFMAPI
 
 # In this file, objects will be initialized and then later tied to the APP object in apps.py
@@ -10,7 +11,8 @@ from jiejie.lastfm import LastFMAPI
 r = redis.StrictRedis(
     host='localhost',
     port='6379',
-    db=0
+    db=0,
+    decode_responses=True
 )
 pipe = r.pipeline()
 

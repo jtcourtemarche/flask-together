@@ -10,6 +10,8 @@ var connect_socket = function() {
         // Change socket URL based on request scheme
         var scheme = $('meta[name=scheme]').attr('content');
 
+        socket = io();
+
         if (scheme == 'https') {
             socket = io.connect('wss://' + document.domain + ':' + location.port, {secure: true});
         } else if (scheme == 'http') {
@@ -19,69 +21,53 @@ var connect_socket = function() {
 
     // Handle Connect ----------------------->
     socket.on('connect', function() {
-        socket.emit('user:joined');
+        socket.emit('user:connected', $('meta[name=room]').data('id'));
     });
 
     socket.on('server:disconnected', function(data) {
-        $('.active-users').empty();
-        for (var user in data.active_users) {
-            if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
-            } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
-            }
-        }
+        $('.active-users #'+data.user_name).remove();
+        console.log('disconnected');
     });
+
+    function reload_online_users(online_users)
+    {
+        // reset active users
+        $('.active-users').empty();
+
+        // show all active users
+        online_users.forEach(function(user, index) {
+            if (user != undefined)
+            {
+                $('.active-users').append(
+                    '<div id="'+user+'" class="online-user"></div><i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+user+'">'+user+'</a></div>&nbsp;'
+                );
+            }
+        });
+    }
 
     // Load last video from DB -------------->
     socket.on('server:sync', function(data) {
-        // Play last video from DB
+        // play most recent video 
         if (data.most_recent != null) {
-            if (data.most_recent.player == 'twitch')
-            {
-                // Hide YT player elements
-                $('#duration-container').css('display', 'none');
-                $('#playback-rates-dropdown').css('display', 'none');
-                $('#skip_to').css('display', 'none');
-                $('#progress-bar').css('display', 'none');
-                $('.video_title').css('display', 'none');
+            player.loadVideoById(data.most_recent.watch_id);
+            $('title').html(data.most_recent.title);
+            $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.watch_id+"'>"+data.most_recent.title+"</a>");
 
-                // Show Twitch elements
-                $('#twitch-info-bar').css('display', 'block');
-
-                // Switch to Twitch player
-                $('#youtube-player').css('display', 'none');
-                $('#twitch-player').css('display', 'block');
-
-                // Stop Youtube video if one is playing
-                player.stopVideo()
-
-                // Play channel
-                TwitchPlayer.setChannel(data.most_recent.video_id);
-
-                // Set Twitch data
-                $('title').html(data.most_recent.video_id + ' [Twitch]');
-                $('.twitch-avatar').attr('src', data.most_recent.twitch_avatar);
-                $('.twitch-channel').text(data.most_recent.video_id);
-                $('.twitch-title').text(data.most_recent.video_title);
-
-            } else if (data.most_recent.player == 'youtube') {
-                player.loadVideoById(data.most_recent.video_id);
-                $('title').html(data.most_recent.video_title);
-                $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.video_id+"'>"+data.most_recent.video_title+"</a>");
-
-                player.addEventListener('onStateChange', function a(state) {
-                    if (state.data == 1 && player_initialized == false) {
-                        socket.emit('user:init-preload');
-                        player_initialized = true;
-                    }
-                });
-            }
+            player.addEventListener('onStateChange', function a(state) {
+                if (state.data == 1 && player_initialized == false) {
+                    socket.emit('user:init-preload');
+                    player_initialized = true;
+                }
+            });
+        
             preloadHistory(data.history);
         } else {
             $('#history-list').empty();
             $("#history-list").append("<span class='no-search'>No history.</span>");
         }
+
+        reload_online_users(data.online_users);
+
         // Often a browser will auto-refresh the page over time
         // making it so "No search results" will repeat over
         // and over again. To prevent this empty the div.
@@ -90,16 +76,8 @@ var connect_socket = function() {
     });
 
     // Handle New User Connect ----------------------->
-    socket.on('server:new-user', function(data) {
-        $('.active-users').empty();
-        var user;
-        for (user in data.active_users) {
-            if (data.active_users[user][1] == 1) {
-                $('.active-users').append('<i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
-            } else if (data.active_users[user][1] == 0) {
-                $('.active-users').append('<i class="fas fa-circle offline"></i>&nbsp;<a target="_blank" href="/~'+data.active_users[user][0]+'">'+data.active_users[user][0]+'</a>&nbsp;');
-            }
-        }
+    socket.on('server:user-joined', function(data) {
+        reload_online_users(data.online_users);
     });
 
     // Handle Request for Data -------------->
@@ -159,26 +137,16 @@ var connect_socket = function() {
 
     // Controls ------------------------->
     socket.on('server:play', function (data) {
-        // Check which player is being used
-        if ($('#youtube-player').css('display') == 'none') {
-            TwitchPlayer.play();
-        } else {
-            player.seekTo(data['time']);
-            player.playVideo();
-        }
+        player.seekTo(data['time']);
+        player.playVideo();
 
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
     });
     socket.on('server:pause', function (data) {
-        // Check which player is being used
-        if ($('#youtube-player').css('display') == 'none') {
-            TwitchPlayer.pause();
-        } else {
-            player.seekTo(data['time']);
-            player.pauseVideo();
-        }
+        player.seekTo(data['time']);
+        player.pauseVideo();
 
         $('#play').show();
         $('#pause').hide();
@@ -201,94 +169,31 @@ var connect_socket = function() {
         $('#play').hide();
         $('#replay').hide();
 
-        if (data.player == 'youtube') {
-            // Case for if Twitch player switched to Youtube player
-            if ($('#youtube-player').css('display') == 'none')
-            {
-                // Pause active Twitch player
-                TwitchPlayer.pause();
+        // Set Youtube data
+        $('title').html(data.title);
+        $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
 
-                // Switch to Youtube player
-                $('#youtube-player').css('display', 'block');
-                $('#twitch-player').css('display', 'none');
+        // Load new video
+        player.loadVideoById(data.id[0]);
+        player.seekTo(0);
+        player.playVideo();
 
-                // Show YT elements
-                $('#duration-container').css('display', 'block');
-                $('#playback-rates-dropdown').css('display', 'block');
-                $('#skip_to').css('display', 'block');
-                $('#progress-bar').css('display', 'block');
-                $('.video_title').css('display', 'block');
+        // Update history bar
+        appendHistory(data.history);
 
-                // Hide Twitch elements
-                $('#twitch-info-bar').css('display', 'none');
+        // Scrobble LastFM
 
-                // Set volume
-                player.setVolume($('#volume-slider').val());
-            }
+        var callback = data;
+        // Clear history from data to send to server
+        // clearing the history will speed up the transaction
+        delete callback.history;
+        delete callback.player;
+        callback.duration = callback.content.contentDetails.duration;
+        delete callback.content;
 
-            // Set Youtube data
-            $('title').html(data.title);
-            $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
-
-            // Load new video
-            player.loadVideoById(data.id[0]);
-            player.seekTo(0);
-            player.playVideo();
-
-            // Update history bar
-            appendHistory(data.history, data.player);
-
-            // Scrobble LastFM
-
-            var callback = data;
-            // Clear history from data to send to server
-            // clearing the history will speed up the transaction
-            delete callback.history;
-            delete callback.player;
-            callback.duration = callback.content.contentDetails.duration;
-            delete callback.content;
-
-            // Send request to LastFM function to see if the video can be scrobbled
-            socket.emit('user:play-callback', {data: JSON.stringify(callback)});
-        }
-        else if (data.player == 'twitch')
-        {
-            // Case for if Youtube player switched to Twitch player
-            if ($('#youtube-player').css('display') != 'none')
-            {
-                // Hide YT player elements
-                $('#duration-container').css('display', 'none');
-                $('#playback-rates-dropdown').css('display', 'none');
-                $('#skip_to').css('display', 'none');
-                $('#progress-bar').css('display', 'none');
-                $('.video_title').css('display', 'none');
-
-                // Stop Youtube video if one is playing
-                player.stopVideo();
-
-                // Switch to Twitch player
-                $('#youtube-player').css('display', 'none');
-                $('#twitch-player').css('display', 'block');
-
-                // Show Twitch elements
-                $('#twitch-info-bar').css('display', 'block');
-            }
-
-            // Play channel
-            TwitchPlayer.setChannel(data.channel);
-
-            // Set Twitch data
-            $('title').html(data.channel + ' [Twitch]');
-            $('.twitch-avatar').attr('src', data.avatar);
-            $('.twitch-channel').text(data.channel);
-            $('.twitch-title').text(data.title);
-
-            // Set volume
-            TwitchPlayer.setVolume($('#volume-slider').val() * 0.01);
-
-            // Update history bar
-            appendHistory(data.history, data.player);
-        }
+        // Send request to LastFM function to see if the video can be scrobbled
+        socket.emit('user:play-callback', {data: JSON.stringify(callback)});
+        
         // Clear loading animation
         $('#yt-search').html('Search');
 

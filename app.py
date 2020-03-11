@@ -3,6 +3,7 @@ from flask import Flask
 from flask import render_template
 from flask_migrate import Migrate
 
+import jiejie.models as models
 from config import POSTGRES
 from config import SECRET_KEY
 from extensions import fm
@@ -10,8 +11,6 @@ from extensions import login_manager
 from extensions import pipe
 from extensions import redis_connected
 from extensions import socketio
-from jiejie.models import db
-from jiejie.models import ma
 from jiejie.views import urls
 
 # Initialize APP
@@ -42,11 +41,11 @@ logging.basicConfig(
 """
 
 # Start DB
-db.init_app(APP)
-ma.init_app(APP)
+models.db.init_app(APP)
+models.ma.init_app(APP)
 
 migrate = Migrate(
-    APP, db,
+    APP, models.db,
     # allow migrate to notice string length changes
     compare_type=True
 )

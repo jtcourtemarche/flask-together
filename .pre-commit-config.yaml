@@ -16,7 +16,7 @@ repos:
     rev: 3.7.9
     hooks:
     -   id: flake8
-        args: ["--extend-ignore=E501"]
+        args: ["--extend-ignore=E501,F401"]
 -   repo: https://github.com/asottile/reorder_python_imports
     rev: v1.9.0
     hooks:

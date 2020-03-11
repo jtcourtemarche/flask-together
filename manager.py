@@ -1,11 +1,11 @@
-import jiejie.models as models
 from app import APP
+from app import models
 
 # Manager is designed to make simple database commands easily accessible
 
 
 class Manager:
-    def __init__(self, db):
+    def __init__(self):
         self.commands = {
             'init_db': self.init_db,
             'wipe_db': self.wipe_db,
@@ -14,7 +14,6 @@ class Manager:
             'list_users': self.list_users,
             'exit': self.exit,
         }
-        self.db = db
 
         print("""
             Welcome to the Locke manager
@@ -48,13 +47,13 @@ class Manager:
         print('!!! Complete')
 
     def init_db(self):
-        self.db.create_all()
-        self.db.session.commit()
+        models.db.create_all()
+        models.db.session.commit()
         self.printc('Initialized database')
 
     def wipe_db(self):
-        self.db.drop_all()
-        self.db.session.commit()
+        models.db.drop_all()
+        models.db.session.commit()
         self.printc('Wiped database')
 
     def add_user(self):
@@ -64,8 +63,8 @@ class Manager:
         u = models.User(name=username)
         u.setpass(password)
 
-        self.db.session.add(u)
-        self.db.session.commit()
+        models.db.session.add(u)
+        models.db.session.commit()
 
         self.printc(f'Added user: {u}')
 
@@ -76,9 +75,9 @@ class Manager:
             u = models.User(name=user[0])
             u.setpass(user[1])
 
-            self.db.session.add(u)
+            models.db.session.add(u)
 
-        self.db.session.commit()
+        models.db.session.commit()
 
         users = [user[0] for user in users]
 
@@ -90,8 +89,8 @@ class Manager:
         user = models.User.query.filter_by(name=username).first()
 
         if user:
-            self.db.session.delete(user)
-            self.db.session.commit()
+            models.db.session.delete(user)
+            models.db.session.commit()
             self.printc(f'Deleted user: {user}')
         else:
             print(f'Could not find username {username}')
@@ -104,7 +103,7 @@ class Manager:
 
 if __name__ == '__main__':
     with APP.app_context():
-        mgr = Manager(models.db)
+        mgr = Manager()
 
         while 1:
             mgr.run()
