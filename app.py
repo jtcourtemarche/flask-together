@@ -68,5 +68,7 @@ fm.init_app(APP, pipe)
 login_manager.init_app(APP)
 socketio.init_app(APP)
 
+import jiejie.events  # noqa
+
 if __name__ == '__main__':
     socketio.run(APP)
