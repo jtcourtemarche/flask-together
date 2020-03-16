@@ -138,7 +138,11 @@ var preloadHistory = function(history) {
 
 var controlPlayNew = function (url) {
     if (typeof socket != 'undefined') {
-        socket.emit('user:play-new', {
+        var room_id = $('meta[name=room]').data('id')
+
+        socket.emit('user:play-new', 
+        room_id, 
+        {
             url: url,
             user: $('#current-user').data(),
         });
@@ -157,14 +161,22 @@ var controlFullscreen = function () {
 
 var controlPlay = function () {
     if (typeof socket != 'undefined') {
-        socket.emit('user:play', {
+        var room_id = $('meta[name=room]').data('id')
+        
+        socket.emit('user:play', 
+        room_id, 
+        {
             time: player.getCurrentTime()
         });            
     }
 };
 var controlPause = function () {
     if (typeof socket != 'undefined') {
-        socket.emit('user:pause', {
+        var room_id = $('meta[name=room]').data('id')
+
+        socket.emit('user:pause', 
+        room_id, 
+        {
             time: player.getCurrentTime()
         });
         $('#play').show();
@@ -186,8 +198,12 @@ var controlSkip = function (time) {
             }
             time = seconds;
         }
+        
+        var room_id = $('meta[name=room]').data('id')
 
-        socket.emit('user:skip', {
+        socket.emit('user:skip', 
+        room_id, 
+        {
             time: time
         });
     }
@@ -196,7 +212,11 @@ var controlSkip = function (time) {
 // Change Playback Rate ----------------->
 var controlRate = function (rate) {
     if (typeof socket != 'undefined') {
-        socket.emit('user:rate', {
+        var room_id = $('meta[name=room]').data('id')
+
+        socket.emit('user:rate', 
+        room_id, 
+        {
             rate: rate
         });
     }
@@ -204,7 +224,11 @@ var controlRate = function (rate) {
 
 var controlLoadMore = function (page) {
     if (typeof socket != 'undefined') {
-        socket.emit('user:search-load-more', {
+        var room_id = $('meta[name=room]').data('id')
+
+        socket.emit('user:search-load-more', 
+        room_id, 
+        {
             url: $('#yt-url').val(),
             page: page
         });

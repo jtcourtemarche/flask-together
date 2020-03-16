@@ -179,14 +179,14 @@ var connect_socket = function() {
         player.playVideo();
 
         // Update history bar
-        appendHistory(data.history);
+        appendHistory(data.most_recent);
 
         // Scrobble LastFM
 
         var callback = data;
         // Clear history from data to send to server
         // clearing the history will speed up the transaction
-        delete callback.history;
+        delete callback.most_recent;
         delete callback.player;
         callback.duration = callback.content.contentDetails.duration;
         delete callback.content;

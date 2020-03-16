@@ -27,10 +27,11 @@ All of your API keys belong in the config.py file as well.
 Your config.py file setup should look similar to this:
 
 ```python
-API_KEY = "<youtube api key>"
+YOUTUBE_KEY = "<youtube api key>"
 SECRET_KEY = "<secret key for flask>"
 
 # If you want LastFM integration (these are optional)
+LASTFM_ENABLED = True
 LASTFM_KEY = "<lastfm api key>"
 LASTFM_SECRET = "<lastfm secret key>"
 ```

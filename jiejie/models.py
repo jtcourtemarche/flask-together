@@ -111,7 +111,6 @@ class Room(db.Model):
 
     # TODO: Owner field?
 
-    # users registered for the room
     # use Room.query.with_parent(user_object) to get user's rooms
     # use Room.users to get users in room
     users = db.relationship(
@@ -125,8 +124,6 @@ class Room(db.Model):
                        server_default='t', nullable=False)
 
     def get_online_users(self):
-        # room_users = self.users
-
         online_users = pipe.smembers(
             'room:' + str(self.id)
         ).execute()
@@ -139,13 +136,11 @@ class Room(db.Model):
     # Retrieve most recent object from history
     def get_most_recent_video(self):
         schema = HistorySchema()
-
         return schema.dump(self.videos[0]) if self.videos else None
 
     # Retrieve last 20 objects from history
     def get_recent_history(self):
         schema = HistorySchema(many=True)
-
         return schema.dump(self.videos[:20])
 
     def __repr__(self):
