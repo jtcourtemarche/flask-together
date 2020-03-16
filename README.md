@@ -6,6 +6,8 @@ Platform built on Flask that synchronizes Youtube videos using websockets.
 
 **Tested for Python 3.6+**
 
+## Setup
+
 This application requires that you have a PostgreSQL & Redis server already set up.
 Put your credentials in the config.py file:
 
@@ -55,3 +57,9 @@ $ python app.py
 # Or run w/ Gunicorn
 $ gunicorn app:app --bind 0.0.0.0:5000 --reload -k "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"
 ```
+
+## Developer Notes
+
+### Disconnection Issue:
+  - A disconnect event will not fire immediately if you are not using web sockets. This can make users appear online long after they have left the room:
+    https://github.com/miguelgrinberg/Flask-SocketIO/issues/291
