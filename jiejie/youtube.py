@@ -7,33 +7,34 @@ import requests
 from config import YOUTUBE_KEY
 
 
-class YoutubeAPI:
-    # Returns JSON data for channel info query
-    def check_channel(self, url):
-        api_url = 'https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet'.format(
-            url.split('/channel/')[1],
-            YOUTUBE_KEY
-        )
-        return requests.get(api_url).json()['items']
+# Returns JSON data for channel info query
+def check_channel(url):
+    api_url = 'https://www.googleapis.com/youtube/v3/search?maxResults=20&type=video&order=date&channelId={0}&key={1}&part=id%2Csnippet'.format(
+        url.split('/channel/')[1],
+        YOUTUBE_KEY
+    )
+    return requests.get(api_url).json()['items']
 
-    # Returns JSON data for search query
-    def search(self, query, srange):
-        max_results = srange[1]
+# Returns JSON data for search query
 
-        # Max query size = 50
-        if srange[0] > 50:
-            return False
-        elif srange[1] > 50:
-            max_results = 50
 
-        query = quote(query)
-        url = f'https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={YOUTUBE_KEY}&part=id%2Csnippet'
+def search(query, srange):
+    max_results = srange[1]
 
-        return requests.get(url).json()['items'][srange[0]:srange[1]]
+    # Max query size = 50
+    if srange[0] > 50:
+        return False
+    elif srange[1] > 50:
+        max_results = 50
+
+    query = quote(query)
+    url = f'https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={YOUTUBE_KEY}&part=id%2Csnippet'
+
+    return requests.get(url).json()['items'][srange[0]:srange[1]]
 
 
 # Youtube video wrapper
-class YoutubeVideoWrapper:
+class VideoWrapper:
     def __init__(self, video_id):
         # TODO: check if requests don't fail
         self.feed = requests.get(

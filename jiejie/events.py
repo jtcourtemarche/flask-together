@@ -12,11 +12,10 @@ from flask_socketio import join_room
 from flask_socketio import leave_room
 
 import jiejie.models as models
+import jiejie.youtube as youtube
 from extensions import fm
 from extensions import pipe
 from extensions import socketio
-from jiejie.youtube import YoutubeAPI
-from jiejie.youtube import YoutubeVideoWrapper
 
 # TODO: namespaces
 # TODO: fix broken disconnect events
@@ -148,7 +147,7 @@ def play_new(room_id, data, room=None):
     # check if user wants to play a specific video link
     if user_input:
         # create video wrapper to parse video data
-        wrapper = YoutubeVideoWrapper(user_input[0][3])
+        wrapper = youtube.VideoWrapper(user_input[0][3])
 
         # create video object
         video = models.Video(
@@ -172,11 +171,11 @@ def play_new(room_id, data, room=None):
         }, room=room_id)
     elif '/channel/' in data['url']:
         # channel URL entered into search bar
-        results = YoutubeAPI.check_channel(data['url'])
+        results = youtube.check_channel(data['url'])
         emit('server:serve-list', results, room=request.sid)
     else:
         # standard Youtube search query
-        results = YoutubeAPI.search(data['url'], (0, 10))
+        results = youtube.search(data['url'], (0, 10))
         emit('server:serve-list', (results, False, 1), room=request.sid)
 
 
@@ -186,9 +185,9 @@ def play_new(room_id, data, room=None):
 def search_load_more(room_id, data, room=None):
     p = data['page']
     if p != 0:
-        results = YoutubeAPI.search(data['url'], (p * 10, ((p)+1) * 10))
+        results = youtube.search(data['url'], (p * 10, ((p)+1) * 10))
     else:
-        results = YoutubeAPI.search(data['url'], (0, 10))
+        results = youtube.search(data['url'], (0, 10))
 
     emit('server:serve-list', (results, True, p+1), room=request.sid)
 
