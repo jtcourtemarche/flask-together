@@ -1,0 +1,11 @@
+- Write unit tests for project
+- Put events in namespaces
+- See what can be done about broken disconnect events (see issue in README)
+- Private room implementation
+- Make lastfm_connected method an attribute in User model
+- Specify resolution of Video model thumbnail
+- Add owner field to Room model
+- Use Flask-WTF for user signup forms and room creation forms
+- Make config file TOML or YAML
+- Next redirect after login
+- Check that Youtube API requests don't fail
