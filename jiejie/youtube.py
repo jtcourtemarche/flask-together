@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import json
 from urllib.parse import quote
+from collections import namedtuple
 
 import requests
 
@@ -15,9 +16,8 @@ def check_channel(url):
     )
     return requests.get(api_url).json()['items']
 
+
 # Returns JSON data for search query
-
-
 def search(query, srange):
     max_results = srange[1]
 
@@ -33,33 +33,55 @@ def search(query, srange):
     return requests.get(url).json()['items'][srange[0]:srange[1]]
 
 
-# Youtube video wrapper
+# youtube video wrapper
 class VideoWrapper:
     def __init__(self, video_id):
-        # TODO: check if requests don't fail
-        self.feed = requests.get(
-            f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={YOUTUBE_KEY}&part=snippet').content
-        self.content = requests.get(
-            f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&part=contentDetails&key={YOUTUBE_KEY}').content
+        self.watch_id, self.date, self.title, self.author, self.thumbnail, self.duration = self.get_metadata(video_id) 
 
-        items = json.loads(self.feed)['items'][0]
+    def __bool__(self):
+        return bool(self.watch_id)
 
-        self.id = items['id'],
-        self.date = items['snippet']['publishedAt']
-        self.title = items['snippet']['title']
-        self.author = items['snippet']['channelTitle']
-        self.thumbnail = items['snippet']['thumbnails']['medium']['url']
+    def return_as_dict(self):
+        return {
+            'watch_id': self.watch_id,
+            'date': self.date,
+            'title': self.title,
+            'author': self.author,
+            'thumbnail': self.thumbnail,
+            'duration': self.duration
+        }
 
-        self.content = self.get_content()
+    def get_metadata(self, video_id):
+        try:
+            feed = requests.get(
+                f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&key={YOUTUBE_KEY}&part=snippet').content
+            content = requests.get(
+                f'https://www.googleapis.com/youtube/v3/videos?id={video_id}&part=contentDetails&key={YOUTUBE_KEY}').content
+        except requests.exceptions.ConnectionError:
+            # TODO: log that can't connect to API
+            items, content = None, None
+        else:
+            items = json.loads(feed)['items'][0]
+            duration = self.parse_duration(json.loads(content)['items'][0]) 
 
-    def get_content(self):
-        content = json.loads(self.content)['items'][0]
+            return (
+                items['id'],
+                items['snippet']['publishedAt'],
+                items['snippet']['title'],
+                items['snippet']['channelTitle'],
+                items['snippet']['thumbnails']['medium']['url'],
+                duration
+            )
+        return (None, None, None, None, None, None) 
+
+    def parse_duration(self, content):
+        # TODO: refactor
         duration = content['contentDetails']['duration']
 
-        # Separate duration formats into array where ->
+        # separate duration formats into array where ->
         #   [hours, minutes, seconds]
 
-        # Remove PT
+        # remove PT substring
         duration = duration.replace('PT', '')
 
         if 'H' in duration:
@@ -79,9 +101,6 @@ class VideoWrapper:
             duration[2] = 0
 
         duration = [int(d) for d in duration]
-        # Convert to seconds
-        duration = (duration[0] * 3600) + (duration[1] * 60) + duration[2]
 
-        content['contentDetails']['duration'] = duration
-
-        return content
+        # convert to seconds
+        return (duration[0] * 3600) + (duration[1] * 60) + duration[2]

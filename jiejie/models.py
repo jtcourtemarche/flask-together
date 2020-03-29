@@ -72,7 +72,6 @@ class Video(db.Model):
     watch_id = db.Column(db.String(25), unique=False,
                          nullable=False)  # YouTube watch ID
     title = db.Column(db.String(100), unique=False, nullable=False)
-    # TODO: specify resolution
     thumbnail = db.Column(db.String, unique=False, nullable=True)
     date = db.Column(db.DateTime, default=datetime.now())  # Date watched
 

@@ -55,7 +55,7 @@ var connect_socket = function() {
 
             player.addEventListener('onStateChange', function a(state) {
                 if (state.data == 1 && player_initialized == false) {
-                    socket.emit('user:init-preload');
+                    socket.emit('user:signal-preload');
                     player_initialized = true;
                 }
             });
@@ -163,33 +163,29 @@ var connect_socket = function() {
     });
 
     // Process playing new video ------------>
-    socket.on('server:play-new', function (data) {
+    socket.on('server:play-new', function (video) {
         // Reset play button
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
 
         // Set Youtube data
-        $('title').html(data.title);
-        $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.id+"'>"+data.title+"</a>");
+        $('title').html(video.metadata.title);
+        $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+video.metadata.id+"'>"+video.metadata.title+"</a>");
 
         // Load new video
-        player.loadVideoById(data.id[0]);
+        player.loadVideoById(video.metadata.watch_id);
         player.seekTo(0);
         player.playVideo();
 
         // Update history bar
-        appendHistory(data.most_recent);
+        appendHistory(video.most_recent);
 
         // Scrobble LastFM
 
-        var callback = data;
-        // Clear history from data to send to server
-        // clearing the history will speed up the transaction
+        var callback = video;
+        // clearing the most recent video info will speed up the transaction
         delete callback.most_recent;
-        delete callback.player;
-        callback.duration = callback.content.contentDetails.duration;
-        delete callback.content;
 
         // Send request to LastFM function to see if the video can be scrobbled
         socket.emit('user:play-callback', {data: JSON.stringify(callback)});

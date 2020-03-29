@@ -131,26 +131,3 @@ $('#play, #pause').click(function() {
 $('#replay').click(function() {
 	$('#replay').hide();
 });
-
-/*
-
-DEPRECATED 9/25/18
-
-$('.embed-responsive').mouseenter(function() {
-	$('#video-overlay').fadeIn(100);
-});
-$('.embed-responsive').mouseleave(function() {
-	$('#video-overlay').fadeOut(0);
-});
-*/
-
-/*
-// Cancel overlay fade out on these click events
-$('#video-overlay #page-title').mouseenter(function() {
-	$('#video-overlay').fadeIn(0);
-});
-$('#video-overlay #page-artist').mouseenter(function() {
-	$('#video-overlay').fadeIn(0);
-});
-*/
-

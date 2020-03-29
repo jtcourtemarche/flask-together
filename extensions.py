@@ -23,7 +23,7 @@ except redis.exceptions.ConnectionError:
     redis_connected = False
 
 # LastFM API
-fm = LastFMAPI()
+fm = LastFMAPI(enabled=False)
 
 # Login manager
 login_manager = LoginManager()

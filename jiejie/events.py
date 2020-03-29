@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import functools
+from functools import wraps
 import json
 import re
 import traceback
@@ -20,41 +20,31 @@ from extensions import socketio
 # TODO: namespaces
 # TODO: fix broken disconnect events
 
-# decorators
+# DECORATORS 
 
-# tests if current_user is logged in
-
-
-def login_required(f):
-    @functools.wraps(f)
-    def wrapped(*args, **kwargs):
+def login_required(event):
+    @wraps(event)
+    def inner(*args, **kwargs):
         if not current_user.is_authenticated:
             disconnect()
         else:
-            return f(*args, **kwargs)
-    return wrapped
-
-# tests if passed room_id is valid, returns string room_id and room object
+            return event(*args, **kwargs)
+    return inner 
 
 
-def room_exists(f):
-    @functools.wraps(f)
-    def wrapped(room_id, *args, **kwargs):
-        if not type(room_id) is int:
-            disconnect()
-            return None
+def room_exists(event):
+    @wraps(event)
+    def inner(room_id, *args, **kwargs):
+        if type(room_id) is int:
+            room = models.Room.query.get(room_id)
 
-        room = models.Room.query.get(room_id)
+            # TODO: check if room is private and current_user is in it
+            if room and room.public:
+                return event(str(room_id), room=room, *args, **kwargs)
+        disconnect()
+    return inner
 
-        # TODO: check if room is private and current_user is in it
-        if not room or not room.public:
-            disconnect()
-            return None
-
-        return f(str(room_id), room=room, *args, **kwargs)
-    return wrapped
-
-# user handlers
+# USER HANDLERS
 
 # handle when a user joins
 @socketio.on('user:connected')
@@ -87,25 +77,23 @@ def handle_connect(room_id, room=None):
 @socketio.on('disconnected')
 @login_required
 def handle_disconnect():
-    # leave all rooms
+    # disconnect from all rooms
     for room in models.Room.query.with_parent(current_user):
-        room_id = str(room.id)
-
-        leave_room(room_id)
-
         # remove from active users
         pipe.srem(
-            'room:' + room_id,
+            'room:' + str(room.id),
             current_user.name
         )
 
+        # notify room that user disconnected
         emit('server:disconnected', {
             'user_name': current_user.name,
-        }, room=room_id)
+        }, room=str(room.id))
 
-    # Clear LastFM cache for user
-    pipe.set('lastfm:'+current_user.name, '')
-    pipe.execute()
+    # clear lastfm cache for user
+    if fm.enabled:
+        pipe.set('lastfm:'+current_user.name, '')
+        pipe.execute()
 
 
 """
@@ -119,10 +107,10 @@ def handle_disconnect():
     Initialize a request to an online user to get the currently playing video's time
     If there are no online users, the video will play at 0:00 by default.
 """
-@socketio.on('user:init-preload')
+@socketio.on('user:signal-preload')
 @login_required
 @room_exists
-def init_preload(room_id, room=None):
+def signal_preload(room_id, room=None):
     emit('server:request-data', {
         'sid': request.sid,
     }, room=room_id, include_self=False)
@@ -148,10 +136,12 @@ def play_new(room_id, data, room=None):
     if user_input:
         # create video wrapper to parse video data
         wrapper = youtube.VideoWrapper(user_input[0][3])
+        if not wrapper:
+            return # do nothing if can't connect to youtube api
 
         # create video object
         video = models.Video(
-            watch_id=wrapper.id,
+            watch_id=wrapper.watch_id,
             title=wrapper.title,
             thumbnail=wrapper.thumbnail,
             user_id=data['user']['id'],
@@ -163,11 +153,8 @@ def play_new(room_id, data, room=None):
         models.db.session.commit()
 
         emit('server:play-new', {
-            'author': wrapper.author,
-            'content': wrapper.content,
             'most_recent': room.get_most_recent_video(),
-            'id': wrapper.id,
-            'title': wrapper.title,
+            'metadata': wrapper.return_as_dict()
         }, room=room_id)
     elif '/channel/' in data['url']:
         # channel URL entered into search bar
@@ -196,50 +183,52 @@ def search_load_more(room_id, data, room=None):
 @socketio.on('user:play-callback')
 def play_new_handler(d):
     # Scrobbling
-    get_cache = pipe.get(current_user.name).execute()
+    if fm.enabled:
+        get_cache = pipe.get(current_user.name).execute()
 
-    d = json.loads(d['data'])
+        d = json.loads(d['data'])
 
-    scrobbleable = False
+        scrobbleable = False
 
-    # Checks if the video played can be scrobbled
-    if get_cache != [b''] and get_cache != [None]:
-        # Send scrobble to API then clear from cache
-        fm.scrobble(current_user.name)
-        pipe.set(current_user.name, '').execute()
-    elif len(d['title'].split(' - ')) == 2:
-        # Check if song
-        title = d['title'].split(' - ')
-        track = re.sub(r'\([^)]*\)', '', title[1])
-        artist = title[0]
-        scrobbleable = True
-    elif len(d['title'].split('- ')) == 2:
-        # Check if song
-        title = d['title'].split('- ')
-        track = re.sub(r'\([^)]*\)', '', title[1])
-        artist = title[0]
-        scrobbleable = True
-    elif ' - Topic' in d['author']:
-        # Youtube "Topic" music videos
-        track = d['title']
-        artist = d['author'].rstrip(' - Topic')
-        scrobbleable = True
+        # Checks if the video played can be scrobbled
+        if get_cache != [b''] and get_cache != [None]:
+            # Send scrobble to API then clear from cache
+            fm.scrobble(current_user.name)
+            pipe.set(current_user.name, '').execute()
+        elif len(d['title'].split(' - ')) == 2:
+            # Check if song
+            title = d['title'].split(' - ')
+            track = re.sub(r'\([^)]*\)', '', title[1])
+            artist = title[0]
+            scrobbleable = True
+        elif len(d['title'].split('- ')) == 2:
+            # Check if song
+            title = d['title'].split('- ')
+            track = re.sub(r'\([^)]*\)', '', title[1])
+            artist = title[0]
+            scrobbleable = True
+        elif ' - Topic' in d['author']:
+            # Youtube "Topic" music videos
+            track = d['title']
+            artist = d['author'].rstrip(' - Topic')
+            scrobbleable = True
 
-    if scrobbleable:
-        emit('server:play-new-artist', {
-            'artist': fm.get_artist(artist),
-        }, broadcast=True)
+        if scrobbleable:
+            emit('server:play-new-artist', {
+                'artist': fm.get_artist(artist),
+            }, broadcast=True)
 
-    # Handle scrobbling after playing video
-    if current_user.lastfm_connected():
-        duration = d['duration']
-        fm.update_now_playing(artist, track, current_user, duration)
-    else:
-        # Denote that nothing is being scrobbled anymore
-        pipe.set(current_user.name, '').execute()
+        # Handle scrobbling after playing video
+        if fm.enabled:
+            if current_user.lastfm_connected():
+                duration = d['duration']
+                fm.update_now_playing(artist, track, current_user, duration)
+            else:
+                # Denote that nothing is being scrobbled anymore
+                pipe.set(current_user.name, '').execute()
 
 
-# video controls
+# VIDEO CONTROLS 
 
 # Play
 @socketio.on('user:play')

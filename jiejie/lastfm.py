@@ -10,8 +10,10 @@ from config import LASTFM_SECRET
 
 
 class LastFMAPI:
+    def __init__(self, enabled=True):
+        self.enabled = enabled 
+
     def init_app(self, app, redis_pipeline):
-        # params: Flask object, Redis pipeline
         self.app = app
         self.pipe = redis_pipeline
 
