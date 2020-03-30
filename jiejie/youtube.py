@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import json
 from urllib.parse import quote
-from collections import namedtuple
 
 import requests
 

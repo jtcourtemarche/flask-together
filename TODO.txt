@@ -3,9 +3,12 @@
 - See what can be done about broken disconnect events (see issue in README)
 - Private room implementation
 - Make lastfm_connected method an attribute in User model
-- Specify resolution of Video model thumbnail
 - Add owner field to Room model
 - Use Flask-WTF for user signup forms and room creation forms
 - Make config file TOML or YAML
 - Next redirect after login
-- Check that Youtube API requests don't fail
+- Use the integrated flask-socketio callbacks for preload events
+- Use Flask's integrated error handling
+- Dispatch frontend error when room_exists decorator fails
+- Setup proper error logging
+- Implement fullscreen control for browsers other than Chrome

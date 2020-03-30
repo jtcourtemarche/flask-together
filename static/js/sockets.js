@@ -4,6 +4,22 @@ var socket, start_time, start_video, player_initialized;
 
 player_initialized = false;
 
+function reload_online_users(online_users)
+{
+    // reset active users
+    $('.active-users').empty();
+
+    // show all active users
+    online_users.forEach(function(user, index) {
+        if (user != undefined)
+        {
+            $('.active-users').append(
+                '<div id="'+user+'" class="online-user"></div><i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+user+'">'+user+'</a></div>&nbsp;'
+            );
+        }
+    });
+}
+
 // Initialize socket events ------------->
 var connect_socket = function() {
     if (socket == undefined) {
@@ -28,41 +44,38 @@ var connect_socket = function() {
         $('.active-users #'+data.user_name).remove();
         console.log('disconnected');
     });
-
-    function reload_online_users(online_users)
-    {
-        // reset active users
-        $('.active-users').empty();
-
-        // show all active users
-        online_users.forEach(function(user, index) {
-            if (user != undefined)
-            {
-                $('.active-users').append(
-                    '<div id="'+user+'" class="online-user"></div><i class="fas fa-circle online"></i>&nbsp;<a target="_blank" href="/~'+user+'">'+user+'</a></div>&nbsp;'
-                );
-            }
-        });
-    }
-
-    // Load last video from DB -------------->
+    
+    // Load last video from database -------------->
     socket.on('server:sync', function(data) {
         // play most recent video 
-        if (data.most_recent != null) {
+        if (Object.keys(data.most_recent).length != 0) {
             player.loadVideoById(data.most_recent.watch_id);
             $('title').html(data.most_recent.title);
             $('.video_title').html("<a href='https://www.youtube.com/watch?v="+data.most_recent.watch_id+"'>"+data.most_recent.title+"</a>");
 
             player.addEventListener('onStateChange', function a(state) {
                 if (state.data == 1 && player_initialized == false) {
-                    socket.emit('user:signal-preload');
+                    socket.emit('user:signal-preload', 
+                        $('meta[name=room]').data('id')
+                    );
                     player_initialized = true;
                 }
             });
-        
-            preloadHistory(data.history);
+        }
+
+        $("#history-list").empty();
+
+        // load room history
+        if (Object.keys(data.history).length != 0)
+        {
+            data.history.forEach(function(video) {
+                $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+                    video.watch_id + "\")'><p>" + 
+                    video.title + "</p><img class='thumbnail' src='" + 
+                    video.thumbnail + 
+                    "' /></li>");
+            });
         } else {
-            $('#history-list').empty();
             $("#history-list").append("<span class='no-search'>No history.</span>");
         }
 
@@ -80,7 +93,7 @@ var connect_socket = function() {
         reload_online_users(data.online_users);
     });
 
-    // Handle Request for Data -------------->
+    // Handle request for data callback -------------->
     socket.on('server:request-data', function(data) {
         socket.emit('user:preload-info', {
             time: player.getCurrentTime(),
@@ -121,7 +134,7 @@ var connect_socket = function() {
 
     // Skip --------------------------------->
     socket.on('server:skip', function (data) {
-        player.seekTo(data['time']);
+        player.seekTo(data.time);
         if ($('#play').is(':visible')) {
             $('#play').show();
             $('#pause').hide();
@@ -137,7 +150,7 @@ var connect_socket = function() {
 
     // Controls ------------------------->
     socket.on('server:play', function (data) {
-        player.seekTo(data['time']);
+        player.seekTo(data.time);
         player.playVideo();
 
         $('#pause').show();
@@ -145,7 +158,7 @@ var connect_socket = function() {
         $('#replay').hide();
     });
     socket.on('server:pause', function (data) {
-        player.seekTo(data['time']);
+        player.seekTo(data.time);
         player.pauseVideo();
 
         $('#play').show();
@@ -153,37 +166,41 @@ var connect_socket = function() {
         $('#replay').hide();
     });
     socket.on('server:rate', function(data) {
-        player.setPlaybackRate(data['rate']);
+        player.setPlaybackRate(data.rate);
         // Cancel previous animation
         $('.playback-rate').stop(true, true).fadeOut(2500);
 
         $('.playback-rate').show();
-        $('.playback-rate').html(data['rate']+'x');
+        $('.playback-rate').html(data.rate+'x');
         $('.playback-rate').fadeOut(2500);
     });
 
     // Process playing new video ------------>
-    socket.on('server:play-new', function (video) {
+    socket.on('server:play-new', function (data) {
         // Reset play button
         $('#pause').show();
         $('#play').hide();
         $('#replay').hide();
 
         // Set Youtube data
-        $('title').html(video.metadata.title);
-        $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+video.metadata.id+"'>"+video.metadata.title+"</a>");
+        $('title').html(data.video.title);
+        $('.video_title').html("<a target='_blank' href='https://www.youtube.com/watch?v="+data.video.id+"'>"+data.video.title+"</a>");
 
         // Load new video
-        player.loadVideoById(video.metadata.watch_id);
+        player.loadVideoById(data.video.watch_id);
         player.seekTo(0);
         player.playVideo();
 
-        // Update history bar
-        appendHistory(video.most_recent);
+        // Update history list with new video
+        $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+            data.video.watch_id + "\")'><p>" + 
+            data.video.title + "</p><img class='thumbnail' src='" + 
+            data.video.thumbnail + 
+            "' /></li>");    
 
         // Scrobble LastFM
 
-        var callback = video;
+        var callback = data;
         // clearing the most recent video info will speed up the transaction
         delete callback.most_recent;
 
@@ -205,31 +222,32 @@ var connect_socket = function() {
     });
 
     // Search function ---------------------->
-    socket.on('server:serve-list', function (results, append, page) {
+    socket.on('server:serve-list', function (data) {
         $('#yt-search').html('Search');
 
-        if (!append)
+        if (!data.append) {
             $("#search-list").empty();
-        else {
+        } else {
             $('.load-more').remove();
         }
 
-        if (results.length == 0) {
+        if (data.results.length == 0) {
             $("#search-list").append("<span class='no-search'>No results found.</span>");
         } else {
-            for (var r in results) {
-                $("#search-list").append("<li id='list-result' tabindex='"+r+"' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                 results[r].id.videoId + "\")'><p>" +
-                 results[r].snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+results[r].snippet.title+"' src='" +
-                 results[r].snippet.thumbnails.high.url +
-                 "' /><span class='upload-date'>"+
-                 results[r].snippet.publishedAt.split('T')[0] +
-                 "</span></li>");
-            }
-            $("#search-list").append("<li id='list-result' class='load-more' tabindex='"+results.length+"' class='list-group-item' onclick='controlLoadMore("+page+")'><i class='fas fa-chevron-circle-down'></i></li>");
+            data.results.forEach(function(video) {
+                $("#search-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
+                    video.id.videoId + "\")'><p>" +
+                    video.snippet.title + "</p><img class='thumbnail' alt='Thumbnail Image for "+video.snippet.title+"' src='" +
+                    video.snippet.thumbnails.high.url +
+                    "' /><span class='upload-date'>"+
+                    video.snippet.publishedAt.split('T')[0] +
+                    "</span></li>");
+            });
+
+            $("#search-list").append("<li id='list-result' class='load-more' tabindex='"+data.results.length+"' class='list-group-item' onclick='controlLoadMore("+data.page+")'><i class='fas fa-chevron-circle-down'></i></li>");
         }
 
-        if (!append)
+        if (!data.append)
             $('#search-list').scrollTo(0);
     });
 

@@ -15,10 +15,6 @@ function onYouTubeIframeAPIReady() {
         playerVars: {
             controls: 0,
             cc_load_policy: 0,
-            // Removed 9/25/18 (my birthday! thanks Youtube!!)
-            rel: 0,
-            // Also deprecated as of 9/25/18
-            showinfo: 0,
             host: 'localhost',
             origin: 'localhost',
             frameborder: 0,
@@ -60,10 +56,6 @@ function onReady (event) {
 }
 
 function stateChange (event) {
-    if (event.data == 5) {
-        socket.emit('user:player-ready', event.target);
-    }
-
     if (event.data == 0) {
         // Video ended
         $('#play').hide();
@@ -100,92 +92,39 @@ function showPlaybackRates(playback_rates) {
     }
 }
 
-// ------------------------------------------------>
-
-var appendHistory = function(latest_item) {
-    $("#history-list").prepend("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-    latest_item.video_id + "\")'><p>" + 
-    latest_item.video_title + "</p><img class='thumbnail' src='" + 
-    latest_item.video_thumbnail + 
-    "' /></li>");    
-}
-
-var preloadHistory = function(history) {
-    $("#history-list").empty();
-    for (var h in history.reverse()) {
-        if (h > 20) {
-            break;
-        } else if (h >= history.length) {
-            break;
-        }
-
-        var prev_video_title;
-
-        if (history[h].video_id.length != 0) {
-            // Avoid repeats
-            if (prev_video_title != history[h].video_title) {
-                prev_video_title = history[h].video_title;
-
-                $("#history-list").append("<li id='list-result' class='list-group-item' onclick='controlPlayNew(\"https://www.youtube.com/watch?v=" +
-                history[h].video_id + "\")'><p>" + 
-                history[h].video_title + "</p><img class='thumbnail' src='" + 
-                history[h].video_thumbnail + 
-                "' /></li>");
-            }
-        }
-    }
-};
+// Shared controls ------------------------------------------------>
 
 var controlPlayNew = function (url) {
     if (typeof socket != 'undefined') {
-        var room_id = $('meta[name=room]').data('id')
-
         socket.emit('user:play-new', 
-        room_id, 
-        {
-            url: url,
-            user: $('#current-user').data(),
-        });
-    }
-};
-
-// Fullscreen --------------------------->
-var controlFullscreen = function () {
-    if (typeof socket != 'undefined') {
-        var iframe = document.getElementById("youtube-player");
-
-        // Chrome only implementation
-        iframe.webkitRequestFullScreen();
+            $('meta[name=room]').data('id'),
+            url
+        );
     }
 };
 
 var controlPlay = function () {
     if (typeof socket != 'undefined') {
-        var room_id = $('meta[name=room]').data('id')
-        
         socket.emit('user:play', 
-        room_id, 
-        {
-            time: player.getCurrentTime()
-        });            
+            $('meta[name=room]').data('id'),
+            player.getCurrentTime()
+        );            
     }
 };
+
 var controlPause = function () {
     if (typeof socket != 'undefined') {
-        var room_id = $('meta[name=room]').data('id')
-
         socket.emit('user:pause', 
-        room_id, 
-        {
-            time: player.getCurrentTime()
-        });
+            $('meta[name=room]').data('id'),
+            player.getCurrentTime()
+        );
         $('#play').show();
         $('#pause').hide();
         $('#replay').hide();
     }
 };
 
-// Skip to ------------------------------>
+// Skip to 
 var controlSkip = function (time) {
     var seconds;
     if (typeof socket != 'undefined') {
@@ -198,40 +137,41 @@ var controlSkip = function (time) {
             }
             time = seconds;
         }
-        
-        var room_id = $('meta[name=room]').data('id')
-
         socket.emit('user:skip', 
-        room_id, 
-        {
-            time: time
-        });
+            $('meta[name=room]').data('id'), 
+            time
+        );
     }
 };
 
-// Change Playback Rate ----------------->
+// Change Playback Rate 
 var controlRate = function (rate) {
     if (typeof socket != 'undefined') {
-        var room_id = $('meta[name=room]').data('id')
-
         socket.emit('user:rate', 
-        room_id, 
-        {
-            rate: rate
-        });
+            $('meta[name=room]').data('id'),
+            rate
+        );
     }
 };
 
 var controlLoadMore = function (page) {
     if (typeof socket != 'undefined') {
-        var room_id = $('meta[name=room]').data('id')
-
         socket.emit('user:search-load-more', 
-        room_id, 
-        {
-            url: $('#yt-url').val(),
-            page: page
-        });
+            $('meta[name=room]').data('id'),
+            $('#yt-url').val(),
+            page
+        );
     }
 }
 
+// Local controls ------------------------------------------------>
+
+var controlFullscreen = function () {
+    if (typeof socket != 'undefined') {
+        var iframe = document.getElementById("youtube-player");
+
+        // Chrome only implementation
+        // TODO: support other browsers
+        iframe.webkitRequestFullScreen();
+    }
+};

@@ -92,7 +92,7 @@ $('#volume-slider').on('mouseup', function() {
 $('#progress-bar').on('click touchend', function (e) {
 	// Calculate the new time for the video.
 	var newTime = player.getDuration() * (e.target.value / 100);
-	socket.emit('user:skip', {time: newTime});
+	controlSkip(newTime);
 });
 
 $('#yt-url').on("keydown", function(event) {

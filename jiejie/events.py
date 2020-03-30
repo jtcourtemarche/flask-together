@@ -17,6 +17,8 @@ from extensions import fm
 from extensions import pipe
 from extensions import socketio
 
+from config import DEBUG 
+
 # TODO: namespaces
 # TODO: fix broken disconnect events
 
@@ -26,8 +28,19 @@ def login_required(event):
     @wraps(event)
     def inner(*args, **kwargs):
         if not current_user.is_authenticated:
+            if DEBUG:
+                print('\nauthentiction check failed!!!\n')
+
             disconnect()
         else:
+            if DEBUG:
+                print('\nsid: {}\nuser: {}\nevent: {}\narguments passed: {}\n'.format(
+                    request.sid,
+                    current_user.name,
+                    event.__name__,
+                    str(args) 
+                )) # log every socket event
+
             return event(*args, **kwargs)
     return inner 
 
@@ -41,7 +54,11 @@ def room_exists(event):
             # TODO: check if room is private and current_user is in it
             if room and room.public:
                 return event(str(room_id), room=room, *args, **kwargs)
+
+        if DEBUG:
+            print(f'\nroom_exists decorator check failed!!!\narguments passed: {str(args)}\n')
         disconnect()
+        # TODO: dispatch frontend error when this fails
     return inner
 
 # USER HANDLERS
@@ -50,7 +67,7 @@ def room_exists(event):
 @socketio.on('user:connected')
 @login_required
 @room_exists
-def handle_connect(room_id, room=None):
+def on_connect(room_id, room=None):
     join_room(room_id)
 
     # add to active users
@@ -68,6 +85,7 @@ def handle_connect(room_id, room=None):
 
     # sync new user w/ room
     emit('server:sync', {
+        'history': room.get_recent_history(),
         'most_recent': room.get_most_recent_video(),
         'online_users': room.get_online_users()
     }, room=request.sid)
@@ -76,7 +94,7 @@ def handle_connect(room_id, room=None):
 # Handle when a user disconnects
 @socketio.on('disconnected')
 @login_required
-def handle_disconnect():
+def on_disconnect():
     # disconnect from all rooms
     for room in models.Room.query.with_parent(current_user):
         # remove from active users
@@ -96,6 +114,8 @@ def handle_disconnect():
         pipe.execute()
 
 
+# TODO: use the integrated flask-socketio callbacks:
+# https://flask-socketio.readthedocs.io/en/latest/
 """
     This is the path that preloaded data takes:
 
@@ -123,14 +143,15 @@ def preload(data):
     emit('server:preload', data, room=data['sid'])
 
 
+# TODO: split search and play-new into different events
 # process new video being played.
 @socketio.on('user:play-new')
 @login_required
 @room_exists
-def play_new(room_id, data, room=None):
+def play_new(room_id, url, room=None):
     # extract unique_id from Youtube url
     yt_regex = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
-    user_input = re.findall(yt_regex, data['url'])
+    user_input = re.findall(yt_regex, url)
 
     # check if user wants to play a specific video link
     if user_input:
@@ -144,7 +165,7 @@ def play_new(room_id, data, room=None):
             watch_id=wrapper.watch_id,
             title=wrapper.title,
             thumbnail=wrapper.thumbnail,
-            user_id=data['user']['id'],
+            user_id=current_user.id,
             room_id=room_id
         )
 
@@ -154,29 +175,29 @@ def play_new(room_id, data, room=None):
 
         emit('server:play-new', {
             'most_recent': room.get_most_recent_video(),
-            'metadata': wrapper.return_as_dict()
+            'video': wrapper.return_as_dict()
         }, room=room_id)
-    elif '/channel/' in data['url']:
+    elif '/channel/' in url:
         # channel URL entered into search bar
-        results = youtube.check_channel(data['url'])
-        emit('server:serve-list', results, room=request.sid)
+        results = youtube.check_channel(url)
+        emit('server:serve-list', {'results': results, 'append': False, 'page': 1}, room=request.sid)
     else:
         # standard Youtube search query
-        results = youtube.search(data['url'], (0, 10))
-        emit('server:serve-list', (results, False, 1), room=request.sid)
+        results = youtube.search(url, (0, 10))
+        emit('server:serve-list', {'results': results, 'append': False, 'page': 1}, room=request.sid)
 
 
 # Handles loading more results for a Youtube search
 @socketio.on('user:search-load-more')
+@login_required
 @room_exists
-def search_load_more(room_id, data, room=None):
-    p = data['page']
-    if p != 0:
-        results = youtube.search(data['url'], (p * 10, ((p)+1) * 10))
+def search_load_more(room_id, url, page, room=None):
+    if page != 0:
+        results = youtube.search(url, (page * 10, ((page)+1) * 10))
     else:
-        results = youtube.search(data['url'], (0, 10))
+        results = youtube.search(url, (0, 10))
 
-    emit('server:serve-list', (results, True, p+1), room=request.sid)
+    emit('server:serve-list', {'results': results, 'append': True, 'page': page + 1}, room=request.sid)
 
 
 # This is for managing cache for LastFM scrobbling
@@ -232,31 +253,34 @@ def play_new_handler(d):
 
 # Play
 @socketio.on('user:play')
+@login_required
 @room_exists
-def play(room_id, data, room=None):
-    emit('server:play', {'time': data['time']}, room=room_id)
+def control_play(room_id, time, room=None):
+    emit('server:play', {'time': time}, room=room_id)
 
 
 # Pause
 @socketio.on('user:pause')
+@login_required
 @room_exists
-def pause(room_id, data, room=None):
-    # Pausing video locally for user who requested pause makes interface slightly smoother
-    emit('server:pause', {'time': data['time']}, room=room_id)
+def control_pause(room_id, time, room=None):
+    emit('server:pause', {'time': time}, room=room_id)
 
 
 # Playback rate
 @socketio.on('user:rate')
+@login_required
 @room_exists
-def handle_rate(room_id, data, room=None):
-    emit('server:rate', {'rate': data['rate']}, room=room_id)
+def control_rate(room_id, rate, room=None):
+    emit('server:rate', {'rate': rate}, room=room_id)
 
 
 # Skip
 @socketio.on('user:skip')
+@login_required
 @room_exists
-def handle_skip(room_id, data, room=None):
-    emit('server:skip', {'time': data['time']}, room=room_id)
+def control_skip(room_id, time, room=None):
+    emit('server:skip', {'time': time}, room=room_id)
 
 
 # Error handling
