@@ -135,12 +135,23 @@ class Room(db.Model):
     # Retrieve most recent object from history
     def get_most_recent_video(self):
         schema = HistorySchema()
-        return schema.dump(self.videos[0]) if self.videos else None
+
+        if self.videos:
+            data, errors = schema.dump(self.videos[0])
+            if not errors:
+                return data
+
+        return dict() 
 
     # Retrieve last 20 objects from history
     def get_recent_history(self):
         schema = HistorySchema(many=True)
-        return schema.dump(self.videos[:20])
+
+        data, errors = schema.dump(reversed(self.videos[:20]))
+        if not errors:
+            return data 
+
+        return dict() 
 
     def __repr__(self):
         return '<Room: %r, %r>' % (self.id, self.name)
