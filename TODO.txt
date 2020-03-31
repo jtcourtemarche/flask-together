@@ -2,7 +2,6 @@
 - Put events in namespaces
 - See what can be done about broken disconnect events (see issue in README)
 - Private room implementation
-- Make lastfm_connected method an attribute in User model
 - Add owner field to Room model
 - Use Flask-WTF for user signup forms and room creation forms
 - Make config file TOML or YAML

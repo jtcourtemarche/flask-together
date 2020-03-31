@@ -66,14 +66,14 @@ def test_room_model(db):
         # test room methods
         print()
 
-        print('room.get_most_recent_video():')
-        print(room.get_most_recent_video().data)
+        print('room.most_recent_video:')
+        print(room.most_recent_video.data)
 
-        print('room.get_online_users()')
-        # room.get_online_users()
+        print('room.online_users')
+        room.online_users
 
-        print('room.get_recent_history():')
-        print(room.get_recent_history().data)
+        print('room.recent_history:')
+        print(room.recent_history.data)
     except Exception as error:
         print('!! FAILED: ', error)
 

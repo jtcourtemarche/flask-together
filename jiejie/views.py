@@ -90,7 +90,7 @@ def user_history(name, index=1):
 def user_profile(name):
     user = models.User.query.filter_by(name=name).first()
     if user:
-        if user.lastfm_connected():
+        if user.lastfm_connected:
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None
@@ -99,7 +99,7 @@ def user_profile(name):
             'profile.html',
             user=user,
             total_plays=len(user.videos),
-            most_played=user.get_most_played_video(),
+            most_played=user.most_played_video,
             lastfm=lastfm_data
         )
 

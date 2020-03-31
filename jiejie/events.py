@@ -78,16 +78,16 @@ def on_connect(room_id, room=None):
 
     # notify active users in room that a user has joined
     emit('server:user-joined',
-         {'online_users': room.get_online_users()},
+         {'online_users': room.online_users},
          room=room_id,
          include_self=False
          )
 
     # sync new user w/ room
     emit('server:sync', {
-        'history': room.get_recent_history(),
-        'most_recent': room.get_most_recent_video(),
-        'online_users': room.get_online_users()
+        'history': room.recent_history,
+        'most_recent': room.most_recent_video,
+        'online_users': room.online_users
     }, room=request.sid)
 
 
@@ -174,7 +174,7 @@ def play_new(room_id, url, room=None):
         models.db.session.commit()
 
         emit('server:play-new', {
-            'most_recent': room.get_most_recent_video(),
+            'most_recent': room.most_recent_video,
             'video': wrapper.return_as_dict()
         }, room=room_id)
     elif '/channel/' in url:
@@ -241,7 +241,7 @@ def play_new_handler(d):
 
         # Handle scrobbling after playing video
         if fm.enabled:
-            if current_user.lastfm_connected():
+            if current_user.lastfm_connected:
                 duration = d['duration']
                 fm.update_now_playing(artist, track, current_user, duration)
             else:

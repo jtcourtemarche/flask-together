@@ -33,11 +33,9 @@ class User(db.Model, UserMixin):
     def checkpass(self, password):
         return check_password_hash(self.password, password)
 
-    # TODO: Change this to be an attribute
+    @property
     def lastfm_connected(self):
-        if self.fm_sk != '':
-            return True
-        return False
+        return bool(self.fm_sk != '')
 
     def join_room(self, room):
         room.users.append(self)
@@ -52,7 +50,8 @@ class User(db.Model, UserMixin):
 
         db.session.commit()
 
-    def get_most_played_video(self):
+    @property
+    def most_played_video(self):
         if self.videos:
             most_played = Counter(
                 [video.watch_id for video in self.videos]).most_common(1)
@@ -122,7 +121,8 @@ class Room(db.Model):
     public = db.Column(db.Boolean, default=True,
                        server_default='t', nullable=False)
 
-    def get_online_users(self):
+    @property
+    def online_users(self):
         online_users = pipe.smembers(
             'room:' + str(self.id)
         ).execute()
@@ -133,7 +133,8 @@ class Room(db.Model):
         return list(online_users[0])
 
     # Retrieve most recent object from history
-    def get_most_recent_video(self):
+    @property
+    def most_recent_video(self):
         schema = HistorySchema()
 
         if self.videos:
@@ -144,7 +145,8 @@ class Room(db.Model):
         return dict() 
 
     # Retrieve last 20 objects from history
-    def get_recent_history(self):
+    @property
+    def recent_history(self):
         schema = HistorySchema(many=True)
 
         data, errors = schema.dump(reversed(self.videos[:20]))

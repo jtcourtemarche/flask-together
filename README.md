@@ -4,7 +4,7 @@
 
 Platform built on Flask that synchronizes Youtube videos using websockets.
 
-**Tested for Python 3.6+**
+**Tested for Python 3.7.0+**
 
 ## Setup
 
