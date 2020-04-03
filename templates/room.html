@@ -83,10 +83,10 @@
                     <div class="input-group">
                       <div class="col col-11">
                         <div class="input-group mr-2" role="group">
-                          <button id="play" aria-label="Play video" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-play"></i></button>
-                          <button id="pause" aria-label="Pause video" class="btn btn-outline-secondary" onclick="controlPause()"><i class="fas fa-pause"></i></button>
-                          <button id="replay" aria-label="Replay video" class="btn btn-outline-secondary" onclick="controlPlay()"><i class="fas fa-redo"></i></button>
-                          <button aria-label="Enter fullscreen video" class="btn btn-outline-secondary" onclick="controlFullscreen()"><i class="fas fa-expand"></i></button>
+                          <button id="play" aria-label="Play video" class="btn btn-outline-secondary"><i class="fas fa-play"></i></button>
+                          <button id="pause" aria-label="Pause video" class="btn btn-outline-secondary"><i class="fas fa-pause"></i></button>
+                          <button id="replay" aria-label="Replay video" class="btn btn-outline-secondary"><i class="fas fa-redo"></i></button>
+                          <button id="fullscreen" aria-label="Enter fullscreen video" class="btn btn-outline-secondary"><i class="fas fa-expand"></i></button>
                           <input aria-label="Skip to time" type="text" id="skip_to" placeholder="Skip to"/>
                           <div class="btn-group dropup">
                         <a id="playback-rates-dropdown" class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -119,7 +119,12 @@
       </div>
       <!-- Youtube iFrame API -->
       <script src="https://www.youtube.com/iframe_api"></script>
-      <!-- Player managers -->
+      <!-- Scripts -->
+      <script>
+        window.onload = function() {
+          $('.loading-screen').css('display', 'block');
+        }
+      </script>
       <script type="text/javascript" src="../static/js/sockets.js"></script>
       <script type="text/javascript" src="../static/js/player.js"></script>
       <script type="text/javascript" src="../static/js/uievents.js"></script>

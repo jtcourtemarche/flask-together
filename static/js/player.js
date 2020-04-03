@@ -1,12 +1,16 @@
 "use strict"
 
-var player, playback_rates, player_ready, socket;
-
-window.onload = function() {
-    $('.loading-screen').css('display', 'block');
+var player, si; 
+var player_states = {
+    UNSTARTED: -1,
+    ENDED: 0,
+    PLAYING: 1,
+    PAUSED: 2,
+    BUFFERING: 3,
+    CUED: 5
 }
 
-// Initialize Youtube player
+// initialize Youtube player
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
         width: $("#progress-bar").width(),
@@ -17,16 +21,14 @@ function onYouTubeIframeAPIReady() {
             cc_load_policy: 0,
             host: 'localhost',
             origin: 'localhost',
-            frameborder: 0,
             iv_load_policy: 3,
             autoplay: 1,
             modestbranding: 1,
-            disablekb: 1,
-            origin: window.location.hostname,
+            disablekb: 1
         },
         events: {
-            onReady: onReady,
-            onStateChange: stateChange
+            'onReady': onReady,
+            'onStateChange': stateChange
         }
     });
 }
@@ -34,13 +36,13 @@ function onYouTubeIframeAPIReady() {
 function onReady (event) {
     console.log('👍🏼 Youtube player loaded.')
 
+    // close loading screen
+    $('.loading-screen').css('display', 'none');
+
     updateProgressBar(event.target.getCurrentTime(), event.target.getDuration());
     updateTimerDisplay(event.target.getCurrentTime(), event.target.getDuration());
 
-    if ('captions' in event.target.getOptions()) {
-        console.log('Captions available');
-    }
-
+    event.target.unMute();
     event.target.setVolume(50);
 
     var time_update_interval = setInterval(function () {
@@ -48,11 +50,7 @@ function onReady (event) {
         updateTimerDisplay();
     }, 1000);
 
-    // Establish socket 
-    socket = connect_socket(event.target);
-
-    // Close loading screen
-    $('.loading-screen').css('display', 'none');
+    si = new SocketInterface(player);
 }
 
 function stateChange (event) {
@@ -63,7 +61,7 @@ function stateChange (event) {
         $('#replay').show();
     }
 
-    playback_rates = event.target.getAvailablePlaybackRates();
+    var playback_rates = event.target.getAvailablePlaybackRates();
     showPlaybackRates(playback_rates);
 }
 
@@ -88,90 +86,6 @@ function updateTimerDisplay() {
 function showPlaybackRates(playback_rates) {
     $("#playback-rates").empty();
     for (var p in playback_rates) {
-        $("#playback-rates").append("<a class='dropdown-item' onclick='controlRate("+playback_rates[p]+")'>"+playback_rates[p]+"</a>");
+        $("#playback-rates").append("<a class='dropdown-item' onclick='si.controlRate("+playback_rates[p]+")'>"+playback_rates[p]+"</a>");
     }
 }
-
-// Shared controls ------------------------------------------------>
-
-var controlPlayNew = function (url) {
-    if (typeof socket != 'undefined') {
-        socket.emit('user:play-new', 
-            $('meta[name=room]').data('id'),
-            url
-        );
-    }
-};
-
-var controlPlay = function () {
-    if (typeof socket != 'undefined') {
-        socket.emit('user:play', 
-            $('meta[name=room]').data('id'),
-            player.getCurrentTime()
-        );            
-    }
-};
-
-var controlPause = function () {
-    if (typeof socket != 'undefined') {
-        socket.emit('user:pause', 
-            $('meta[name=room]').data('id'),
-            player.getCurrentTime()
-        );
-        $('#play').show();
-        $('#pause').hide();
-        $('#replay').hide();
-    }
-};
-
-// Skip to 
-var controlSkip = function (time) {
-    var seconds;
-    if (typeof socket != 'undefined') {
-        if (String(time).indexOf(':') > -1) {
-            time = time.split(':');
-            if (time.length == 2) {
-                seconds = (+time[0]) * 60 + (+time[1]); 
-            } else {
-                seconds = (+time[0]) * 60 * 60 + (+time[1]) * 60 + (+time[2]); 
-            }
-            time = seconds;
-        }
-        socket.emit('user:skip', 
-            $('meta[name=room]').data('id'), 
-            time
-        );
-    }
-};
-
-// Change Playback Rate 
-var controlRate = function (rate) {
-    if (typeof socket != 'undefined') {
-        socket.emit('user:rate', 
-            $('meta[name=room]').data('id'),
-            rate
-        );
-    }
-};
-
-var controlLoadMore = function (page) {
-    if (typeof socket != 'undefined') {
-        socket.emit('user:search-load-more', 
-            $('meta[name=room]').data('id'),
-            $('#yt-url').val(),
-            page
-        );
-    }
-}
-
-// Local controls ------------------------------------------------>
-
-var controlFullscreen = function () {
-    if (typeof socket != 'undefined') {
-        var iframe = document.getElementById("youtube-player");
-
-        // Chrome only implementation
-        // TODO: support other browsers
-        iframe.webkitRequestFullScreen();
-    }
-};

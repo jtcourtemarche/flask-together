@@ -153,12 +153,12 @@ body {
     border: 1px solid #6C757D;
     text-indent: 1em;
 }
-#play, #replay {
+#play, #replay, #pause {
     display: none;
     margin-right: 5px;
 }
-#pause {
-    margin-right: 5px;
+#play {
+    display: block; 
 }
 .playback-rate {
     position: absolute;
