@@ -13,6 +13,32 @@ from extensions import pipe
 db = SQLAlchemy()
 ma = Marshmallow()
 
+# SERIALIZERS
+# schemas for serializing objects to JSON
+
+
+class HistorySchema(ma.Schema):
+    class Meta:
+        model = 'Video'
+        fields = ('id', 'watch_id', 'title', 'thumbnail', 'date', 'user_id')
+
+
+class UserSchema(ma.Schema):
+    class Meta:
+        model = 'User'
+        fields = ('id', 'name')
+
+# MODELS
+
+
+# many to many relationship between user & room
+users = db.Table('users',
+                 db.Column('room_id', db.Integer, db.ForeignKey(
+                     'room.id'), primary_key=True),
+                 db.Column('user_id', db.Integer, db.ForeignKey(
+                     'user.id'), primary_key=True)
+                 )
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,8 +46,8 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(128), nullable=False)
 
     # LastFM settings
-    fm_name = db.Column(db.String(), nullable=True, default='')
-    fm_sk = db.Column(db.String(32), nullable=True, default='')
+    fm_name = db.Column(db.String(), nullable=True, default='undefined')
+    fm_sk = db.Column(db.String(32), nullable=True, default='undefined')
 
     # videos played by user
     videos = db.relationship(
@@ -32,10 +58,6 @@ class User(db.Model, UserMixin):
 
     def checkpass(self, password):
         return check_password_hash(self.password, password)
-
-    @property
-    def lastfm_connected(self):
-        return bool(self.fm_sk != '')
 
     def join_room(self, room):
         room.users.append(self)
@@ -49,6 +71,10 @@ class User(db.Model, UserMixin):
             db.session.delete(room)
 
         db.session.commit()
+
+    @property
+    def lastfm_connected(self):
+        return bool(self.fm_sk != '')
 
     @property
     def most_played_video(self):
@@ -81,28 +107,6 @@ class Video(db.Model):
         return '<Video: %r, %r>' % (self.watch_id, self.title)
 
 
-# Allows room video history to be serialized to JSON
-class HistorySchema(ma.Schema):
-    class Meta:
-        model = Video
-        fields = ('id', 'watch_id', 'title', 'thumbnail', 'date', 'user_id')
-
-
-class UserSchema(ma.Schema):
-    class Meta:
-        model = User
-        fields = ('id', 'name')
-
-
-# many to many relationship btwn user & room
-users = db.Table('users',
-                 db.Column('room_id', db.Integer, db.ForeignKey(
-                     'room.id'), primary_key=True),
-                 db.Column('user_id', db.Integer, db.ForeignKey(
-                     'user.id'), primary_key=True)
-                 )
-
-
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
@@ -128,7 +132,7 @@ class Room(db.Model):
         ).execute()
 
         if len(online_users) <= 0:
-            return []
+            return list()
 
         return list(online_users[0])
 
@@ -142,7 +146,7 @@ class Room(db.Model):
             if not errors:
                 return data
 
-        return dict() 
+        return dict()
 
     # Retrieve last 20 objects from history
     @property
@@ -151,9 +155,9 @@ class Room(db.Model):
 
         data, errors = schema.dump(reversed(self.videos[:20]))
         if not errors:
-            return data 
+            return data
 
-        return dict() 
+        return dict()
 
     def __repr__(self):
         return '<Room: %r, %r>' % (self.id, self.name)
