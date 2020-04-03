@@ -19,7 +19,6 @@ from extensions import socketio
 
 from config import DEBUG 
 
-# TODO: namespaces
 # TODO: fix broken disconnect events
 
 # DECORATORS 
@@ -77,11 +76,13 @@ def on_connect(room_id, room=None):
     ).execute()
 
     # notify active users in room that a user has joined
-    emit('server:user-joined',
-         {'online_users': room.online_users},
-         room=room_id,
-         include_self=False
-         )
+    emit('server:user-joined', {
+            'online_users': room.online_users, 
+            'new_user_sid':  request.sid
+        },
+        room=room_id,
+        include_self=False
+    )
 
     # sync new user w/ room
     emit('server:sync', {
@@ -114,12 +115,10 @@ def on_disconnect():
         pipe.execute()
 
 
-# TODO: use the integrated flask-socketio callbacks:
-# https://flask-socketio.readthedocs.io/en/latest/
 """
     This is the path that preloaded data takes:
 
-    New User -------> Server --------> Online User
+    New User -------> Room ----------> Online User
         ^                                   |
         |                                   |
         ------------- Server <--------------|
@@ -127,21 +126,15 @@ def on_disconnect():
     Initialize a request to an online user to get the currently playing video's time
     If there are no online users, the video will play at 0:00 by default.
 """
-@socketio.on('user:signal-preload')
+@socketio.on('user:time-state-sync')
 @login_required
-@room_exists
-def signal_preload(room_id, room=None):
-    emit('server:request-data', {
-        'sid': request.sid,
-    }, room=room_id, include_self=False)
+def time_state_sync(time, state, new_user_sid):
+    emit('server:time-state-sync', {
+        'time': time,
+        'state': state,
+    }, room=new_user_sid)
 
-
-# Gather then send preload data to the newly joined user
-@socketio.on('user:preload-info')
-@login_required
-def preload(data):
-    emit('server:preload', data, room=data['sid'])
-
+# TODO: prevent flooding of time-state-syncs from multiple users!!!
 
 # TODO: split search and play-new into different events
 # process new video being played.
@@ -251,7 +244,6 @@ def play_new_handler(d):
 
 # VIDEO CONTROLS 
 
-# Play
 @socketio.on('user:play')
 @login_required
 @room_exists
@@ -259,7 +251,6 @@ def control_play(room_id, time, room=None):
     emit('server:play', {'time': time}, room=room_id)
 
 
-# Pause
 @socketio.on('user:pause')
 @login_required
 @room_exists
@@ -267,15 +258,13 @@ def control_pause(room_id, time, room=None):
     emit('server:pause', {'time': time}, room=room_id)
 
 
-# Playback rate
 @socketio.on('user:rate')
 @login_required
 @room_exists
-def control_rate(room_id, rate, room=None):
+def control_playback_rate(room_id, rate, room=None):
     emit('server:rate', {'rate': rate}, room=room_id)
 
 
-# Skip
 @socketio.on('user:skip')
 @login_required
 @room_exists
