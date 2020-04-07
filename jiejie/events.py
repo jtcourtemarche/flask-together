@@ -1,27 +1,24 @@
 #!/usr/bin/python
-from functools import wraps
 import json
 import re
 import traceback
+from functools import wraps
 
 from flask import request
 from flask_login import current_user
 from flask_socketio import disconnect
 from flask_socketio import emit
 from flask_socketio import join_room
-from flask_socketio import leave_room
 
 import jiejie.models as models
 import jiejie.youtube as youtube
+from config import DEBUG
 from extensions import fm
 from extensions import pipe
 from extensions import socketio
 
-from config import DEBUG 
+# DECORATORS
 
-# TODO: fix broken disconnect events
-
-# DECORATORS 
 
 def login_required(event):
     @wraps(event)
@@ -37,11 +34,11 @@ def login_required(event):
                     request.sid,
                     current_user.name,
                     event.__name__,
-                    str(args) 
-                )) # log every socket event
+                    str(args)
+                ))  # log every socket event
 
             return event(*args, **kwargs)
-    return inner 
+    return inner
 
 
 def room_exists(event):
@@ -55,9 +52,9 @@ def room_exists(event):
                 return event(str(room_id), room=room, *args, **kwargs)
 
         if DEBUG:
-            print(f'\nroom_exists decorator check failed!!!\narguments passed: {str(args)}\n')
+            print(
+                f'\nroom_exists decorator check failed!!!\narguments passed: {str(args)}\n')
         disconnect()
-        # TODO: dispatch frontend error when this fails
     return inner
 
 # USER HANDLERS
@@ -77,12 +74,15 @@ def on_connect(room_id, room=None):
 
     # notify active users in room that a user has joined
     emit('server:user-joined', {
-            'online_users': room.online_users, 
-            'new_user_sid':  request.sid
-        },
+        'online_users': room.online_users,
+        'new_user_sid':  request.sid
+    },
         room=room_id,
-        include_self=False
+        include_self=False,
+        callback=time_state_sync
     )
+    # wait for proper sync from user
+    pipe.set(f'time-state-sync:{request.sid}', 'waiting').execute()
 
     # sync new user w/ room
     emit('server:sync', {
@@ -90,6 +90,33 @@ def on_connect(room_id, room=None):
         'most_recent': room.most_recent_video,
         'online_users': room.online_users
     }, room=request.sid)
+
+
+"""
+    This is the path that time and state data takes:
+
+    New User -------> Room ----------> Online User
+        ^                                   |
+        |                                   |
+        ------------- Server <--------------| callback function
+
+    Initialize a request to an online user to get the currently playing video's time
+    If there are no online users, the video will play at 0:00 by default.
+"""
+
+
+def time_state_sync(time, state, new_user_sid):
+    # ignore data saying video is unplayed
+    if time != 0 and state != -1:
+        if pipe.get(f'time-state-sync:{new_user_sid}').execute()[0]:
+            pipe.delete(f'time-state-sync:{new_user_sid}')
+
+            emit('server:time-state-sync', {
+                'time': time,
+                'state': state,
+            }, room=new_user_sid)
+
+            pipe.execute()
 
 
 # Handle when a user disconnects
@@ -115,33 +142,15 @@ def on_disconnect():
         pipe.execute()
 
 
-"""
-    This is the path that preloaded data takes:
-
-    New User -------> Room ----------> Online User
-        ^                                   |
-        |                                   |
-        ------------- Server <--------------|
-
-    Initialize a request to an online user to get the currently playing video's time
-    If there are no online users, the video will play at 0:00 by default.
-"""
-@socketio.on('user:time-state-sync')
-@login_required
-def time_state_sync(time, state, new_user_sid):
-    emit('server:time-state-sync', {
-        'time': time,
-        'state': state,
-    }, room=new_user_sid)
-
-# TODO: prevent flooding of time-state-syncs from multiple users!!!
-
 # TODO: split search and play-new into different events
 # process new video being played.
 @socketio.on('user:play-new')
 @login_required
 @room_exists
 def play_new(room_id, url, room=None):
+    # play new types: direct link, channel, query
+    # TODO: playlists with auto-play?
+
     # extract unique_id from Youtube url
     yt_regex = r'(https?://)?(www\.)?youtube\.(com|nl|ca)/watch\?v=([-\w]+)'
     user_input = re.findall(yt_regex, url)
@@ -151,7 +160,7 @@ def play_new(room_id, url, room=None):
         # create video wrapper to parse video data
         wrapper = youtube.VideoWrapper(user_input[0][3])
         if not wrapper:
-            return # do nothing if can't connect to youtube api
+            return  # do nothing if can't connect to youtube api
 
         # create video object
         video = models.Video(
@@ -173,11 +182,13 @@ def play_new(room_id, url, room=None):
     elif '/channel/' in url:
         # channel URL entered into search bar
         results = youtube.check_channel(url)
-        emit('server:serve-list', {'results': results, 'append': False, 'page': 1}, room=request.sid)
+        emit('server:serve-list', {'results': results,
+                                   'append': False, 'page': 1}, room=request.sid)
     else:
         # standard Youtube search query
         results = youtube.search(url, (0, 10))
-        emit('server:serve-list', {'results': results, 'append': False, 'page': 1}, room=request.sid)
+        emit('server:serve-list', {'results': results,
+                                   'append': False, 'page': 1}, room=request.sid)
 
 
 # Handles loading more results for a Youtube search
@@ -190,7 +201,8 @@ def search_load_more(room_id, url, page, room=None):
     else:
         results = youtube.search(url, (0, 10))
 
-    emit('server:serve-list', {'results': results, 'append': True, 'page': page + 1}, room=request.sid)
+    emit('server:serve-list', {'results': results,
+                               'append': True, 'page': page + 1}, room=request.sid)
 
 
 # This is for managing cache for LastFM scrobbling
@@ -242,7 +254,7 @@ def play_new_handler(d):
                 pipe.set(current_user.name, '').execute()
 
 
-# VIDEO CONTROLS 
+# VIDEO CONTROLS
 
 @socketio.on('user:play')
 @login_required

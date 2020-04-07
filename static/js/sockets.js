@@ -79,17 +79,18 @@ class SocketInterface {
         });
 
         // handle when new user joins the room 
-        this.socket.on('server:user-joined', (data) => {
+        this.socket.on('server:user-joined', (data, callback) => {
             reload_online_users(data.online_users);
 
             // pass player time and state to new user
-            this.socket.emit('user:time-state-sync', player.getCurrentTime(), player.getPlayerState(), data.new_user_sid);
+            callback(player.getCurrentTime(), player.getPlayerState(), data.new_user_sid);
         });
 
         // sync player time and state with other users in room
         this.socket.on('server:time-state-sync', (data) => {
-            controlSkip(data.time);
-
+            //this.controlSkip(data.time);
+            player.seekTo(data.time);
+            
             switch(data.state)
             {
                 case player_states.PLAYING:
@@ -114,7 +115,7 @@ class SocketInterface {
                     player.pauseVideo();
                     break;
                 default:
-                    console.log('Failed to get player state!');
+                    console.log('Failed to get player state: ', data.state);
             }
         });
 
