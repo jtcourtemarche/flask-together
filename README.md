@@ -32,8 +32,6 @@ Your config.py file setup should look similar to this:
 YOUTUBE_KEY = "<youtube api key>"
 SECRET_KEY = "<secret key for flask>"
 
-DEBUG = False
-
 # If you want LastFM integration (these are optional)
 LASTFM_ENABLED = True
 LASTFM_KEY = "<lastfm api key>"

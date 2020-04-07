@@ -12,7 +12,6 @@ from flask_socketio import join_room
 
 import jiejie.models as models
 import jiejie.youtube as youtube
-from config import DEBUG
 from extensions import fm
 from extensions import pipe
 from extensions import socketio
@@ -24,19 +23,8 @@ def login_required(event):
     @wraps(event)
     def inner(*args, **kwargs):
         if not current_user.is_authenticated:
-            if DEBUG:
-                print('\nauthentiction check failed!!!\n')
-
             disconnect()
         else:
-            if DEBUG:
-                print('\nsid: {}\nuser: {}\nevent: {}\narguments passed: {}\n'.format(
-                    request.sid,
-                    current_user.name,
-                    event.__name__,
-                    str(args)
-                ))  # log every socket event
-
             return event(*args, **kwargs)
     return inner
 
@@ -51,9 +39,6 @@ def room_exists(event):
             if room and room.public:
                 return event(str(room_id), room=room, *args, **kwargs)
 
-        if DEBUG:
-            print(
-                f'\nroom_exists decorator check failed!!!\narguments passed: {str(args)}\n')
         disconnect()
     return inner
 
@@ -73,15 +58,13 @@ def on_connect(room_id, room=None):
     ).execute()
 
     # notify active users in room that a user has joined
-    emit('server:user-joined', {
-        'online_users': room.online_users,
-        'new_user_sid':  request.sid
-    },
-        room=room_id,
-        include_self=False,
-        callback=time_state_sync
-    )
-    # wait for proper sync from user
+    emit('server:user-joined',
+         {'online_users': room.online_users, 'sid':  request.sid},
+         room=room_id,
+         include_self=False,
+         callback=time_state_sync
+         )
+    # wait for proper time/state sync from user
     pipe.set(f'time-state-sync:{request.sid}', 'waiting').execute()
 
     # sync new user w/ room
@@ -105,18 +88,16 @@ def on_connect(room_id, room=None):
 """
 
 
-def time_state_sync(time, state, new_user_sid):
+def time_state_sync(time, state, sid):
     # ignore data saying video is unplayed
     if time != 0 and state != -1:
-        if pipe.get(f'time-state-sync:{new_user_sid}').execute()[0]:
-            pipe.delete(f'time-state-sync:{new_user_sid}')
+        if pipe.get(f'time-state-sync:{sid}').execute()[0]:
+            pipe.delete(f'time-state-sync:{sid}').execute()
 
             emit('server:time-state-sync', {
                 'time': time,
                 'state': state,
-            }, room=new_user_sid)
-
-            pipe.execute()
+            }, room=sid)
 
 
 # Handle when a user disconnects

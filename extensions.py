@@ -30,4 +30,4 @@ login_manager = LoginManager()
 login_manager.session_protection = 'basic'
 
 # SocketIO
-socketio = SocketIO()
+socketio = SocketIO(logger=True)

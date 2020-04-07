@@ -1,132 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <title></title>
-      <meta name="description" content="">
-      <meta name="author" content="">
-      <meta name="scheme" content="{{ request.scheme }}">
-      <meta name="room" data-id="{{ room.id }}" data-name="{{ room.name }}"> 
-      <meta id="current-user" data-id="{{ current_user.id }}">
-      <!-- Mobile Specific Metas -->
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <!-- CSS -->
-      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
-      <link rel="stylesheet" href="../static/css/main.css">
-      <link rel="stylesheet" href="../static/css/dark.css">
-      <link rel="stylesheet" href="../static/css/bootstrap.min.css">
-      <!-- JS -->
-      <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-      <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.2/jquery.scrollTo.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-      <script src="../static/js/bootstrap.min.js"></script>
-      <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
-      <!-- Icon -->
-      <link rel="icon" type="image/png" href="../static/images/favicon.png">
-   </head>
-   <body>
-      <div class="loading-screen">
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="scheme" content="{{ request.scheme }}">
+    <meta name="room" data-id="{{ room.id }}" data-name="{{ room.name }}">
+    <meta id="current-user" data-id="{{ current_user.id }}">
+    <!-- Mobile Specific Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/main.css">
+    <link rel="stylesheet" href="../static/css/dark.css">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <!-- JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.2/jquery.scrollTo.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <!-- Icon -->
+    <link rel="icon" type="image/png" href="../static/images/favicon.png">
+</head>
+
+<body>
+    <div class="loading-screen">
         <h1><img src="../static/images/spinner.gif">&nbsp;LOADING...</h1>
-      </div>
-      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+            <span class="navbar-toggler-icon"></span>
         </button>
         <div class="active-users"></div>
-        
         <ul class="navbar-nav ml-auto">
-          {% if current_user.lastfm_connected %}
+            {% if fm_enabled %}
+            {% if current_user.lastfm_connected %}
             <a target="_blank" href="https://www.last.fm/user/{{ current_user.fm_name }}">
-              <button type="button" class="btn btn-success" style="margin-right: 4px">
-                <i class="fab fa-lastfm-square"></i>
-                <span>{{ current_user.fm_name }}</span>
-              </button>
+                <button type="button" class="btn btn-success" style="margin-right: 4px">
+                    <i class="fab fa-lastfm-square"></i>
+                    <span>{{ current_user.fm_name }}</span>
+                </button>
             </a>
-          {% else %}
-            <a href="auth/lastfm">
-              <button type="button" class="btn btn-danger" style="margin-right: 4px">
-                <i class="fab fa-lastfm-square"></i>
-                <span>Connect your account</span>
-              </button>
+            {% else %}
+            <a href="/auth/lastfm">
+                <button type="button" class="btn btn-danger" style="margin-right: 4px">
+                    <i class="fab fa-lastfm-square"></i>
+                    <span>Connect your account</span>
+                </button>
             </a>
-            <br/>
-          {% endif %}
-          <div class="form-inline my-2 my-lg-0">
-          <div class="input-group">
-            <div id="yt-url-close" class="input-group-prepend">
-              <span id="yt-url-close-icon" aria-hidden="true" class="input-group-text"><i class="fas fa-times"></i></span>
-            </div>
-            <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
-          </div>
-          <button id="yt-search" class="btn my-2 my-sm-0">Search</button>
+            <br />
+            {% endif %}
+            {% endif %}
+            <div class="form-inline my-2 my-lg-0">
+                <div class="input-group">
+                    <div id="yt-url-close" class="input-group-prepend">
+                        <span id="yt-url-close-icon" aria-hidden="true" class="input-group-text"><i class="fas fa-times"></i></span>
+                    </div>
+                    <input id="yt-url" class="form-control mr-sm-2" type="search" style="width: 400px" placeholder="Search or Enter URL" aria-label="Search">
+                </div>
+                <button id="yt-search" class="btn my-2 my-sm-0">Search</button>
         </ul>
-      </div>
-      </nav>
-      <div class="container" style="max-width: 100%">
-         <div class="row">
+        </div>
+    </nav>
+    <div class="container" style="max-width: 100%">
+        <div class="row">
             <!-- Video embed side -->
             <div class="col-8" id="video-container">
-               <div id="video-card" class="row" style="overflow: hidden;">
-                  <div class="playback-rate"></div>
-                  <div class="embed-responsive embed-responsive-16by9">
-                    <div id="youtube-player"></div>
-                  </div>
-                  <input aria-label="Progress bar" type="range" id="progress-bar" value="0"/>
-                  <div id="duration-container">
-                      <h6 id="current-time"></h6>
-                      <h6>&nbsp;/&nbsp;</h6>
-                      <h6 id="duration"></h6>
-                      <div id="genres"></div>
-                  </div>
-                  <div style="text-indent: 1em" class="video_title"></div>
-                  <div class="row" id="controls">
-                    <div class="input-group">
-                      <div class="col col-11">
-                        <div class="input-group mr-2" role="group">
-                          <button id="play" aria-label="Play video" class="btn btn-outline-secondary"><i class="fas fa-play"></i></button>
-                          <button id="pause" aria-label="Pause video" class="btn btn-outline-secondary"><i class="fas fa-pause"></i></button>
-                          <button id="replay" aria-label="Replay video" class="btn btn-outline-secondary"><i class="fas fa-redo"></i></button>
-                          <button id="fullscreen" aria-label="Enter fullscreen video" class="btn btn-outline-secondary"><i class="fas fa-expand"></i></button>
-                          <input aria-label="Skip to time" type="text" id="skip_to" placeholder="Skip to"/>
-                          <div class="btn-group dropup">
-                        <a id="playback-rates-dropdown" class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          Playback Rates
-                        </a>
-                        <div class="dropdown-menu" id="playback-rates" aria-labelledby="dropdownMenuLink">
-                        </div>
-                      </div>
-                          <input aria-label="Volume slider" type="range" id="volume-slider" alt="Change volume" value="50"/>
-                          <span aria-label="Volume percentage" id="volume-display">50%</span>
-                        </div>
-                      </div>
-                     </div>
+                <div id="video-card" class="row" style="overflow: hidden;">
+                    <div class="playback-rate"></div>
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <div id="youtube-player"></div>
                     </div>
-                  </div>
-               </div>
+                    <input aria-label="Progress bar" type="range" id="progress-bar" value="0" />
+                    <div id="duration-container">
+                        <h6 id="current-time"></h6>
+                        <h6>&nbsp;/&nbsp;</h6>
+                        <h6 id="duration"></h6>
+                        <div id="genres"></div>
+                    </div>
+                    <div style="text-indent: 1em" class="video_title"></div>
+                    <div class="row" id="controls">
+                        <div class="input-group">
+                            <div class="col col-11">
+                                <div class="input-group mr-2" role="group">
+                                    <button id="play" aria-label="Play video" class="btn btn-outline-secondary"><i class="fas fa-play"></i></button>
+                                    <button id="pause" aria-label="Pause video" class="btn btn-outline-secondary"><i class="fas fa-pause"></i></button>
+                                    <button id="replay" aria-label="Replay video" class="btn btn-outline-secondary"><i class="fas fa-redo"></i></button>
+                                    <button id="fullscreen" aria-label="Enter fullscreen video" class="btn btn-outline-secondary"><i class="fas fa-expand"></i></button>
+                                    <input aria-label="Skip to time" type="text" id="skip_to" placeholder="Skip to" />
+                                    <div class="btn-group dropup">
+                                        <a id="playback-rates-dropdown" class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Playback Rates
+                                        </a>
+                                        <div class="dropdown-menu" id="playback-rates" aria-labelledby="dropdownMenuLink">
+                                        </div>
+                                    </div>
+                                    <input aria-label="Volume slider" type="range" id="volume-slider" alt="Change volume" value="50" />
+                                    <span aria-label="Volume percentage" id="volume-display">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <!-- Search side -->
             <div class="col-4">
                 <div class="row">
-                  <ul id="search-list" class="list-group"></ul>
-                  <ul id="history-list" class="list-group">
-                    {% for video in room.videos %}
-                      <li>{{ video.title }}</li> 
-                    {% endfor %} 
-                  </ul>
-              </div>
-              </div>
-         </div>
-      </div>
-      <!-- Youtube iFrame API -->
-      <script src="https://www.youtube.com/iframe_api"></script>
-      <!-- Scripts -->
-      <script>
-        window.onload = function() {
-          $('.loading-screen').css('display', 'block');
-        }
-      </script>
-      <script type="text/javascript" src="../static/js/sockets.js"></script>
-      <script type="text/javascript" src="../static/js/player.js"></script>
-      <script type="text/javascript" src="../static/js/uievents.js"></script>
-   </body>
+                    <ul id="search-list" class="list-group"></ul>
+                    <ul id="history-list" class="list-group">
+                        {% for video in room.videos %}
+                        <li>{{ video.title }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Youtube iFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Scripts -->
+    <script>
+    window.onload = function() {
+        $('.loading-screen').css('display', 'block');
+    }
+    </script>
+    <script type="text/javascript" src="../static/js/sockets.js"></script>
+    <script type="text/javascript" src="../static/js/player.js"></script>
+    <script type="text/javascript" src="../static/js/uievents.js"></script>
+</body>
+
 </html>

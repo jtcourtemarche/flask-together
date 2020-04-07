@@ -83,7 +83,7 @@ class SocketInterface {
             reload_online_users(data.online_users);
 
             // pass player time and state to new user
-            callback(player.getCurrentTime(), player.getPlayerState(), data.new_user_sid);
+            callback(player.getCurrentTime(), player.getPlayerState(), data.sid);
         });
 
         // sync player time and state with other users in room

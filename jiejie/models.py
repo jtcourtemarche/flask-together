@@ -153,7 +153,7 @@ class Room(db.Model):
     def recent_history(self):
         schema = HistorySchema(many=True)
 
-        data, errors = schema.dump(reversed(self.videos[:20]))
+        data, errors = schema.dump(self.videos[:20])
         if not errors:
             return data
 

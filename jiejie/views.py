@@ -66,7 +66,7 @@ def room(room_id):
         if g.user not in room.users:
             g.user.join_room(room)
 
-        return render_template('room.html', room=room)
+        return render_template('room.html', room=room, fm_enabled=fm.enabled)
 
     return 'Room doesn\'t exist.'
 
@@ -90,7 +90,7 @@ def user_history(name, index=1):
 def user_profile(name):
     user = models.User.query.filter_by(name=name).first()
     if user:
-        if user.lastfm_connected:
+        if fm.enabled and user.lastfm_connected:
             lastfm_data = fm.get_user(user.fm_name)
         else:
             lastfm_data = None

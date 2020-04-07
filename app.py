@@ -6,7 +6,6 @@ from flask_migrate import Migrate
 import jiejie.models as models
 from config import POSTGRES
 from config import SECRET_KEY
-from config import DEBUG
 from extensions import fm
 from extensions import login_manager
 from extensions import pipe
@@ -21,7 +20,6 @@ APP = Flask(__name__)
 APP.config.update(
     TEMPLATES_AUTO_RELOAD=True,
     SERVER_HOST='0.0.0.0:5000',
-    DEBUG=DEBUG,
     TESTING=False,
     SECRET_KEY=SECRET_KEY,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,

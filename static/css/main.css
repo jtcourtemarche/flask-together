@@ -23,7 +23,6 @@ body {
 .loading-screen h1 {
     color: white;
     margin: 0;
-    vertical-align: middle;
     position: relative;
     transform: translateY(-50%);
     top: 50%;
@@ -327,10 +326,13 @@ body {
     border-color: #1EAEDB !important;
     color: white;
 }
+
+.active-users .online-user {
+    display: inline-block;
+}
 .active-users .online {
     color: green;
 }
-
 .active-users .offline {
     color: gray;
 }
