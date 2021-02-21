@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://github.com/jtcourtemarche/youtube-de-locke/blob/master/static/images/logo.png" alt="youtube-de-locke" width="539" />
-</p>
-
 Platform built on Flask that synchronizes Youtube videos using websockets.
 
 **Tested for Python 3.7.0+**
