@@ -48,7 +48,7 @@ $ python manager.py
 $ flask db init
 
 # Run locally
-$ python app.py 
+$ flask run
 
 # Or run w/ Gunicorn
 $ gunicorn app:app --bind 0.0.0.0:5000 --reload -k "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"

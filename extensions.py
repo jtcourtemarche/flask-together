@@ -2,7 +2,7 @@ import redis
 from flask_login import LoginManager
 from flask_socketio import SocketIO
 
-from jiejie.lastfm import LastFMAPI
+from flask_together.lastfm import LastFMAPI
 
 # In this file, objects will be initialized and then later tied to the APP object in apps.py
 

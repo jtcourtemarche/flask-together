@@ -1,4 +1,4 @@
-import jiejie.models as models
+import flask_together.models as models
 from app import APP
 
 

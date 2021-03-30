@@ -10,8 +10,8 @@ from flask_socketio import disconnect
 from flask_socketio import emit
 from flask_socketio import join_room
 
-import jiejie.models as models
-import jiejie.youtube as youtube
+import flask_together.models as models
+import flask_together.youtube as youtube
 from extensions import fm
 from extensions import pipe
 from extensions import socketio

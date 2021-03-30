@@ -3,7 +3,7 @@ from flask import Flask
 from flask import render_template
 from flask_migrate import Migrate
 
-import jiejie.models as models
+import flask_together.models as models
 from config import POSTGRES
 from config import SECRET_KEY
 from extensions import fm
@@ -11,7 +11,7 @@ from extensions import login_manager
 from extensions import pipe
 from extensions import redis_connected
 from extensions import socketio
-from jiejie.views import urls
+from flask_together.views import urls
 
 # Initialize APP
 
@@ -67,7 +67,7 @@ fm.init_app(APP, pipe)
 login_manager.init_app(APP)
 socketio.init_app(APP)
 
-import jiejie.events  # noqa
+import flask_together.events  # noqa
 
 if __name__ == '__main__':
     socketio.run(APP)

@@ -9,7 +9,7 @@ from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
 
-import jiejie.models as models
+import flask_together.models as models
 from config import LASTFM_KEY
 from extensions import fm
 from extensions import login_manager
