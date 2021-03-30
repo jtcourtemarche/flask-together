@@ -1,6 +1,8 @@
-Platform built on Flask that synchronizes Youtube videos using websockets.
+Flask web app that synchronizes Youtube videos between multiple users.
 
-**Tested for Python 3.7.0+**
+<p align="center">
+  <img src="https://github.com/jtcourtemarche/flask-together/blob/master/static/images/screenshot.png" alt="screenshot of flask-together room" />
+</p>
 
 ## Setup
 
