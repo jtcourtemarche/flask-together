@@ -13,7 +13,13 @@ def check_channel(url):
         url.split('/channel/')[1],
         YOUTUBE_KEY
     )
-    return requests.get(api_url).json()['items']
+
+    resp = requests.get(api_url).json()
+
+    if 'error' in resp:
+        raise Exception("Youtube API improperly configured: " + resp['error']['message'])
+
+    return resp['items']
 
 
 # Returns JSON data for search query
@@ -29,7 +35,12 @@ def search(query, srange):
     query = quote(query)
     url = f'https://www.googleapis.com/youtube/v3/search?maxResults={max_results}&type=video&order=relevance&q={query}&key={YOUTUBE_KEY}&part=id%2Csnippet'
 
-    return requests.get(url).json()['items'][srange[0]:srange[1]]
+    resp = requests.get(url).json()
+
+    if 'error' in resp:
+        raise Exception("Youtube API improperly configured: " + resp['error']['message'])
+
+    return resp['items'][srange[0]:srange[1]]
 
 
 # youtube video wrapper
