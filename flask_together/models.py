@@ -142,9 +142,7 @@ class Room(db.Model):
         schema = HistorySchema()
 
         if self.videos:
-            data, errors = schema.dump(self.videos[0])
-            if not errors:
-                return data
+            return schema.dump(self.videos[0])
 
         return dict()
 
@@ -153,11 +151,7 @@ class Room(db.Model):
     def recent_history(self):
         schema = HistorySchema(many=True)
 
-        data, errors = schema.dump(self.videos[:20])
-        if not errors:
-            return data
-
-        return dict()
+        return schema.dump(self.videos[:20])
 
     def __repr__(self):
         return '<Room: %r, %r>' % (self.id, self.name)
